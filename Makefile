@@ -54,7 +54,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
 dist:
 	mkdir -p $(DIST_DIR)
 	$(CC) $(STD) $(WARN) $(UNIV_CFLAGS) -Iheaders $(SRCS) -o $(DIST_BIN)
-	tar -czf $(DIST_ARCHIVE) -C $(DIST_DIR) emerge -C ../ LICENSE README.md CHANGELOG.md
+	tar -czf $(DIST_ARCHIVE) -C $(DIST_DIR) emerge -C ../ LICENSE LICENSE.CKL README.md CHANGELOG.md
 	rm -f $(DIST_BIN)
 	@echo "[+] Release archive built at $(DIST_ARCHIVE)"
 

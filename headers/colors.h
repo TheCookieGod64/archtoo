@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+/* Archtoo - Copyright (C) 2026 TheCookieGod64 */
+
 #ifndef ARCHTOO_COLORS_H
 #define ARCHTOO_COLORS_H
 

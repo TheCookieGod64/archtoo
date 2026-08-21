@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+/* Archtoo - Copyright (C) 2026 TheCookieGod64 */
+
 #define _POSIX_C_SOURCE 200809L
 
 #include <stdio.h>
@@ -34,6 +37,12 @@ int main(int argc, char *argv[]) {
 
     if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0) {
         printf("%s v%s (Compiled C Edition)\n", ARCHTOO_NAME, ARCHTOO_VERSION);
+        printf("Copyright (C) 2026 TheCookieGod64\n");
+        printf("License GPLv3+: GNU GPL version 3 or later "
+               "<https://gnu.org/licenses/gpl.html>\n");
+        printf("This is free software: you are free to change and redistribute it.\n");
+        printf("There is NO WARRANTY, to the extent permitted by law.\n");
+        printf("See LICENSE.CKL for additional terms and the CKL-2.0 tradition.\n");
         return 0;
     }
 
