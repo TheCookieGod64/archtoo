@@ -1,15 +1,38 @@
+#define _POSIX_C_SOURCE 200809L
+
+#include <ctype.h>
+#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #include "../headers/utils.h"
 #include "../headers/config.h"
 #include "../headers/colors.h"
 
+static int g_noconfirm = 0;
+
+void set_noconfirm(int v) { g_noconfirm = v; }
+int  get_noconfirm(void)  { return g_noconfirm; }
+
 int run_cmd(const char *cmd) {
-    return system(cmd);
+    int st = system(cmd);
+    if (st == -1)
+        return -1;
+    if (WIFSIGNALED(st))
+        return 128 + WTERMSIG(st);
+    return WIFEXITED(st) ? WEXITSTATUS(st) : -1;
+}
+
+int run_cmd_quiet(const char *cmd) {
+    char buf[2048];
+    if (snprintf(buf, sizeof(buf), "%s >/dev/null 2>&1", cmd) >= (int)sizeof(buf))
+        return -1;
+    return run_cmd(buf);
 }
 
 int file_exists(const char *path) {
@@ -22,28 +45,95 @@ int dir_exists(const char *path) {
     return (stat(path, &st) == 0) && S_ISDIR(st.st_mode);
 }
 
-void init_system(void) {
-    if (!dir_exists(BUILD_DIR)) {
-        run_cmd("sudo mkdir -p " BUILD_DIR);
+int valid_pkgname(const char *s) {
+    if (!s || !*s)
+        return 0;
+    if (*s == '-' || *s == '.')
+        return 0;
+    if (strlen(s) > 128)
+        return 0;
+    for (const char *p = s; *p; p++) {
+        unsigned char c = (unsigned char)*p;
+        if (!(islower(c) || isdigit(c) || strchr("@._+-", c)))
+            return 0;
+    }
+    return 1;
+}
 
-        char chown_cmd[512];
-        const char *user = getenv("USER");
+int regex_escape(const char *in, char *out, size_t n) {
+    size_t j = 0;
+    for (const char *p = in; *p; p++) {
+        if (strchr(".^$*+?()[]{}|/\\", *p)) {
+            if (j + 2 >= n) return 0;
+            out[j++] = '\\';
+        } else if (j + 1 >= n) {
+            return 0;
+        }
+        out[j++] = *p;
+    }
+    if (j >= n) return 0;
+    out[j] = '\0';
+    return 1;
+}
+
+/* Resolves the real invoking user, even under sudo/su. */
+static const char *invoking_user(void) {
+    const char *u = getenv("SUDO_USER");
+    if (u && *u)
+        return u;
+    struct passwd *pw = getpwuid(getuid());
+    return (pw && pw->pw_name) ? pw->pw_name : NULL;
+}
+
+int init_system(void) {
+    char cmd[1024];
+
+    if (!dir_exists(BUILD_DIR)) {
+        snprintf(cmd, sizeof(cmd), "sudo mkdir -p '%s'", BUILD_DIR);
+        if (run_cmd(cmd) != 0) {
+            fprintf(stderr, COLOR_RED "[-] Could not create %s\n" COLOR_RESET, BUILD_DIR);
+            return 0;
+        }
+    }
+
+    /* Repair ownership every run, not just on first creation: a directory left
+       behind as root:root made the world file silently unwritable. */
+    if (access(EMERGE_DIR, W_OK) != 0) {
+        const char *user = invoking_user();
+        if (user && valid_pkgname(user) == 0) {
+            /* usernames may contain characters valid_pkgname rejects; only
+               allow a conservative set through to the shell. */
+            for (const char *p = user; *p; p++) {
+                unsigned char c = (unsigned char)*p;
+                if (!(isalnum(c) || strchr("._-", c))) { user = NULL; break; }
+            }
+        }
         if (user) {
-            snprintf(chown_cmd, sizeof(chown_cmd),
-                     "sudo chown -R %s:%s %s", user, user, EMERGE_DIR);
-            run_cmd(chown_cmd);
+            snprintf(cmd, sizeof(cmd), "sudo chown -R '%s' '%s'", user, EMERGE_DIR);
+            run_cmd(cmd);
         }
     }
 
     if (!file_exists(WORLD_FILE)) {
         FILE *f = fopen(WORLD_FILE, "a");
-        if (f) fclose(f);
+        if (!f) {
+            fprintf(stderr, COLOR_RED "[-] Cannot write world file %s\n" COLOR_RESET, WORLD_FILE);
+            return 0;
+        }
+        fclose(f);
     }
+
+    if (access(WORLD_FILE, W_OK) != 0) {
+        fprintf(stderr, COLOR_RED "[-] World file %s is not writable.\n" COLOR_RESET, WORLD_FILE);
+        return 0;
+    }
+
+    return 1;
 }
 
-char *get_editor(void) {
-    char *editor = getenv("EDITOR");
-    return editor ? editor : "nano";
+const char *get_editor(void) {
+    const char *editor = getenv("EDITOR");
+    return (editor && *editor) ? editor : "nano";
 }
 
 long get_cpu_cores(void) {
@@ -55,20 +145,64 @@ void set_build_env(void) {
     char makeflags[64];
     snprintf(makeflags, sizeof(makeflags), "-j%ld", get_cpu_cores());
 
-    setenv("CFLAGS", DEFAULT_CFLAGS, 1);
-    setenv("CXXFLAGS", DEFAULT_CXXFLAGS, 1);
+    /* Kernel PKGBUILDs read KCFLAGS/KCPPFLAGS from the environment, so these
+       still matter. CFLAGS/CXXFLAGS/MAKEFLAGS do NOT survive makepkg -- it
+       sources /etc/makepkg.conf and overwrites them. Those go through
+       write_makepkg_conf() and makepkg --config instead. */
     setenv("KCFLAGS", DEFAULT_KCFLAGS, 1);
     setenv("KCPPFLAGS", DEFAULT_KCFLAGS, 1);
     setenv("MAKEFLAGS", makeflags, 1);
 }
 
-int ask_yes_no(const char *question) {
-    char reply[8];
-    printf("%s [Y/n]: ", question);
+int write_makepkg_conf(char *path_out, size_t n) {
+    if (snprintf(path_out, n, "%s/makepkg.archtoo.conf", EMERGE_DIR) >= (int)n)
+        return 0;
+
+    FILE *f = fopen(path_out, "w");
+    if (!f) {
+        fprintf(stderr, COLOR_RED "[-] Cannot write %s\n" COLOR_RESET, path_out);
+        return 0;
+    }
+
+    fprintf(f,
+            "# Generated by archtoo -- do not edit, it is rewritten every build.\n"
+            "source /etc/makepkg.conf\n"
+            "CFLAGS=\"%s\"\n"
+            "CXXFLAGS=\"%s\"\n"
+            "LDFLAGS=\"${LDFLAGS}\"\n"
+            "RUSTFLAGS=\"-C opt-level=3 -C target-cpu=native\"\n"
+            "MAKEFLAGS=\"-j%ld\"\n",
+            DEFAULT_CFLAGS, DEFAULT_CXXFLAGS, get_cpu_cores());
+
+    fclose(f);
+    return 1;
+}
+
+int ask_yes_no(const char *question, int default_yes) {
+    char reply[64];
+
+    if (g_noconfirm || !isatty(STDIN_FILENO)) {
+        printf("%s [%s]: %s (auto)\n", question, default_yes ? "Y/n" : "y/N",
+               default_yes ? "yes" : "no");
+        return default_yes;
+    }
+
+    printf("%s [%s]: ", question, default_yes ? "Y/n" : "y/N");
     fflush(stdout);
 
     if (!fgets(reply, sizeof(reply), stdin))
-        return 1;
+        return default_yes;
 
-    return !(reply[0] == 'n' || reply[0] == 'N');
+    /* Drain the rest of an over-long line so it does not answer the next
+       prompt for us. */
+    if (!strchr(reply, '\n')) {
+        int c;
+        while ((c = getchar()) != '\n' && c != EOF)
+            ;
+    }
+
+    if (reply[0] == '\n' || reply[0] == '\r' || reply[0] == '\0')
+        return default_yes;
+
+    return (reply[0] == 'y' || reply[0] == 'Y');
 }

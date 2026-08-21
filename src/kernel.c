@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -6,11 +8,30 @@
 #include "../headers/utils.h"
 #include "../headers/colors.h"
 
+static int has_suffix(const char *s, const char *suf) {
+    size_t ls = strlen(s), lf = strlen(suf);
+    return ls > lf && strcmp(s + ls - lf, suf) == 0;
+}
+
 int is_kernel(const char *pkg) {
-    return (strcmp(pkg, "linux") == 0 ||
-            strcmp(pkg, "linux-zen") == 0 ||
-            strcmp(pkg, "linux-lts") == 0 ||
-            strcmp(pkg, "linux-hardened") == 0);
+    /* Prefix match so linux-rt, linux-xanmod, linux-zen-git, ... are covered
+       instead of only the four names that used to be hardcoded. */
+    static const char *not_kernels[] = {
+        "linux-firmware", "linux-api-headers", "linux-tools", "linux-docs", NULL
+    };
+
+    if (strncmp(pkg, "linux", 5) != 0)
+        return 0;
+
+    for (int i = 0; not_kernels[i]; i++)
+        if (strcmp(pkg, not_kernels[i]) == 0)
+            return 0;
+
+    if (has_suffix(pkg, "-headers") || has_suffix(pkg, "-docs") ||
+        has_suffix(pkg, "-firmware"))
+        return 0;
+
+    return 1;
 }
 
 void run_kernel_hooks(const char *pkg) {
@@ -18,13 +39,46 @@ void run_kernel_hooks(const char *pkg) {
 
     if (access("/usr/bin/mkinitcpio", X_OK) == 0) {
         printf(COLOR_BLUE ">>> [KERNEL HOOK] Generating initramfs (mkinitcpio -P)...\n" COLOR_RESET);
-        run_cmd("sudo mkinitcpio -P");
+        if (run_cmd("sudo mkinitcpio -P") != 0)
+            fprintf(stderr, COLOR_RED "[-] mkinitcpio failed -- do NOT reboot yet.\n" COLOR_RESET);
+    } else if (access("/usr/bin/dracut", X_OK) == 0) {
+        printf(COLOR_BLUE ">>> [KERNEL HOOK] Generating initramfs (dracut)...\n" COLOR_RESET);
+        if (run_cmd("sudo dracut --regenerate-all --force") != 0)
+            fprintf(stderr, COLOR_RED "[-] dracut failed -- do NOT reboot yet.\n" COLOR_RESET);
     }
 
-    if (access("/usr/bin/grub-mkconfig", X_OK) == 0) {
-        printf(COLOR_BLUE ">>> [KERNEL HOOK] Updating GRUB bootloader...\n" COLOR_RESET);
-        run_cmd("sudo grub-mkconfig -o /boot/grub/grub.cfg");
+    int bootloader = 0;
+
+    if (access("/usr/bin/grub-mkconfig", X_OK) == 0 && dir_exists("/boot/grub")) {
+        printf(COLOR_BLUE ">>> [KERNEL HOOK] Updating GRUB...\n" COLOR_RESET);
+        if (run_cmd("sudo grub-mkconfig -o /boot/grub/grub.cfg") != 0)
+            fprintf(stderr, COLOR_RED "[-] grub-mkconfig failed.\n" COLOR_RESET);
+        bootloader = 1;
     }
 
-    printf(COLOR_GREEN "[+] Kernel hooks successfully processed!\n" COLOR_RESET);
+    if (dir_exists("/boot/loader/entries") && access("/usr/bin/bootctl", X_OK) == 0) {
+        printf(COLOR_BLUE ">>> [KERNEL HOOK] systemd-boot detected.\n" COLOR_RESET);
+        run_cmd("sudo bootctl update || true");
+        bootloader = 1;
+    }
+
+    if (file_exists("/boot/refind_linux.conf") || dir_exists("/boot/EFI/refind")) {
+        printf(COLOR_YELLOW "[!] rEFInd detected -- verify /boot/refind_linux.conf.\n" COLOR_RESET);
+        bootloader = 1;
+    }
+
+    if (file_exists("/boot/limine.conf") || file_exists("/boot/limine.cfg")) {
+        printf(COLOR_YELLOW "[!] Limine detected -- verify your limine config.\n" COLOR_RESET);
+        bootloader = 1;
+    }
+
+    if (!bootloader)
+        fprintf(stderr, COLOR_YELLOW
+                "[!] No known bootloader found. Update your boot entries manually.\n" COLOR_RESET);
+
+    if (access("/usr/bin/sbctl", X_OK) == 0)
+        printf(COLOR_YELLOW "[!] sbctl present: re-sign the new kernel if Secure Boot is on.\n"
+               COLOR_RESET);
+
+    printf(COLOR_GREEN "[+] Kernel hooks processed.\n" COLOR_RESET);
 }

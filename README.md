@@ -4,7 +4,7 @@ Archtoo is a lightweight, Gentoo-style package compilation engine written in C f
 
 ## Features
 
-- Hardware-Native Compilation: Automatically exports `-march=native -O3 -pipe` and multi-threaded `MAKEFLAGS` during build execution.
+- Hardware-Native Compilation: Builds with `-march=native -O3 -pipe` and multi-threaded `MAKEFLAGS` via a generated makepkg config (environment variables alone are ignored by `makepkg`, which sources `/etc/makepkg.conf`).
 - Dual Source Resolution: Clones official Arch Linux repositories via `pkgctl` with automatic fallback to the Arch User Repository (AUR).
 - Pacman Protection: Locks built packages in `/etc/pacman.conf` under `IgnorePkg` to prevent `pacman -Syu` from overwriting custom binaries.
 - World Set Management: Tracks all user-compiled packages in `/usr/local/emerge/world`.
@@ -43,6 +43,11 @@ make
 sudo make install
 ```
 
+`make check` runs a strict warning-free compile (`-Wpedantic -Werror`), and
+`make dist` produces a portable `-march=x86-64` release archive. The default
+`make` target uses `-march=native`, so do not copy `bin/emerge` to a different
+machine — build it there instead.
+
 To remove the installed binary:
 
 ```bash
@@ -55,13 +60,14 @@ sudo make uninstall
 Fetches source code, offers optional PKGBUILD editing, compiles with native flags, installs, and locks the package:
 
 ```bash
-emerge <package_name>
+emerge <package_name>...
 ```
 
 Examples:
 ```bash
 emerge htop
 emerge linux-zen
+emerge htop neovim ripgrep      # several at once
 ```
 
 ### Unmerge a Package
@@ -83,11 +89,27 @@ emerge -U
 emerge -v
 ```
 
+### Non-interactive Mode
+Skips every prompt and uses the safe default for each (build directories are
+kept, the PKGBUILD editor is not opened):
+
+```bash
+emerge --noconfirm <package_name>
+```
+
+Archtoo must be run as your normal user, not as root — `makepkg` refuses to
+build as root. It calls `sudo` itself where privileges are required.
+
+All commands return a non-zero exit status on failure, so they can be used in
+scripts.
+
 ## System Paths
 
 - Executable Binary: `/usr/local/bin/emerge`
 - World Tracking File: `/usr/local/emerge/world`
 - Central Build Directory: `/usr/local/emerge/builds/`
+- Generated makepkg config: `/usr/local/emerge/makepkg.archtoo.conf`
+- `pacman.conf` backup (created before the first lock): `/etc/pacman.conf.archtoo.bak`
 
 ## License
 
