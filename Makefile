@@ -1,3 +1,6 @@
+# Keep in sync with headers/version.h
+VERSION     = 1.0.1
+
 CC          ?= gcc
 STD         = -std=gnu11
 WARN        = -Wall -Wextra -Wformat-truncation=2 -Wshadow -Wwrite-strings
@@ -14,7 +17,7 @@ DIST_DIR    = dist
 
 TARGET      = $(BIN_DIR)/emerge
 DIST_BIN    = $(DIST_DIR)/emerge
-DIST_ARCHIVE= $(DIST_DIR)/archtoo-v1.0.0-x86_64.tar.gz
+DIST_ARCHIVE= $(DIST_DIR)/archtoo-v$(VERSION)-x86_64.tar.gz
 
 DESTDIR     ?=
 PREFIX      ?= /usr/local
@@ -51,7 +54,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
 dist:
 	mkdir -p $(DIST_DIR)
 	$(CC) $(STD) $(WARN) $(UNIV_CFLAGS) -Iheaders $(SRCS) -o $(DIST_BIN)
-	tar -czf $(DIST_ARCHIVE) -C $(DIST_DIR) emerge -C ../ LICENSE README.md
+	tar -czf $(DIST_ARCHIVE) -C $(DIST_DIR) emerge -C ../ LICENSE README.md CHANGELOG.md
 	rm -f $(DIST_BIN)
 	@echo "[+] Release archive built at $(DIST_ARCHIVE)"
 
