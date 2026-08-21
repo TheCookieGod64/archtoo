@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.0.2
+
+### Fixed
+
+- **`makepkg` reinstalled stale packages instead of rebuilding.** Without
+  `-f`, `makepkg` finds a leftover `.pkg.tar.zst` in the build directory and
+  installs that rather than compiling ("Er werd al een pakket gebouwd..."). A
+  package was therefore never rebuilt with the native flags once an artifact
+  existed, and `emerge -U` reinstalled the whole world set without compiling
+  anything. Now uses `makepkg -sif`.
+- **Unmerge left `<pkg>-debug` orphaned.** When `makepkg.conf` has the `debug`
+  option enabled, building produces a companion debug package which is not a
+  dependency, so `pacman -Rns <pkg>` did not remove it. It is now detected and
+  removed alongside the main package.
+- Build steps are numbered `[1/4]`..`[4/4]` for ordinary packages instead of
+  skipping from 2 to 4 where the kernel-hook step would have been.
+
 ## v1.0.1
 
 Bugfix release. Three of these caused silent misbehaviour: builds were not

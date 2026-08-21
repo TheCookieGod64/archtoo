@@ -42,8 +42,22 @@ int cmd_unmerge(const char *pkg) {
 
     printf(COLOR_BLUE ">>> [1/3] Unmerging %s via pacman...\n" COLOR_RESET, pkg);
 
-    snprintf(cmd, sizeof(cmd), "sudo pacman -Rns '%s'%s",
-             pkg, get_noconfirm() ? " --noconfirm" : "");
+    /* makepkg's debug option produces a companion <pkg>-debug package. It is
+       not a dependency, so pacman -Rns leaves it behind as an orphan. */
+    char dbg[256];
+    char check[512];
+    int have_debug;
+
+    snprintf(dbg, sizeof(dbg), "%s-debug", pkg);
+    snprintf(check, sizeof(check), "pacman -Qq '%s'", dbg);
+    have_debug = (run_cmd_quiet(check) == 0);
+
+    if (have_debug)
+        snprintf(cmd, sizeof(cmd), "sudo pacman -Rns '%s' '%s'%s",
+                 pkg, dbg, get_noconfirm() ? " --noconfirm" : "");
+    else
+        snprintf(cmd, sizeof(cmd), "sudo pacman -Rns '%s'%s",
+                 pkg, get_noconfirm() ? " --noconfirm" : "");
 
     if (run_cmd(cmd) != 0) {
         fprintf(stderr, COLOR_RED "[-] Unmerge failed.\n" COLOR_RESET);

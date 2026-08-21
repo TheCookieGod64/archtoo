@@ -115,7 +115,10 @@ int compile_package(const char *pkg) {
     printf(COLOR_BLUE ">>> Compiling with makepkg (%s, -j%ld)...\n" COLOR_RESET,
            DEFAULT_CFLAGS, get_cpu_cores());
 
-    snprintf(cmd, sizeof(cmd), "makepkg -si --config '%s'%s",
+    /* -f is required: without it makepkg finds a leftover .pkg.tar.zst and
+       reinstalls it instead of compiling, so the whole point of the tool
+       (and of -U in particular) is silently skipped. */
+    snprintf(cmd, sizeof(cmd), "makepkg -sif --config '%s'%s",
              conf, get_noconfirm() ? " --noconfirm" : "");
 
     int rc = run_cmd(cmd);
@@ -219,33 +222,40 @@ int cmd_build(const char *pkg) {
     int cwd = open(".", O_RDONLY | O_CLOEXEC);
     int ok = 0;
 
-    printf(COLOR_BLUE ">>> [1/5] Fetching sources for %s...\n" COLOR_RESET, pkg);
+    /* Kernels run an extra hook step; number the steps accordingly instead
+       of printing 1, 2, 4, 5 for ordinary packages. */
+    const int kernel = is_kernel(pkg);
+    const int total = kernel ? 5 : 4;
+    int step = 1;
+
+    printf(COLOR_BLUE ">>> [%d/%d] Fetching sources for %s...\n" COLOR_RESET,
+           step++, total, pkg);
     if (!fetch_sources(pkg))
         goto out;
 
-    printf(COLOR_BLUE ">>> [2/5] Compiling package...\n" COLOR_RESET);
+    printf(COLOR_BLUE ">>> [%d/%d] Compiling package...\n" COLOR_RESET, step++, total);
     if (!compile_package(pkg))
         goto out;
 
-    if (is_kernel(pkg)) {
+    if (kernel) {
         char headers[256];
-        printf(COLOR_BLUE ">>> [3/5] Running kernel hooks...\n" COLOR_RESET);
+        printf(COLOR_BLUE ">>> [%d/%d] Running kernel hooks...\n" COLOR_RESET, step++, total);
         run_kernel_hooks(pkg);
 
         snprintf(headers, sizeof(headers), "%s-headers", pkg);
         lock_pacman_pkg(headers);
     }
 
-    printf(COLOR_BLUE ">>> [4/5] Locking in pacman.conf...\n" COLOR_RESET);
+    printf(COLOR_BLUE ">>> [%d/%d] Locking in pacman.conf...\n" COLOR_RESET, step++, total);
     lock_pacman_pkg(pkg);
     add_to_world(pkg);
 
-    printf(COLOR_BLUE ">>> [5/5] Cleaning up...\n" COLOR_RESET);
+    printf(COLOR_BLUE ">>> [%d/%d] Cleaning up...\n" COLOR_RESET, step++, total);
     cleanup_build_dir(pkg);
 
     printf(COLOR_GREEN "\n>>> DONE! %s is custom built and installed.\n" COLOR_RESET, pkg);
 
-    if (is_kernel(pkg))
+    if (kernel)
         printf(COLOR_YELLOW "[!] Reboot to load your new kernel.\n" COLOR_RESET);
 
     ok = 1;
