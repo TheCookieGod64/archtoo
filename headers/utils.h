@@ -49,4 +49,12 @@ int run_as_user(const char *cmd, const char *extra_env);
 void set_noconfirm(int v);
 int  get_noconfirm(void);
 
+/* Explicit -j value; 0 means "use every core". */
+void set_jobs(long n);
+long get_jobs(void);
+
+/* Reuse an existing build tree and continue an interrupted compile. */
+void set_resume(int v);
+int  get_resume(void);
+
 #endif

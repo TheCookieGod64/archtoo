@@ -105,6 +105,22 @@ emerge -U
 emerge -v
 ```
 
+### Build Jobs and Resuming
+
+Limit parallelism on a memory-tight machine, and continue an interrupted
+build instead of starting over:
+
+```bash
+emerge --jobs 2 firefox        # -j2 instead of one job per core
+emerge --resume firefox        # continue where the last attempt stopped
+emerge -j2 -r firefox          # both
+```
+
+`--resume` keeps the existing build tree and tells makepkg not to re-extract
+the sources, so object files from the previous attempt are reused. Large
+packages such as Firefox can take many hours; without `--resume`, pressing
+Ctrl-C means starting again from nothing.
+
 ### Non-interactive Mode
 Skips every prompt and uses the safe default for each (build directories are
 kept, the PKGBUILD editor is not opened):

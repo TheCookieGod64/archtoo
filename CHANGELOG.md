@@ -1,5 +1,28 @@
 # Changelog
 
+## v1.2.0
+
+### Added
+
+- **`-j` / `--jobs N`** sets the parallel build job count. Previously
+  `MAKEFLAGS` was hardcoded to `-j$(nproc)` and could not be overridden, which
+  is the wrong default on a memory-constrained machine: each parallel `rustc`
+  or C++ translation unit can hold several gigabytes, and an LTO link is one
+  very large single process. On a 4-core / 8 GB system, `-j2` is often the
+  difference between a build that finishes and one that thrashes swap for
+  hours. Accepts `-j2`, `-j 2`, `--jobs 2` and `--jobs=2`, validated to 1-1024.
+
+- **`-r` / `--resume`** reuses the existing build tree instead of backing it
+  up and re-cloning, and passes `-e` (`--noextract`) to makepkg so `$srcdir`
+  is left alone and already-compiled object files are kept. Without this, an
+  interrupted multi-hour build had to start from zero, because v1.1.0 always
+  destroys and re-clones. The build directory is also never deleted after a
+  `--resume` run. If no tree exists, it warns and starts fresh.
+
+- When a build fails, the error now points at `emerge --resume <package>`.
+
+## v1.1.0
+
 ## v1.1.0
 
 ### Changed

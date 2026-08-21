@@ -3,6 +3,7 @@
 
 #define _POSIX_C_SOURCE 200809L
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,6 +25,9 @@ static void print_usage(void) {
     printf("  emerge -v              Show version information\n");
     printf("\nOptions:\n");
     printf("  --noconfirm            Never prompt; use safe defaults\n");
+    printf("  -j, --jobs N           Parallel build jobs (default: all cores)\n");
+    printf("  -r, --resume           Reuse the existing build tree and continue\n");
+    printf("                         an interrupted compile\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -72,6 +76,43 @@ int main(int argc, char *argv[]) {
             set_noconfirm(1);
             continue;
         }
+
+        if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--resume") == 0) {
+            set_resume(1);
+            continue;
+        }
+
+        if (strcmp(argv[i], "-j") == 0 || strcmp(argv[i], "--jobs") == 0) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, COLOR_RED "[-] %s needs a number.\n" COLOR_RESET, argv[i]);
+                return 1;
+            }
+            char *end = NULL;
+            long n = strtol(argv[++i], &end, 10);
+            if (!end || *end != '\0' || n < 1 || n > 1024) {
+                fprintf(stderr, COLOR_RED
+                        "[-] Invalid job count '%s' (expected 1-1024).\n" COLOR_RESET, argv[i]);
+                return 1;
+            }
+            set_jobs(n);
+            continue;
+        }
+
+        /* -j4 / --jobs=4 */
+        if (strncmp(argv[i], "-j", 2) == 0 && isdigit((unsigned char)argv[i][2])) {
+            set_jobs(strtol(argv[i] + 2, NULL, 10));
+            continue;
+        }
+        if (strncmp(argv[i], "--jobs=", 7) == 0) {
+            long n = strtol(argv[i] + 7, NULL, 10);
+            if (n < 1 || n > 1024) {
+                fprintf(stderr, COLOR_RED "[-] Invalid job count.\n" COLOR_RESET);
+                return 1;
+            }
+            set_jobs(n);
+            continue;
+        }
+
         filtered[filtered_argc++] = argv[i];
     }
     filtered[filtered_argc] = NULL;
@@ -134,6 +175,11 @@ int main(int argc, char *argv[]) {
 
     if (failed) {
         fprintf(stderr, COLOR_RED "\n[-] %d package(s) failed.\n" COLOR_RESET, failed);
+        if (!get_resume())
+            fprintf(stderr, COLOR_YELLOW
+                    "    Tip: 'emerge --resume %s' continues from the existing\n"
+                    "    build tree instead of starting over.\n" COLOR_RESET,
+                    filtered[0]);
         return 1;
     }
 

@@ -125,10 +125,29 @@ int fetch_sources(const char *pkg) {
         return 0;
     }
 
-    /* Always start from a clean checkout: an existing tree is moved to
-       BACKUP_DIR and deleted, so the package is genuinely recompiled rather
-       than reusing stale sources or a prebuilt .pkg.tar.zst. The backup is
-       put back if anything fails or the user interrupts. */
+    /* --resume: keep the existing tree so an interrupted build can carry on
+       from the object files it already produced. */
+    if (get_resume()) {
+        char git_dir[600];
+        snprintf(git_dir, sizeof(git_dir), "%s/.git", path);
+
+        if (dir_exists(path)) {
+            printf(COLOR_GREEN "[+] Resuming in existing build tree %s\n" COLOR_RESET, path);
+            if (!dir_exists(git_dir))
+                fprintf(stderr, COLOR_YELLOW
+                        "[!] Not a git checkout; resuming anyway.\n" COLOR_RESET);
+            return 1;
+        }
+
+        fprintf(stderr, COLOR_YELLOW
+                "[!] --resume given but no build tree exists for %s; "
+                "starting fresh.\n" COLOR_RESET, pkg);
+    }
+
+    /* Otherwise always start from a clean checkout: an existing tree is moved
+       to BACKUP_DIR and deleted, so the package is genuinely recompiled
+       rather than reusing stale sources or a prebuilt .pkg.tar.zst. The
+       backup is put back if anything fails or the user interrupts. */
     if (!backup_existing(pkg))
         return 0;
 
@@ -183,14 +202,17 @@ int compile_package(const char *pkg) {
     if (!write_makepkg_conf(conf, sizeof(conf)))
         return 0;
 
-    printf(COLOR_BLUE ">>> Compiling with makepkg (%s, -j%ld)...\n" COLOR_RESET,
-           DEFAULT_CFLAGS, get_cpu_cores());
+    printf(COLOR_BLUE ">>> Compiling with makepkg (%s, -j%ld)%s...\n" COLOR_RESET,
+           DEFAULT_CFLAGS, get_jobs(), get_resume() ? " [resuming]" : "");
 
     /* -f is required: without it makepkg finds a leftover .pkg.tar.zst and
        reinstalls it instead of compiling, so the whole point of the tool
        (and of -U in particular) is silently skipped. */
-    snprintf(cmd, sizeof(cmd), "makepkg -sif --config '%s'%s",
-             conf, get_noconfirm() ? " --noconfirm" : "");
+    /* -e (--noextract) is what actually makes a resume work: without it
+       makepkg re-extracts $srcdir and throws away every object file. */
+    snprintf(cmd, sizeof(cmd), "makepkg -sif%s --config '%s'%s",
+             get_resume() ? "e" : "", conf,
+             get_noconfirm() ? " --noconfirm" : "");
 
     /* makepkg refuses to run as root, so under sudo this drops back to the
        invoking user. The environment has to be rebuilt inside that shell
@@ -200,7 +222,7 @@ int compile_package(const char *pkg) {
              "export KCFLAGS='%s'\n"
              "export KCPPFLAGS='%s'\n"
              "export MAKEFLAGS='-j%ld'\n",
-             DEFAULT_KCFLAGS, DEFAULT_KCFLAGS, get_cpu_cores());
+             DEFAULT_KCFLAGS, DEFAULT_KCFLAGS, get_jobs());
 
     int rc = run_as_user(cmd, env_block);
     if (rc == 130 || rc == 131) {
@@ -276,6 +298,12 @@ int lock_pacman_pkg(const char *pkg) {
 }
 
 void cleanup_build_dir(const char *pkg) {
+    if (get_resume()) {
+        printf(COLOR_YELLOW "[-] Build directory kept (--resume): %s/%s\n" COLOR_RESET,
+               BUILD_DIR, pkg);
+        return;
+    }
+
     printf(COLOR_BLUE ">>> Clean up build directory?\n" COLOR_RESET);
 
     /* Defaults to no: this is an rm -rf, and it used to answer itself "yes"

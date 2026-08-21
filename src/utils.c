@@ -17,10 +17,25 @@
 #include "../headers/config.h"
 #include "../headers/colors.h"
 
-static int g_noconfirm = 0;
+static int  g_noconfirm = 0;
+static long g_jobs = 0;
+static int  g_resume = 0;
 
 void set_noconfirm(int v) { g_noconfirm = v; }
 int  get_noconfirm(void)  { return g_noconfirm; }
+
+void set_resume(int v) { g_resume = v; }
+int  get_resume(void)  { return g_resume; }
+
+void set_jobs(long n) { g_jobs = n; }
+
+/* An explicit --jobs wins; otherwise use every core. On a memory-tight
+   machine -j<cores> is often the wrong default: each parallel rustc or
+   C++ TU can hold gigabytes, and the LTO link at the end is one huge
+   single process. */
+long get_jobs(void) {
+    return (g_jobs > 0) ? g_jobs : get_cpu_cores();
+}
 
 int run_cmd(const char *cmd) {
     int st = system(cmd);
@@ -210,7 +225,7 @@ long get_cpu_cores(void) {
 
 void set_build_env(void) {
     char makeflags[64];
-    snprintf(makeflags, sizeof(makeflags), "-j%ld", get_cpu_cores());
+    snprintf(makeflags, sizeof(makeflags), "-j%ld", get_jobs());
 
     /* Kernel PKGBUILDs read KCFLAGS/KCPPFLAGS from the environment, so these
        still matter. CFLAGS/CXXFLAGS/MAKEFLAGS do NOT survive makepkg -- it
@@ -239,7 +254,7 @@ int write_makepkg_conf(char *path_out, size_t n) {
             "LDFLAGS=\"${LDFLAGS}\"\n"
             "RUSTFLAGS=\"-C opt-level=3 -C target-cpu=native\"\n"
             "MAKEFLAGS=\"-j%ld\"\n",
-            DEFAULT_CFLAGS, DEFAULT_CXXFLAGS, get_cpu_cores());
+            DEFAULT_CFLAGS, DEFAULT_CXXFLAGS, get_jobs());
 
     fclose(f);
     return 1;
