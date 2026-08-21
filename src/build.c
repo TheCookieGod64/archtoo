@@ -114,6 +114,15 @@ static void discard_backup(void) {
     g_have_backup = 0;
 }
 
+/* The AUR git server hands out an EMPTY repository for any well-formed name,
+   even one that does not exist, so "the clone worked" is not the same as
+   "the package exists". Only a PKGBUILD proves it. */
+static int has_pkgbuild(const char *dir) {
+    char p[700];
+    snprintf(p, sizeof(p), "%s/PKGBUILD", dir);
+    return file_exists(p);
+}
+
 int fetch_sources(const char *pkg) {
     char path[512];
     char cmd[1024];
@@ -156,7 +165,7 @@ int fetch_sources(const char *pkg) {
              "pkgctl repo clone --protocol=https '%s' 2>'%s/.archtoo-fetch.log'",
              pkg, BUILD_DIR);
 
-    if (run_as_user(cmd, NULL) == 0 && dir_exists(path))
+    if (run_as_user(cmd, NULL) == 0 && has_pkgbuild(path))
         return 1;
 
     printf(COLOR_YELLOW "[!] Not found in official repos. Trying AUR...\n" COLOR_RESET);
@@ -164,8 +173,14 @@ int fetch_sources(const char *pkg) {
              "git clone 'https://aur.archlinux.org/%s.git' 2>>'%s/.archtoo-fetch.log'",
              pkg, BUILD_DIR);
 
-    if (run_as_user(cmd, NULL) == 0 && dir_exists(path))
+    if (run_as_user(cmd, NULL) == 0 && has_pkgbuild(path))
         return 1;
+
+    /* Clean up the empty checkout the AUR just handed us. */
+    if (dir_exists(path) && !has_pkgbuild(path)) {
+        snprintf(cmd, sizeof(cmd), "rm -rf '%s'", path);
+        run_cmd_quiet(cmd);
+    }
 
     fprintf(stderr, COLOR_RED "[-] Package '%s' not found in Arch repos or AUR.\n" COLOR_RESET, pkg);
     fprintf(stderr, COLOR_YELLOW "    Details: %s/.archtoo-fetch.log\n" COLOR_RESET, BUILD_DIR);

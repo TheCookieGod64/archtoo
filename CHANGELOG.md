@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.2.1
+
+### Fixed
+
+- **A nonexistent package appeared to fetch successfully.** The AUR git
+  server returns an *empty repository* for any well-formed package name,
+  including names that do not exist, so `git clone` exits 0 and creates a
+  directory. `fetch_sources()` only checked that the directory existed, so a
+  typo such as `emerge htpo` passed the fetch stage and failed later with a
+  confusing `No PKGBUILD in ...` instead of "not found". The presence of a
+  PKGBUILD is now what counts as success, for both the `pkgctl` and AUR
+  paths, and the empty checkout the AUR handed over is removed rather than
+  left behind to confuse the next run.
+
+## v1.2.0
+
 ## v1.2.0
 
 ### Added
