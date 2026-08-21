@@ -21,6 +21,9 @@ archtoo/
 ├── headers/      # C header files (.h)
 ├── src/          # C source files (.c)
 ├── Makefile      # Build configuration
+├── LICENSE       # GPL-3.0-or-later (operative)
+├── LICENSE.CKL   # GPLv3 s7 additional terms + CKL-2.0 tradition
+├── CHANGELOG.md
 └── README.md
 ```
 
@@ -113,4 +116,14 @@ scripts.
 
 ## License
 
-See the `LICENSE` file in this repository for details.
+Archtoo is licensed under the **GNU General Public License v3.0 or later**
+(SPDX: `GPL-3.0-or-later`). The full text is in [`LICENSE`](LICENSE).
+
+Additional attribution terms, granted under GPLv3 section 7, are in
+[`LICENSE.CKL`](LICENSE.CKL) — which also preserves the original
+TheCookieGod64 Public License (CKL-2.0) as the non-binding tradition it
+deserves to be. The Shrek clause survives. It is just no longer a condition
+of use, because GPLv3 section 7 does not permit adding restrictions on top
+of the GPL.
+
+If the two documents ever disagree, the GPL wins.

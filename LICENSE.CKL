@@ -1,0 +1,110 @@
+TheCookieGod64 Public License (CKL-2.0)
+========================================
+"Work Hard, Work Dumb" Edition
+Approved by Johnny_macarony10 🍝🕶️ & The High Council of Whitespace
+
+----------------------------------------------------------------------
+READ THIS FIRST — WHAT THIS DOCUMENT IS
+----------------------------------------------------------------------
+
+Archtoo is licensed under the GNU General Public License, version 3 or
+later (SPDX: GPL-3.0-or-later). The full and legally operative text is
+in the file `LICENSE`. If anything below conflicts with the GPL, the
+GPL wins. No exceptions.
+
+This document contains two things:
+
+  * Section A — additional terms that ARE legally operative, granted
+    under section 7 of the GPLv3, which permits exactly this kind of
+    attribution requirement.
+
+  * Section B — jokes. Section B is NOT a licence, NOT a condition,
+    and NOT enforceable. It grants nothing and restricts nothing.
+    It is preserved because it is funnier than a SPDX identifier.
+
+GPLv3 section 7 does not allow a licensor to impose further
+restrictions on top of the GPL. Where the original CKL-2.0 tried to
+(the Shrek royalty and the CRLF revocation), those clauses have been
+demoted to Section B and have no legal effect. Anyone who receives
+this software may ignore them entirely, and their rights under the GPL
+can never be revoked for stylistic crimes.
+
+----------------------------------------------------------------------
+SECTION A — ADDITIONAL TERMS (GPLv3 §7, legally operative)
+----------------------------------------------------------------------
+
+In accordance with section 7 of the GNU General Public License
+version 3, the following additional terms apply to Archtoo:
+
+  A.1  (per GPLv3 §7(b)) You must preserve the author attributions
+       present in this work. The author is TheCookieGod64.
+
+  A.2  (per GPLv3 §7(c)) You may not misrepresent the origin of this
+       work. You may not claim that you wrote it.
+
+  A.3  (per GPLv3 §7(e)) This licence grants you no rights to use the
+       name "Archtoo", "TheCookieGod64", or "CKL" as trademarks or
+       for endorsement purposes.
+
+As required by GPLv3 §7, a recipient who conveys this work may remove
+these additional terms from their own copy if they wish. They are a
+request backed by the only part of the GPL that permits such a
+request, not a trap.
+
+Everything the GPL grants, this project grants. You can:
+
+  - use, copy, modify, sell, fork, fuzz, or compile this code into
+    pure assembly,
+  - embed this software into a smart-fridge, burn it to a dual-layer
+    DVD+R, or
+  - explain it to your grandma (if she understands it, she works for
+    the AIVD).
+
+The one real obligation the GPL adds: if you distribute a modified
+version, you must ship your source under the GPL too. Keep it free.
+
+----------------------------------------------------------------------
+SECTION B — NON-BINDING (jokes; grants nothing, restricts nothing)
+----------------------------------------------------------------------
+
+  B.1  If your code breaks, that's YOUR problem. No warranties.
+       Not even that it compiles. If you try to run this on Wintrash,
+       your machine will automatically convert its drive to FAT16 out
+       of spite.
+
+       (The actually-enforceable version of this is GPLv3 sections 15
+       and 16, which disclaim warranty and liability in language your
+       lawyer will recognise. B.1 adds nothing legally. FAT16 outcomes
+       are not guaranteed.)
+
+  B.2  If you make money with this code, you are morally — not
+       legally — encouraged to:
+         a) Buy a physical Shrek (2001) DVD on widescreen format.
+         b) Watch it with the commentary track enabled.
+         c) Send a postcard of a Capybara to your local courthouse to
+            prove compliance.
+
+       (Not a condition of the licence. The GPL permits commercial use
+       unconditionally and a licensor may not add a royalty on top.
+       Do it anyway. It's Shrek.)
+
+  B.3  Any attempt to use CRLF line endings (\r\n) is deeply frowned
+       upon and may informally cost you:
+         - the respect of this repository,
+         - your claim to run Arch Linux,
+         - garlic bread privileges for 14 business days.
+
+       (It does NOT revoke your rights to the software. It cannot. The
+       GPL is irrevocable, and a licence that can evaporate based on
+       your editor settings is a licence nobody can build on. Please
+       still use LF.)
+
+----------------------------------------------------------------------
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT ANY WARRANTY. See GPLv3
+sections 15 and 16 for the version that holds up in court.
+
+The author is not responsible for broken DVDs, rage-quit hackers,
+corrupted MBRs, or the fact that you still don't have Wi-Fi.
+
+© 2026 TheCookieGod64 — Arch btw
