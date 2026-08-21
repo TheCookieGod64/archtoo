@@ -4,6 +4,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <fcntl.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,6 +17,103 @@
 #include "../headers/config.h"
 #include "../headers/colors.h"
 
+/* Paths kept in file scope so the SIGINT handler can put the old build tree
+   back without allocating anything. */
+static char g_target[768];
+static char g_backup[768];
+static volatile sig_atomic_t g_have_backup = 0;
+static volatile sig_atomic_t g_interrupted = 0;
+
+/* Async-signal-safe: rename(2) and write(2) only. */
+static void restore_on_signal(int sig) {
+    (void)sig;
+    g_interrupted = 1;
+    if (g_have_backup) {
+        static const char msg[] = "\n[!] Interrupted - restoring previous build tree...\n";
+        ssize_t n = write(STDERR_FILENO, msg, sizeof(msg) - 1);
+        (void)n;
+        rename(g_backup, g_target);
+        g_have_backup = 0;
+    }
+    _exit(130);
+}
+
+static void arm_signals(void) {
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = restore_on_signal;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGTERM, &sa, NULL);
+    sigaction(SIGHUP, &sa, NULL);
+}
+
+/* Moves an existing build tree aside so the package is genuinely recompiled
+   from a clean checkout, keeping the old one recoverable. */
+static int backup_existing(const char *pkg) {
+    snprintf(g_target, sizeof(g_target), "%s/%s", BUILD_DIR, pkg);
+    snprintf(g_backup, sizeof(g_backup), "%s/%s.bak", BACKUP_DIR, pkg);
+
+    if (!dir_exists(g_target))
+        return 1;
+
+    char cmd[1700];
+    if (dir_exists(g_backup)) {
+        snprintf(cmd, sizeof(cmd), "rm -rf '%s'", g_backup);
+        run_cmd_quiet(cmd);
+    }
+
+    printf(COLOR_YELLOW "[!] Existing build tree found for %s.\n" COLOR_RESET, pkg);
+    printf("    Backing it up and removing it so the package is rebuilt from scratch.\n");
+
+    if (rename(g_target, g_backup) != 0) {
+        /* Different filesystem, or a permissions problem: fall back to a copy. */
+        snprintf(cmd, sizeof(cmd), "cp -a '%s' '%s' && rm -rf '%s'",
+                 g_target, g_backup, g_target);
+        if (run_cmd_quiet(cmd) != 0) {
+            fprintf(stderr, COLOR_RED
+                    "[-] Could not move %s aside; refusing to destroy it.\n" COLOR_RESET,
+                    g_target);
+            return 0;
+        }
+    }
+
+    g_have_backup = 1;
+    printf(COLOR_GREEN "[+] Backup kept at %s\n" COLOR_RESET, g_backup);
+    return 1;
+}
+
+static void restore_backup(void) {
+    if (!g_have_backup)
+        return;
+
+    char cmd[1700];
+    fprintf(stderr, COLOR_YELLOW "[!] Restoring previous build tree...\n" COLOR_RESET);
+
+    snprintf(cmd, sizeof(cmd), "rm -rf '%s'", g_target);
+    run_cmd_quiet(cmd);
+
+    if (rename(g_backup, g_target) != 0) {
+        snprintf(cmd, sizeof(cmd), "cp -a '%s' '%s' && rm -rf '%s'",
+                 g_backup, g_target, g_backup);
+        run_cmd_quiet(cmd);
+    }
+
+    g_have_backup = 0;
+    fprintf(stderr, COLOR_GREEN "[+] Previous build tree restored to %s\n" COLOR_RESET,
+            g_target);
+}
+
+static void discard_backup(void) {
+    if (!g_have_backup)
+        return;
+
+    char cmd[900];
+    snprintf(cmd, sizeof(cmd), "rm -rf '%s'", g_backup);
+    run_cmd_quiet(cmd);
+    g_have_backup = 0;
+}
+
 int fetch_sources(const char *pkg) {
     char path[512];
     char cmd[1024];
@@ -27,46 +125,19 @@ int fetch_sources(const char *pkg) {
         return 0;
     }
 
-    if (dir_exists(path)) {
-        char git_dir[600];
-        snprintf(git_dir, sizeof(git_dir), "%s/.git", path);
-
-        if (!dir_exists(git_dir)) {
-            fprintf(stderr, COLOR_YELLOW
-                    "[!] %s exists but is not a git checkout (leftover from a failed clone).\n"
-                    COLOR_RESET, path);
-            if (!ask_yes_no("Remove it and clone again", 0)) {
-                fprintf(stderr, COLOR_RED "[-] Cannot continue with a broken checkout.\n" COLOR_RESET);
-                return 0;
-            }
-            snprintf(cmd, sizeof(cmd), "rm -rf '%s'", path);
-            run_cmd(cmd);
-        } else {
-            printf("Existing build directory found. Pulling updates via git...\n");
-            snprintf(cmd, sizeof(cmd), "git -C '%s' pull --ff-only", path);
-            if (run_cmd(cmd) != 0) {
-                fprintf(stderr, COLOR_YELLOW
-                        "[!] git pull failed -- the checkout is dirty or unreachable.\n"
-                        COLOR_RESET);
-                if (!ask_yes_no("Discard local changes and re-clone", 0)) {
-                    fprintf(stderr, COLOR_RED
-                            "[-] Refusing to build stale sources.\n" COLOR_RESET);
-                    return 0;
-                }
-                snprintf(cmd, sizeof(cmd), "rm -rf '%s'", path);
-                run_cmd(cmd);
-            } else {
-                return 1;
-            }
-        }
-    }
+    /* Always start from a clean checkout: an existing tree is moved to
+       BACKUP_DIR and deleted, so the package is genuinely recompiled rather
+       than reusing stale sources or a prebuilt .pkg.tar.zst. The backup is
+       put back if anything fails or the user interrupts. */
+    if (!backup_existing(pkg))
+        return 0;
 
     printf("Searching in official Arch repositories...\n");
     snprintf(cmd, sizeof(cmd),
              "pkgctl repo clone --protocol=https '%s' 2>'%s/.archtoo-fetch.log'",
              pkg, BUILD_DIR);
 
-    if (run_cmd(cmd) == 0 && dir_exists(path))
+    if (run_as_user(cmd, NULL) == 0 && dir_exists(path))
         return 1;
 
     printf(COLOR_YELLOW "[!] Not found in official repos. Trying AUR...\n" COLOR_RESET);
@@ -74,7 +145,7 @@ int fetch_sources(const char *pkg) {
              "git clone 'https://aur.archlinux.org/%s.git' 2>>'%s/.archtoo-fetch.log'",
              pkg, BUILD_DIR);
 
-    if (run_cmd(cmd) == 0 && dir_exists(path))
+    if (run_as_user(cmd, NULL) == 0 && dir_exists(path))
         return 1;
 
     fprintf(stderr, COLOR_RED "[-] Package '%s' not found in Arch repos or AUR.\n" COLOR_RESET, pkg);
@@ -102,7 +173,7 @@ int compile_package(const char *pkg) {
     printf(COLOR_BLUE ">>> Edit PKGBUILD for custom flags?\n" COLOR_RESET);
     if (ask_yes_no("Open in editor", 0)) {
         snprintf(cmd, sizeof(cmd), "%s PKGBUILD", get_editor());
-        run_cmd(cmd);
+        run_as_user(cmd, NULL);
     }
 
     set_build_env();
@@ -121,7 +192,17 @@ int compile_package(const char *pkg) {
     snprintf(cmd, sizeof(cmd), "makepkg -sif --config '%s'%s",
              conf, get_noconfirm() ? " --noconfirm" : "");
 
-    int rc = run_cmd(cmd);
+    /* makepkg refuses to run as root, so under sudo this drops back to the
+       invoking user. The environment has to be rebuilt inside that shell
+       because sudo does not carry it across. */
+    char env_block[512];
+    snprintf(env_block, sizeof(env_block),
+             "export KCFLAGS='%s'\n"
+             "export KCPPFLAGS='%s'\n"
+             "export MAKEFLAGS='-j%ld'\n",
+             DEFAULT_KCFLAGS, DEFAULT_KCFLAGS, get_cpu_cores());
+
+    int rc = run_as_user(cmd, env_block);
     if (rc == 130 || rc == 131) {
         fprintf(stderr, COLOR_RED "\n[-] Build interrupted by user.\n" COLOR_RESET);
         return 0;
@@ -152,7 +233,8 @@ int lock_pacman_pkg(const char *pkg) {
         return 1;
     }
 
-    snprintf(cmd, sizeof(cmd), "sudo cp -n '%s' '%s.archtoo.bak'", PACMAN_CONF, PACMAN_CONF);
+    snprintf(cmd, sizeof(cmd), "%scp -n '%s' '%s.archtoo.bak'",
+             priv_prefix(), PACMAN_CONF, PACMAN_CONF);
     run_cmd_quiet(cmd);
 
     /* Three cases, in order:
@@ -162,17 +244,17 @@ int lock_pacman_pkg(const char *pkg) {
          3. neither                              -> insert under [options]   */
     snprintf(cmd, sizeof(cmd),
              "if grep -qE '^[[:space:]]*IgnorePkg[[:space:]]*=' '%s'; then "
-               "sudo sed -i -E '/^[[:space:]]*IgnorePkg[[:space:]]*=/{ s/[[:space:]]*$//; s/$/ %s/ }' '%s'; "
+               "%ssed -i -E '/^[[:space:]]*IgnorePkg[[:space:]]*=/{ s/[[:space:]]*$//; s/$/ %s/ }' '%s'; "
              "elif grep -qE '^[[:space:]]*#[[:space:]]*IgnorePkg[[:space:]]*=' '%s'; then "
-               "sudo sed -i -E '0,/^[[:space:]]*#[[:space:]]*IgnorePkg[[:space:]]*=/{ "
+               "%ssed -i -E '0,/^[[:space:]]*#[[:space:]]*IgnorePkg[[:space:]]*=/{ "
                "/^[[:space:]]*#[[:space:]]*IgnorePkg[[:space:]]*=/{ s/^[[:space:]]*#[[:space:]]*//; "
                "s/[[:space:]]*$//; s/$/ %s/ } }' '%s'; "
              "else "
-               "sudo sed -i '/^\\[options\\]/a IgnorePkg = %s' '%s'; "
+               "%ssed -i '/^\\[options\\]/a IgnorePkg = %s' '%s'; "
              "fi",
-             PACMAN_CONF, pkg, PACMAN_CONF,
-             PACMAN_CONF, pkg, PACMAN_CONF,
-             pkg, PACMAN_CONF);
+             PACMAN_CONF, priv_prefix(), pkg, PACMAN_CONF,
+             PACMAN_CONF, priv_prefix(), pkg, PACMAN_CONF,
+             priv_prefix(), pkg, PACMAN_CONF);
 
     run_cmd(cmd);
 
@@ -222,6 +304,9 @@ int cmd_build(const char *pkg) {
     int cwd = open(".", O_RDONLY | O_CLOEXEC);
     int ok = 0;
 
+    arm_signals();
+    g_have_backup = 0;
+
     /* Kernels run an extra hook step; number the steps accordingly instead
        of printing 1, 2, 4, 5 for ordinary packages. */
     const int kernel = is_kernel(pkg);
@@ -261,6 +346,15 @@ int cmd_build(const char *pkg) {
     ok = 1;
 
 out:
+    if (ok) {
+        /* Build succeeded: the old tree is no longer needed. */
+        discard_backup();
+    } else {
+        /* Anything went wrong -- put the previous build tree back exactly
+           where it was. */
+        restore_backup();
+    }
+
     if (cwd >= 0) {
         if (fchdir(cwd) != 0) { /* the old cwd may be gone; harmless */ }
         close(cwd);

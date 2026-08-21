@@ -4,6 +4,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -51,10 +52,15 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    if (geteuid() == 0) {
+    /* Gentoo-style: "sudo emerge <pkg>" is supported. makepkg still cannot
+       run as root, so the compile is handed back to SUDO_USER. A bare root
+       login has no unprivileged user to fall back to. */
+    if (geteuid() == 0 && !getenv("SUDO_USER")) {
         fprintf(stderr, COLOR_RED
-                "[-] Do not run emerge as root: makepkg refuses to build as root.\n"
-                "    Run it as your normal user; it calls sudo where needed.\n" COLOR_RESET);
+                "[-] Running as a root login is not supported.\n"
+                "    makepkg refuses to build as root, and there is no SUDO_USER\n"
+                "    to drop back to. Use 'sudo emerge <package>' from your\n"
+                "    normal account instead.\n" COLOR_RESET);
         return 1;
     }
 

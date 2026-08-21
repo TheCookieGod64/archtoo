@@ -1,5 +1,29 @@
 # Changelog
 
+## v1.1.0
+
+### Changed
+
+- **An existing build tree is now destroyed and rebuilt, not reused.**
+  Previously `emerge firefox` found the old checkout, ran `git pull` and
+  handed it to makepkg, which frequently just reinstalled the prebuilt
+  package. Archtoo now moves the old tree to `/usr/local/emerge/backups/`,
+  deletes it, and clones fresh, so the package is genuinely recompiled every
+  time.
+- **The backup is restored automatically if anything goes wrong.** A failed
+  clone, a failed compile, or Ctrl-C puts the previous build tree back exactly
+  where it was. On success the backup is discarded. `SIGINT`, `SIGTERM` and
+  `SIGHUP` are handled, and the handler only uses async-signal-safe calls.
+- **`sudo emerge <package>` is now supported, Gentoo-style.** Because makepkg
+  refuses to run as root, Archtoo drops back to `SUDO_USER` for fetching and
+  compiling, the same way Portage drops to the `portage` user, while pacman,
+  the `pacman.conf` edits and the kernel hooks run with the privileges they
+  need. Running without sudo still works and calls sudo per-operation as
+  before. A bare root login is rejected, since there is no unprivileged user
+  to build as.
+
+## v1.0.2
+
 ## v1.0.2
 
 ### Fixed

@@ -15,6 +15,10 @@
 #define BUILD_DIR    EMERGE_DIR "/builds"
 #endif
 
+#ifndef BACKUP_DIR
+#define BACKUP_DIR   EMERGE_DIR "/backups"
+#endif
+
 #ifndef WORLD_FILE
 #define WORLD_FILE   EMERGE_DIR "/world"
 #endif

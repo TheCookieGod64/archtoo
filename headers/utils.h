@@ -35,6 +35,17 @@ int regex_escape(const char *in, char *out, size_t n);
    the optimisation flags. Returns 0 on failure. */
 int write_makepkg_conf(char *path_out, size_t n);
 
+/* "sudo " when we are not root, "" when we already are. */
+const char *priv_prefix(void);
+
+/* The unprivileged user builds must run as (makepkg refuses to run as
+   root). Resolves SUDO_USER, else the current user. */
+const char *build_user(void);
+
+/* Runs cmd as build_user() when we are root, directly otherwise.
+   extra_env is an optional block of "export X=y" lines, or NULL. */
+int run_as_user(const char *cmd, const char *extra_env);
+
 void set_noconfirm(int v);
 int  get_noconfirm(void);
 

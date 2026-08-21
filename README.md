@@ -60,6 +60,19 @@ sudo make uninstall
 ## Usage
 
 ### Build and Install a Package
+
+Archtoo can be run either way:
+
+```bash
+emerge <package>          # calls sudo for the privileged steps
+sudo emerge <package>     # Gentoo-style; drops to your user to compile
+```
+
+Building always starts from a clean checkout. An existing build tree is moved
+to `/usr/local/emerge/backups/`, deleted and re-cloned, so the package is
+really recompiled. If the build fails or you press Ctrl-C, the previous tree
+is put back automatically.
+
 Fetches source code, offers optional PKGBUILD editing, compiles with native flags, installs, and locks the package:
 
 ```bash
@@ -111,6 +124,7 @@ scripts.
 - Executable Binary: `/usr/local/bin/emerge`
 - World Tracking File: `/usr/local/emerge/world`
 - Central Build Directory: `/usr/local/emerge/builds/`
+- Build Tree Backups: `/usr/local/emerge/backups/`
 - Generated makepkg config: `/usr/local/emerge/makepkg.archtoo.conf`
 - `pacman.conf` backup (created before the first lock): `/etc/pacman.conf.archtoo.bak`
 

@@ -22,13 +22,13 @@ void unlock_pacman_pkg(const char *pkg) {
        so unlocking "linux" turned "linux-zen linux-headers" into
        "-zen -headers" and corrupted pacman.conf. */
     snprintf(cmd, sizeof(cmd),
-             "sudo sed -i -E '/^[[:space:]]*IgnorePkg[[:space:]]*=/{"
+             "%ssed -i -E '/^[[:space:]]*IgnorePkg[[:space:]]*=/{"
              "s/[[:space:]]+%s([[:space:]]|$)/\\1/g;"
              "s/=[[:space:]]*%s([[:space:]]|$)/= /g;"
              "s/[[:space:]]+$//;"
              "s/=[[:space:]]+/= /g"
              "}' '%s'",
-             esc, esc, PACMAN_CONF);
+             priv_prefix(), esc, esc, PACMAN_CONF);
     run_cmd(cmd);
 }
 
@@ -53,11 +53,11 @@ int cmd_unmerge(const char *pkg) {
     have_debug = (run_cmd_quiet(check) == 0);
 
     if (have_debug)
-        snprintf(cmd, sizeof(cmd), "sudo pacman -Rns '%s' '%s'%s",
-                 pkg, dbg, get_noconfirm() ? " --noconfirm" : "");
+        snprintf(cmd, sizeof(cmd), "%spacman -Rns '%s' '%s'%s",
+                 priv_prefix(), pkg, dbg, get_noconfirm() ? " --noconfirm" : "");
     else
-        snprintf(cmd, sizeof(cmd), "sudo pacman -Rns '%s'%s",
-                 pkg, get_noconfirm() ? " --noconfirm" : "");
+        snprintf(cmd, sizeof(cmd), "%spacman -Rns '%s'%s",
+                 priv_prefix(), pkg, get_noconfirm() ? " --noconfirm" : "");
 
     if (run_cmd(cmd) != 0) {
         fprintf(stderr, COLOR_RED "[-] Unmerge failed.\n" COLOR_RESET);

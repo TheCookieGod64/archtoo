@@ -11,6 +11,13 @@
 #include "../headers/utils.h"
 #include "../headers/colors.h"
 
+/* Runs a command with root privileges, adding sudo only when needed. */
+static int run_priv_cmd(const char *c) {
+    char buf[512];
+    snprintf(buf, sizeof(buf), "%s%s", priv_prefix(), c);
+    return run_cmd(buf);
+}
+
 static int has_suffix(const char *s, const char *suf) {
     size_t ls = strlen(s), lf = strlen(suf);
     return ls > lf && strcmp(s + ls - lf, suf) == 0;
@@ -42,11 +49,11 @@ void run_kernel_hooks(const char *pkg) {
 
     if (access("/usr/bin/mkinitcpio", X_OK) == 0) {
         printf(COLOR_BLUE ">>> [KERNEL HOOK] Generating initramfs (mkinitcpio -P)...\n" COLOR_RESET);
-        if (run_cmd("sudo mkinitcpio -P") != 0)
+        if (run_priv_cmd("mkinitcpio -P") != 0)
             fprintf(stderr, COLOR_RED "[-] mkinitcpio failed -- do NOT reboot yet.\n" COLOR_RESET);
     } else if (access("/usr/bin/dracut", X_OK) == 0) {
         printf(COLOR_BLUE ">>> [KERNEL HOOK] Generating initramfs (dracut)...\n" COLOR_RESET);
-        if (run_cmd("sudo dracut --regenerate-all --force") != 0)
+        if (run_priv_cmd("dracut --regenerate-all --force") != 0)
             fprintf(stderr, COLOR_RED "[-] dracut failed -- do NOT reboot yet.\n" COLOR_RESET);
     }
 
@@ -54,14 +61,14 @@ void run_kernel_hooks(const char *pkg) {
 
     if (access("/usr/bin/grub-mkconfig", X_OK) == 0 && dir_exists("/boot/grub")) {
         printf(COLOR_BLUE ">>> [KERNEL HOOK] Updating GRUB...\n" COLOR_RESET);
-        if (run_cmd("sudo grub-mkconfig -o /boot/grub/grub.cfg") != 0)
+        if (run_priv_cmd("grub-mkconfig -o /boot/grub/grub.cfg") != 0)
             fprintf(stderr, COLOR_RED "[-] grub-mkconfig failed.\n" COLOR_RESET);
         bootloader = 1;
     }
 
     if (dir_exists("/boot/loader/entries") && access("/usr/bin/bootctl", X_OK) == 0) {
         printf(COLOR_BLUE ">>> [KERNEL HOOK] systemd-boot detected.\n" COLOR_RESET);
-        run_cmd("sudo bootctl update || true");
+        run_priv_cmd("bootctl update || true");
         bootloader = 1;
     }
 

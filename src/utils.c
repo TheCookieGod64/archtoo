@@ -80,7 +80,7 @@ int regex_escape(const char *in, char *out, size_t n) {
 }
 
 /* Resolves the real invoking user, even under sudo/su. */
-static const char *invoking_user(void) {
+const char *build_user(void) {
     const char *u = getenv("SUDO_USER");
     if (u && *u)
         return u;
@@ -88,21 +88,76 @@ static const char *invoking_user(void) {
     return (pw && pw->pw_name) ? pw->pw_name : NULL;
 }
 
+const char *priv_prefix(void) {
+    return (geteuid() == 0) ? "" : "sudo ";
+}
+
+/* makepkg refuses to run as root, so when emerge is invoked with sudo the
+   build steps are handed back to the unprivileged user, the same way
+   Portage drops to the "portage" user. */
+int run_as_user(const char *cmd, const char *extra_env) {
+    if (geteuid() != 0) {
+        if (!extra_env || !*extra_env)
+            return run_cmd(cmd);
+        char buf[4096];
+        if (snprintf(buf, sizeof(buf), "%s%s", extra_env, cmd) >= (int)sizeof(buf))
+            return -1;
+        return run_cmd(buf);
+    }
+
+    const char *user = build_user();
+    if (!user) {
+        fprintf(stderr, COLOR_RED
+                "[-] Running as root with no SUDO_USER; cannot find an "
+                "unprivileged user to build as.\n" COLOR_RESET);
+        return -1;
+    }
+
+    /* Hand the command over via a script so nothing has to survive two
+       layers of shell quoting. */
+    char script[600];
+    snprintf(script, sizeof(script), "%s/.archtoo-step.sh", EMERGE_DIR);
+
+    FILE *f = fopen(script, "w");
+    if (!f) {
+        fprintf(stderr, COLOR_RED "[-] Cannot write %s\n" COLOR_RESET, script);
+        return -1;
+    }
+    fprintf(f, "#!/bin/sh\n%s%s\n", extra_env ? extra_env : "", cmd);
+    fclose(f);
+    chmod(script, 0755);
+
+    char chown_cmd[900];
+    snprintf(chown_cmd, sizeof(chown_cmd), "chown '%s' '%s'", user, script);
+    run_cmd_quiet(chown_cmd);
+
+    /* sudo keeps the current working directory, which makepkg needs. */
+    char cmd_buf[1024];
+    snprintf(cmd_buf, sizeof(cmd_buf), "sudo -u '%s' -- /bin/sh '%s'", user, script);
+
+    int rc = run_cmd(cmd_buf);
+    unlink(script);
+    return rc;
+}
+
 int init_system(void) {
     char cmd[1024];
 
-    if (!dir_exists(BUILD_DIR)) {
-        snprintf(cmd, sizeof(cmd), "sudo mkdir -p '%s'", BUILD_DIR);
+    if (!dir_exists(BUILD_DIR) || !dir_exists(BACKUP_DIR)) {
+        snprintf(cmd, sizeof(cmd), "%smkdir -p '%s' '%s'",
+                 priv_prefix(), BUILD_DIR, BACKUP_DIR);
         if (run_cmd(cmd) != 0) {
-            fprintf(stderr, COLOR_RED "[-] Could not create %s\n" COLOR_RESET, BUILD_DIR);
+            fprintf(stderr, COLOR_RED "[-] Could not create %s\n" COLOR_RESET, EMERGE_DIR);
             return 0;
         }
     }
 
     /* Repair ownership every run, not just on first creation: a directory left
        behind as root:root made the world file silently unwritable. */
-    if (access(EMERGE_DIR, W_OK) != 0) {
-        const char *user = invoking_user();
+    /* Under sudo the tree must belong to the build user, not to root, or
+       makepkg cannot write to it after we drop privileges. */
+    if (geteuid() == 0 || access(EMERGE_DIR, W_OK) != 0) {
+        const char *user = build_user();
         if (user && valid_pkgname(user) == 0) {
             /* usernames may contain characters valid_pkgname rejects; only
                allow a conservative set through to the shell. */
@@ -112,8 +167,9 @@ int init_system(void) {
             }
         }
         if (user) {
-            snprintf(cmd, sizeof(cmd), "sudo chown -R '%s' '%s'", user, EMERGE_DIR);
-            run_cmd(cmd);
+            snprintf(cmd, sizeof(cmd), "%schown -R '%s' '%s'",
+                     priv_prefix(), user, EMERGE_DIR);
+            run_cmd_quiet(cmd);
         }
     }
 
@@ -124,6 +180,14 @@ int init_system(void) {
             return 0;
         }
         fclose(f);
+    }
+
+    if (geteuid() == 0) {
+        const char *user = build_user();
+        if (user) {
+            snprintf(cmd, sizeof(cmd), "chown '%s' '%s'", user, WORLD_FILE);
+            run_cmd_quiet(cmd);
+        }
     }
 
     if (access(WORLD_FILE, W_OK) != 0) {
