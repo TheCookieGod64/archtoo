@@ -22,6 +22,7 @@ static long g_jobs = 0;
 static int  g_resume = 0;
 static int  g_import_keys = 1;
 static int  g_inhibit = 1;
+static int  g_sync = 1;
 
 void set_noconfirm(int v) { g_noconfirm = v; }
 int  get_noconfirm(void)  { return g_noconfirm; }
@@ -34,6 +35,9 @@ int  get_import_keys(void)  { return g_import_keys; }
 
 void set_inhibit(int v) { g_inhibit = v; }
 int  get_inhibit(void)  { return g_inhibit; }
+
+void set_sync(int v) { g_sync = v; }
+int  get_sync(void)  { return g_sync; }
 
 void set_jobs(long n) { g_jobs = n; }
 

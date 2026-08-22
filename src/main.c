@@ -21,7 +21,9 @@ static void print_usage(void) {
     printf("Usage:\n");
     printf("  emerge <package>...    Build and compile one or more packages\n");
     printf("  emerge -C <package>... Unmerge and remove packages\n");
-    printf("  emerge -U              World update (@world)\n");
+    printf("  emerge -U              World update: pacman -Syu, then rebuild @world\n");
+    printf("  emerge -D <package>... Deselect: unlock and drop from @world,\n");
+    printf("                         but keep the package installed\n");
     printf("  emerge -v              Show version information\n");
     printf("\nOptions:\n");
     printf("  --noconfirm            Never prompt; use safe defaults\n");
@@ -30,6 +32,7 @@ static void print_usage(void) {
     printf("                         an interrupted compile\n");
     printf("  --no-keys              Do not import missing PGP signing keys\n");
     printf("  --no-inhibit           Allow the machine to suspend while building\n");
+    printf("  --no-sync              Skip pacman -Syu during a world update\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -94,6 +97,11 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
+        if (strcmp(argv[i], "--no-sync") == 0) {
+            set_sync(0);
+            continue;
+        }
+
         if (strcmp(argv[i], "-j") == 0 || strcmp(argv[i], "--jobs") == 0) {
             if (i + 1 >= argc) {
                 fprintf(stderr, COLOR_RED "[-] %s needs a number.\n" COLOR_RESET, argv[i]);
@@ -140,6 +148,22 @@ int main(int argc, char *argv[]) {
         if (!init_system())
             return 1;
         return cmd_world_update() ? 0 : 1;
+    }
+
+    if (strcmp(filtered[argi], "-D") == 0 || strcmp(filtered[argi], "--deselect") == 0) {
+        if (filtered_argc < 2) {
+            fprintf(stderr, COLOR_RED "[-] Error: specify a package to deselect.\n" COLOR_RESET);
+            return 1;
+        }
+        if (!init_system())
+            return 1;
+
+        int failed = 0;
+        for (int i = 1; i < filtered_argc; i++)
+            if (!cmd_deselect(filtered[i]))
+                failed++;
+
+        return failed ? 1 : 0;
     }
 
     if (strcmp(filtered[argi], "-C") == 0 || strcmp(filtered[argi], "--unmerge") == 0) {

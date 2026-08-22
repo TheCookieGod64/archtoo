@@ -32,6 +32,33 @@ void unlock_pacman_pkg(const char *pkg) {
     run_cmd(cmd);
 }
 
+int cmd_deselect(const char *pkg) {
+    if (!valid_pkgname(pkg)) {
+        fprintf(stderr, COLOR_RED "[-] Invalid package name: '%s'\n" COLOR_RESET, pkg);
+        return 0;
+    }
+
+    if (!is_in_world(pkg))
+        fprintf(stderr, COLOR_YELLOW
+                "[!] %s is not in the world set; unlocking anyway.\n" COLOR_RESET, pkg);
+
+    printf(COLOR_BLUE ">>> [1/2] Unlocking %s in pacman.conf...\n" COLOR_RESET, pkg);
+    unlock_pacman_pkg(pkg);
+
+    if (is_kernel(pkg)) {
+        char headers[256];
+        snprintf(headers, sizeof(headers), "%s-headers", pkg);
+        unlock_pacman_pkg(headers);
+    }
+
+    printf(COLOR_BLUE ">>> [2/2] Removing %s from the world set...\n" COLOR_RESET, pkg);
+    remove_from_world(pkg);
+
+    printf(COLOR_GREEN "[+] %s deselected. It stays installed, and pacman will\n"
+           "    manage it again from the official repositories.\n" COLOR_RESET, pkg);
+    return 1;
+}
+
 int cmd_unmerge(const char *pkg) {
     char cmd[1024];
 

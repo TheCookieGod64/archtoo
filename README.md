@@ -94,11 +94,28 @@ emerge -C <package_name>
 ```
 
 ### Rebuild World Set
-Rebuilds all packages listed in `/usr/local/emerge/world`:
+Upgrades the binary system with `pacman -Syu`, then rebuilds everything
+listed in `/usr/local/emerge/world`:
 
 ```bash
 emerge -U
+emerge -U --no-sync      # rebuild only, skip pacman -Syu
 ```
+
+World packages are held in `IgnorePkg`, so the pacman step cannot touch them
+and cannot cause a partial upgrade. If the upgrade fails, the rebuild is
+abandoned rather than run on top of a half-updated system.
+
+### Deselect a Package
+Hands a package back to pacman without uninstalling it -- the `IgnorePkg`
+lock is removed and it is dropped from the world set, but it stays installed:
+
+```bash
+emerge -D <package_name>
+```
+
+Use this instead of `-C` for anything other packages depend on. `pacman -Rns
+ffmpeg` would refuse outright, since half the system links against it.
 
 ### Display Version
 ```bash

@@ -1,5 +1,36 @@
 # Changelog
 
+## v1.4.0
+
+### Added
+
+- **`emerge -D <package>` / `--deselect`** stops managing a package without
+  uninstalling it: the `IgnorePkg` lock is removed and the entry is dropped
+  from the world set, but the package stays installed and pacman takes over
+  again. This is Gentoo's `emerge --deselect`. Previously the only way to
+  hand a package back was a full unmerge, which is impossible for anything
+  other packages depend on -- `pacman -Rns ffmpeg` simply refuses -- leaving
+  no way out but editing `pacman.conf` and the world file by hand. Kernels
+  also have their `-headers` companion unlocked.
+
+- **`emerge -U` now runs `pacman -Syu` before rebuilding the world set.**
+  The order is deliberate: world packages are held in `IgnorePkg`, so pacman
+  skips them and cannot produce a partial upgrade, and the source rebuilds
+  then link against the freshly updated libraries. If the upgrade fails the
+  world rebuild is abandoned rather than run on top of a half-updated
+  system. Skip with `--no-sync`.
+
+### Fixed
+
+- **A broken `systemd-inhibit` could kill the build.** v1.3.0 only checked
+  that the binary existed, but it is present and non-functional in
+  containers, in some SSH sessions and under restrictive polkit, where it
+  exits with "Access denied". Wrapping makepkg in a command that fails meant
+  the compile never started. It is now probed with a no-op first, and the
+  build proceeds without inhibition if it is unusable.
+
+## v1.3.0
+
 ## v1.3.0
 
 ### Added

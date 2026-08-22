@@ -265,7 +265,20 @@ int compile_package(const char *pkg) {
 
     /* Multi-hour builds are routinely lost to idle suspend. Hold the machine
        awake for exactly as long as the compile runs. */
-    int inhibit = get_inhibit() && have_cmd("systemd-inhibit");
+    /* Presence is not enough: systemd-inhibit exists but returns "Access
+       denied" without a logind session (containers, some SSH sessions,
+       restrictive polkit). Wrapping the build in something that fails would
+       kill the build outright, so probe it with a no-op first. */
+    int inhibit = 0;
+    if (get_inhibit() && have_cmd("systemd-inhibit")) {
+        inhibit = (run_cmd_quiet("systemd-inhibit --what=idle --who=archtoo "
+                                 "--why=probe true") == 0);
+        if (!inhibit)
+            fprintf(stderr, COLOR_YELLOW
+                    "[!] systemd-inhibit is present but not usable here "
+                    "(no logind session?);\n"
+                    "    building without suspend inhibition.\n" COLOR_RESET);
+    }
 
     if (inhibit) {
         printf(COLOR_BLUE ">>> Suspend and idle inhibited for the duration of the build.\n"
@@ -276,7 +289,7 @@ int compile_package(const char *pkg) {
                  pkg, makepkg_cmd);
     } else {
         snprintf(cmd, sizeof(cmd), "%s", makepkg_cmd);
-        if (get_inhibit())
+        if (get_inhibit() && !have_cmd("systemd-inhibit"))
             fprintf(stderr, COLOR_YELLOW
                     "[!] systemd-inhibit not found; the machine may suspend mid-build.\n"
                     COLOR_RESET);

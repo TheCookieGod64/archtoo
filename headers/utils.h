@@ -65,6 +65,10 @@ int  get_import_keys(void);
 void set_inhibit(int v);
 int  get_inhibit(void);
 
+/* Run pacman -Syu as part of a world update. */
+void set_sync(int v);
+int  get_sync(void);
+
 /* Hands a file back to the build user after root created it. Without this,
    a root-created file becomes unwritable by a later non-sudo run. */
 void fix_owner(const char *path);

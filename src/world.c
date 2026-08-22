@@ -101,6 +101,29 @@ int cmd_world_update(void) {
     printf("   ARCHTOO WORLD UPDATE v%s\n", ARCHTOO_VERSION);
     printf("==========================================================\n" COLOR_RESET);
 
+    /* Upgrade the binary system first, then rebuild the source-built set on
+       top of it. Doing it in this order matters: world packages are held in
+       IgnorePkg, so pacman skips them and cannot cause a partial upgrade,
+       and the rebuilds then link against the freshly updated libraries. */
+    if (get_sync()) {
+        char cmd[256];
+        printf(COLOR_BLUE "\n>>> [SYSTEM] Upgrading binary packages (pacman -Syu)...\n"
+               COLOR_RESET);
+
+        snprintf(cmd, sizeof(cmd), "%spacman -Syu%s",
+                 priv_prefix(), get_noconfirm() ? " --noconfirm" : "");
+
+        int rc = run_cmd(cmd);
+        if (rc != 0) {
+            fprintf(stderr, COLOR_RED
+                    "[-] pacman -Syu failed (exit %d). Not rebuilding the world set on\n"
+                    "    top of a half-updated system. Fix the upgrade, then retry.\n"
+                    COLOR_RESET, rc);
+            return 0;
+        }
+        printf(COLOR_GREEN "[+] Binary packages up to date.\n" COLOR_RESET);
+    }
+
     FILE *f = fopen(WORLD_FILE, "r");
     if (!f) {
         fprintf(stderr, COLOR_YELLOW "[-] No world file found.\n" COLOR_RESET);
