@@ -121,6 +121,16 @@ the sources, so object files from the previous attempt are reused. Large
 packages such as Firefox can take many hours; without `--resume`, pressing
 Ctrl-C means starting again from nothing.
 
+### PGP Keys and Suspend
+
+Both are automatic:
+
+- Signing keys listed in a PKGBUILD's `validpgpkeys` are imported before the
+  build, so signature verification does not stop the compile. Turn off with
+  `--no-keys`.
+- The machine is kept awake for the duration of the build via
+  `systemd-inhibit`. Turn off with `--no-inhibit`.
+
 ### Non-interactive Mode
 Skips every prompt and uses the safe default for each (build directories are
 kept, the PKGBUILD editor is not opened):

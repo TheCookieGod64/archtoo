@@ -57,4 +57,19 @@ long get_jobs(void);
 void set_resume(int v);
 int  get_resume(void);
 
+/* Automatic PGP key import for PKGBUILDs with validpgpkeys. */
+void set_import_keys(int v);
+int  get_import_keys(void);
+
+/* Keep the machine awake for the duration of a build. */
+void set_inhibit(int v);
+int  get_inhibit(void);
+
+/* Hands a file back to the build user after root created it. Without this,
+   a root-created file becomes unwritable by a later non-sudo run. */
+void fix_owner(const char *path);
+
+/* True if the command is resolvable on PATH. */
+int have_cmd(const char *name);
+
 #endif

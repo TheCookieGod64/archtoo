@@ -49,6 +49,7 @@ void add_to_world(const char *pkg) {
 
     fprintf(f, "%s\n", pkg);
     fclose(f);
+    fix_owner(WORLD_FILE);
     printf(COLOR_GREEN "[+] %s registered in %s\n" COLOR_RESET, pkg, WORLD_FILE);
 }
 
@@ -87,7 +88,12 @@ void remove_from_world(const char *pkg) {
     if (rename(tmp, WORLD_FILE) != 0) {
         remove(tmp);
         fprintf(stderr, COLOR_RED "[-] Could not replace world file.\n" COLOR_RESET);
+        return;
     }
+
+    /* The replacement was created by whoever is running us; if that was root
+       the world file would otherwise become unwritable without sudo. */
+    fix_owner(WORLD_FILE);
 }
 
 int cmd_world_update(void) {

@@ -47,11 +47,11 @@ int is_kernel(const char *pkg) {
 void run_kernel_hooks(const char *pkg) {
     printf(COLOR_PURPLE ">>> [KERNEL HOOK] Kernel detected: %s\n" COLOR_RESET, pkg);
 
-    if (access("/usr/bin/mkinitcpio", X_OK) == 0) {
+    if (have_cmd("mkinitcpio")) {
         printf(COLOR_BLUE ">>> [KERNEL HOOK] Generating initramfs (mkinitcpio -P)...\n" COLOR_RESET);
         if (run_priv_cmd("mkinitcpio -P") != 0)
             fprintf(stderr, COLOR_RED "[-] mkinitcpio failed -- do NOT reboot yet.\n" COLOR_RESET);
-    } else if (access("/usr/bin/dracut", X_OK) == 0) {
+    } else if (have_cmd("dracut")) {
         printf(COLOR_BLUE ">>> [KERNEL HOOK] Generating initramfs (dracut)...\n" COLOR_RESET);
         if (run_priv_cmd("dracut --regenerate-all --force") != 0)
             fprintf(stderr, COLOR_RED "[-] dracut failed -- do NOT reboot yet.\n" COLOR_RESET);
@@ -59,14 +59,14 @@ void run_kernel_hooks(const char *pkg) {
 
     int bootloader = 0;
 
-    if (access("/usr/bin/grub-mkconfig", X_OK) == 0 && dir_exists("/boot/grub")) {
+    if (have_cmd("grub-mkconfig") && dir_exists("/boot/grub")) {
         printf(COLOR_BLUE ">>> [KERNEL HOOK] Updating GRUB...\n" COLOR_RESET);
         if (run_priv_cmd("grub-mkconfig -o /boot/grub/grub.cfg") != 0)
             fprintf(stderr, COLOR_RED "[-] grub-mkconfig failed.\n" COLOR_RESET);
         bootloader = 1;
     }
 
-    if (dir_exists("/boot/loader/entries") && access("/usr/bin/bootctl", X_OK) == 0) {
+    if (dir_exists("/boot/loader/entries") && have_cmd("bootctl")) {
         printf(COLOR_BLUE ">>> [KERNEL HOOK] systemd-boot detected.\n" COLOR_RESET);
         run_priv_cmd("bootctl update || true");
         bootloader = 1;
@@ -86,7 +86,7 @@ void run_kernel_hooks(const char *pkg) {
         fprintf(stderr, COLOR_YELLOW
                 "[!] No known bootloader found. Update your boot entries manually.\n" COLOR_RESET);
 
-    if (access("/usr/bin/sbctl", X_OK) == 0)
+    if (have_cmd("sbctl"))
         printf(COLOR_YELLOW "[!] sbctl present: re-sign the new kernel if Secure Boot is on.\n"
                COLOR_RESET);
 

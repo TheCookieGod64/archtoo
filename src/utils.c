@@ -20,12 +20,20 @@
 static int  g_noconfirm = 0;
 static long g_jobs = 0;
 static int  g_resume = 0;
+static int  g_import_keys = 1;
+static int  g_inhibit = 1;
 
 void set_noconfirm(int v) { g_noconfirm = v; }
 int  get_noconfirm(void)  { return g_noconfirm; }
 
 void set_resume(int v) { g_resume = v; }
 int  get_resume(void)  { return g_resume; }
+
+void set_import_keys(int v) { g_import_keys = v; }
+int  get_import_keys(void)  { return g_import_keys; }
+
+void set_inhibit(int v) { g_inhibit = v; }
+int  get_inhibit(void)  { return g_inhibit; }
 
 void set_jobs(long n) { g_jobs = n; }
 
@@ -107,6 +115,25 @@ const char *priv_prefix(void) {
     return (geteuid() == 0) ? "" : "sudo ";
 }
 
+int have_cmd(const char *name) {
+    char cmd[512];
+    snprintf(cmd, sizeof(cmd), "command -v '%s'", name);
+    return run_cmd_quiet(cmd) == 0;
+}
+
+void fix_owner(const char *path) {
+    if (geteuid() != 0)
+        return;
+
+    const char *user = build_user();
+    if (!user)
+        return;
+
+    char cmd[1024];
+    snprintf(cmd, sizeof(cmd), "chown '%s' '%s'", user, path);
+    run_cmd_quiet(cmd);
+}
+
 /* makepkg refuses to run as root, so when emerge is invoked with sudo the
    build steps are handed back to the unprivileged user, the same way
    Portage drops to the "portage" user. */
@@ -131,7 +158,8 @@ int run_as_user(const char *cmd, const char *extra_env) {
     /* Hand the command over via a script so nothing has to survive two
        layers of shell quoting. */
     char script[600];
-    snprintf(script, sizeof(script), "%s/.archtoo-step.sh", EMERGE_DIR);
+    snprintf(script, sizeof(script), "%s/.archtoo-step-%ld.sh",
+             EMERGE_DIR, (long)getpid());
 
     FILE *f = fopen(script, "w");
     if (!f) {
@@ -142,9 +170,7 @@ int run_as_user(const char *cmd, const char *extra_env) {
     fclose(f);
     chmod(script, 0755);
 
-    char chown_cmd[900];
-    snprintf(chown_cmd, sizeof(chown_cmd), "chown '%s' '%s'", user, script);
-    run_cmd_quiet(chown_cmd);
+    fix_owner(script);
 
     /* sudo keeps the current working directory, which makepkg needs. */
     char cmd_buf[1024];
@@ -257,6 +283,7 @@ int write_makepkg_conf(char *path_out, size_t n) {
             DEFAULT_CFLAGS, DEFAULT_CXXFLAGS, get_jobs());
 
     fclose(f);
+    fix_owner(path_out);
     return 1;
 }
 

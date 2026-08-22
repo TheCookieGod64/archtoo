@@ -28,6 +28,8 @@ static void print_usage(void) {
     printf("  -j, --jobs N           Parallel build jobs (default: all cores)\n");
     printf("  -r, --resume           Reuse the existing build tree and continue\n");
     printf("                         an interrupted compile\n");
+    printf("  --no-keys              Do not import missing PGP signing keys\n");
+    printf("  --no-inhibit           Allow the machine to suspend while building\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -79,6 +81,16 @@ int main(int argc, char *argv[]) {
 
         if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--resume") == 0) {
             set_resume(1);
+            continue;
+        }
+
+        if (strcmp(argv[i], "--no-keys") == 0) {
+            set_import_keys(0);
+            continue;
+        }
+
+        if (strcmp(argv[i], "--no-inhibit") == 0) {
+            set_inhibit(0);
             continue;
         }
 

@@ -1,5 +1,41 @@
 # Changelog
 
+## v1.3.0
+
+### Added
+
+- **Missing PGP signing keys are imported automatically.** PKGBUILDs that
+  verify upstream signatures list their keys in `validpgpkeys`; if those are
+  not in your keyring makepkg stops with "One or more PGP signatures could not
+  be verified", which is the single most common way an otherwise-fine AUR
+  build fails. Archtoo now reads the array, skips keys you already have, and
+  fetches the rest from `keyserver.ubuntu.com`, falling back to
+  `keys.openpgp.org`. Both 40- and 16-character key IDs are handled, in
+  single- and multi-line arrays. The array is parsed with awk rather than by
+  sourcing the PKGBUILD, so nothing from it executes at that point. Disable
+  with `--no-keys`.
+
+- **The machine no longer suspends mid-build.** The compile is wrapped in
+  `systemd-inhibit --what=sleep:idle:handle-lid-switch`, held for exactly the
+  duration of the build and released afterwards. Losing a multi-hour compile
+  to idle suspend is otherwise very easy. Disable with `--no-inhibit`. If
+  `systemd-inhibit` is unavailable, Archtoo warns and builds anyway.
+
+### Fixed
+
+- **Files created under `sudo` stayed owned by root**, which broke the next
+  non-sudo run. `makepkg.archtoo.conf` and the rewritten world file were both
+  created by root and never handed back, so after any `sudo emerge` a plain
+  `emerge <pkg>` would fail with "Cannot write /usr/local/emerge/
+  makepkg.archtoo.conf". Both are now chowned to the build user.
+- The temporary script used to drop privileges had a fixed name, so two
+  concurrent runs could overwrite each other's. It is now per-process.
+- Tool detection used hardcoded `/usr/bin/...` paths, which missed binaries
+  installed elsewhere. `systemd-inhibit`, `mkinitcpio`, `dracut`,
+  `grub-mkconfig`, `bootctl` and `sbctl` are now looked up on `PATH`.
+
+## v1.2.1
+
 ## v1.2.1
 
 ### Fixed

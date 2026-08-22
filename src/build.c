@@ -187,6 +187,37 @@ int fetch_sources(const char *pkg) {
     return 0;
 }
 
+/* PKGBUILDs that verify upstream signatures list the signing keys in
+   validpgpkeys. If those keys are not in the user's keyring, makepkg stops
+   with "One or more PGP signatures could not be verified", which is the most
+   common way an otherwise-fine AUR build fails. Import them up front.
+
+   The array is parsed with awk rather than by sourcing the PKGBUILD, so no
+   code from it runs at this point. */
+static void import_pgp_keys(void) {
+    if (!get_import_keys() || !file_exists("PKGBUILD"))
+        return;
+
+    char cmd[2048];
+    snprintf(cmd, sizeof(cmd),
+        "keys=$(awk '/^[[:space:]]*validpgpkeys=\\(/,/\\)/' PKGBUILD "
+        "| grep -oE '[0-9A-Fa-f]{40}|[0-9A-Fa-f]{16}' | sort -u); "
+        "[ -z \"$keys\" ] && exit 0; "
+        "for k in $keys; do "
+        "  if gpg --list-keys \"$k\" >/dev/null 2>&1; then "
+        "    echo \"    already have $k\"; "
+        "  else "
+        "    echo \"    importing $k\"; "
+        "    gpg --keyserver keyserver.ubuntu.com --recv-keys \"$k\" >/dev/null 2>&1 "
+        "      || gpg --keyserver keys.openpgp.org --recv-keys \"$k\" >/dev/null 2>&1 "
+        "      || echo \"    [!] could not fetch $k\"; "
+        "  fi; "
+        "done");
+
+    printf(COLOR_BLUE ">>> Checking PGP signing keys...\n" COLOR_RESET);
+    run_as_user(cmd, NULL);
+}
+
 int compile_package(const char *pkg) {
     char path[512];
     char conf[512];
@@ -210,6 +241,8 @@ int compile_package(const char *pkg) {
         run_as_user(cmd, NULL);
     }
 
+    import_pgp_keys();
+
     set_build_env();
 
     /* makepkg sources /etc/makepkg.conf and clobbers any exported CFLAGS,
@@ -225,9 +258,29 @@ int compile_package(const char *pkg) {
        (and of -U in particular) is silently skipped. */
     /* -e (--noextract) is what actually makes a resume work: without it
        makepkg re-extracts $srcdir and throws away every object file. */
-    snprintf(cmd, sizeof(cmd), "makepkg -sif%s --config '%s'%s",
+    char makepkg_cmd[900];
+    snprintf(makepkg_cmd, sizeof(makepkg_cmd), "makepkg -sif%s --config '%s'%s",
              get_resume() ? "e" : "", conf,
              get_noconfirm() ? " --noconfirm" : "");
+
+    /* Multi-hour builds are routinely lost to idle suspend. Hold the machine
+       awake for exactly as long as the compile runs. */
+    int inhibit = get_inhibit() && have_cmd("systemd-inhibit");
+
+    if (inhibit) {
+        printf(COLOR_BLUE ">>> Suspend and idle inhibited for the duration of the build.\n"
+               COLOR_RESET);
+        snprintf(cmd, sizeof(cmd),
+                 "systemd-inhibit --what=sleep:idle:handle-lid-switch "
+                 "--who=archtoo --why='Compiling %s' --mode=block -- %s",
+                 pkg, makepkg_cmd);
+    } else {
+        snprintf(cmd, sizeof(cmd), "%s", makepkg_cmd);
+        if (get_inhibit())
+            fprintf(stderr, COLOR_YELLOW
+                    "[!] systemd-inhibit not found; the machine may suspend mid-build.\n"
+                    COLOR_RESET);
+    }
 
     /* makepkg refuses to run as root, so under sudo this drops back to the
        invoking user. The environment has to be rebuilt inside that shell
