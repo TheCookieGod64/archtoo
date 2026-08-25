@@ -51,15 +51,15 @@ static void arm_signals(void) {
 /* Moves an existing build tree aside so the package is genuinely recompiled
    from a clean checkout, keeping the old one recoverable. */
 static int backup_existing(const char *pkg) {
-    snprintf(g_target, sizeof(g_target), "%s/%s", BUILD_DIR, pkg);
-    snprintf(g_backup, sizeof(g_backup), "%s/%s.bak", BACKUP_DIR, pkg);
+    xsnprintf(g_target, sizeof(g_target), "%s/%s", BUILD_DIR, pkg);
+    xsnprintf(g_backup, sizeof(g_backup), "%s/%s.bak", BACKUP_DIR, pkg);
 
     if (!dir_exists(g_target))
         return 1;
 
     char cmd[1700];
     if (dir_exists(g_backup)) {
-        snprintf(cmd, sizeof(cmd), "rm -rf '%s'", g_backup);
+        xsnprintf(cmd, sizeof(cmd), "rm -rf '%s'", g_backup);
         run_cmd_quiet(cmd);
     }
 
@@ -68,7 +68,7 @@ static int backup_existing(const char *pkg) {
 
     if (rename(g_target, g_backup) != 0) {
         /* Different filesystem, or a permissions problem: fall back to a copy. */
-        snprintf(cmd, sizeof(cmd), "cp -a '%s' '%s' && rm -rf '%s'",
+        xsnprintf(cmd, sizeof(cmd), "cp -a '%s' '%s' && rm -rf '%s'",
                  g_target, g_backup, g_target);
         if (run_cmd_quiet(cmd) != 0) {
             fprintf(stderr, COLOR_RED
@@ -90,11 +90,11 @@ static void restore_backup(void) {
     char cmd[1700];
     fprintf(stderr, COLOR_YELLOW "[!] Restoring previous build tree...\n" COLOR_RESET);
 
-    snprintf(cmd, sizeof(cmd), "rm -rf '%s'", g_target);
+    xsnprintf(cmd, sizeof(cmd), "rm -rf '%s'", g_target);
     run_cmd_quiet(cmd);
 
     if (rename(g_backup, g_target) != 0) {
-        snprintf(cmd, sizeof(cmd), "cp -a '%s' '%s' && rm -rf '%s'",
+        xsnprintf(cmd, sizeof(cmd), "cp -a '%s' '%s' && rm -rf '%s'",
                  g_backup, g_target, g_backup);
         run_cmd_quiet(cmd);
     }
@@ -109,7 +109,7 @@ static void discard_backup(void) {
         return;
 
     char cmd[900];
-    snprintf(cmd, sizeof(cmd), "rm -rf '%s'", g_backup);
+    xsnprintf(cmd, sizeof(cmd), "rm -rf '%s'", g_backup);
     run_cmd_quiet(cmd);
     g_have_backup = 0;
 }
@@ -119,7 +119,7 @@ static void discard_backup(void) {
    "the package exists". Only a PKGBUILD proves it. */
 static int has_pkgbuild(const char *dir) {
     char p[700];
-    snprintf(p, sizeof(p), "%s/PKGBUILD", dir);
+    xsnprintf(p, sizeof(p), "%s/PKGBUILD", dir);
     return file_exists(p);
 }
 
@@ -127,7 +127,7 @@ int fetch_sources(const char *pkg) {
     char path[512];
     char cmd[1024];
 
-    snprintf(path, sizeof(path), "%s/%s", BUILD_DIR, pkg);
+    xsnprintf(path, sizeof(path), "%s/%s", BUILD_DIR, pkg);
 
     if (chdir(BUILD_DIR) != 0) {
         fprintf(stderr, COLOR_RED "[-] Cannot change directory to %s\n" COLOR_RESET, BUILD_DIR);
@@ -138,7 +138,7 @@ int fetch_sources(const char *pkg) {
        from the object files it already produced. */
     if (get_resume()) {
         char git_dir[600];
-        snprintf(git_dir, sizeof(git_dir), "%s/.git", path);
+        xsnprintf(git_dir, sizeof(git_dir), "%s/.git", path);
 
         if (dir_exists(path)) {
             printf(COLOR_GREEN "[+] Resuming in existing build tree %s\n" COLOR_RESET, path);
@@ -161,7 +161,7 @@ int fetch_sources(const char *pkg) {
         return 0;
 
     printf("Searching in official Arch repositories...\n");
-    snprintf(cmd, sizeof(cmd),
+    xsnprintf(cmd, sizeof(cmd),
              "pkgctl repo clone --protocol=https '%s' 2>'%s/.archtoo-fetch.log'",
              pkg, BUILD_DIR);
 
@@ -169,7 +169,7 @@ int fetch_sources(const char *pkg) {
         return 1;
 
     printf(COLOR_YELLOW "[!] Not found in official repos. Trying AUR...\n" COLOR_RESET);
-    snprintf(cmd, sizeof(cmd),
+    xsnprintf(cmd, sizeof(cmd),
              "git clone 'https://aur.archlinux.org/%s.git' 2>>'%s/.archtoo-fetch.log'",
              pkg, BUILD_DIR);
 
@@ -178,7 +178,7 @@ int fetch_sources(const char *pkg) {
 
     /* Clean up the empty checkout the AUR just handed us. */
     if (dir_exists(path) && !has_pkgbuild(path)) {
-        snprintf(cmd, sizeof(cmd), "rm -rf '%s'", path);
+        xsnprintf(cmd, sizeof(cmd), "rm -rf '%s'", path);
         run_cmd_quiet(cmd);
     }
 
@@ -199,7 +199,7 @@ static void import_pgp_keys(void) {
         return;
 
     char cmd[2048];
-    snprintf(cmd, sizeof(cmd),
+    xsnprintf(cmd, sizeof(cmd),
         "keys=$(awk '/^[[:space:]]*validpgpkeys=\\(/,/\\)/' PKGBUILD "
         "| grep -oE '[0-9A-Fa-f]{40}|[0-9A-Fa-f]{16}' | sort -u); "
         "[ -z \"$keys\" ] && exit 0; "
@@ -221,9 +221,12 @@ static void import_pgp_keys(void) {
 int compile_package(const char *pkg) {
     char path[512];
     char conf[512];
-    char cmd[1024];
+    /* cmd holds the systemd-inhibit wrapper (~150 chars of prefix) around
+       makepkg_cmd, so it needs real headroom; a truncated shell command
+       still runs, it just runs the wrong thing. */
+    char cmd[2048];
 
-    snprintf(path, sizeof(path), "%s/%s", BUILD_DIR, pkg);
+    xsnprintf(path, sizeof(path), "%s/%s", BUILD_DIR, pkg);
 
     if (chdir(path) != 0) {
         fprintf(stderr, COLOR_RED "[-] Cannot enter %s\n" COLOR_RESET, path);
@@ -237,7 +240,7 @@ int compile_package(const char *pkg) {
 
     printf(COLOR_BLUE ">>> Edit PKGBUILD for custom flags?\n" COLOR_RESET);
     if (ask_yes_no("Open in editor", 0)) {
-        snprintf(cmd, sizeof(cmd), "%s PKGBUILD", get_editor());
+        xsnprintf(cmd, sizeof(cmd), "%s PKGBUILD", get_editor());
         run_as_user(cmd, NULL);
     }
 
@@ -258,8 +261,8 @@ int compile_package(const char *pkg) {
        (and of -U in particular) is silently skipped. */
     /* -e (--noextract) is what actually makes a resume work: without it
        makepkg re-extracts $srcdir and throws away every object file. */
-    char makepkg_cmd[900];
-    snprintf(makepkg_cmd, sizeof(makepkg_cmd), "makepkg -sif%s --config '%s'%s",
+    char makepkg_cmd[1024];
+    xsnprintf(makepkg_cmd, sizeof(makepkg_cmd), "makepkg -sif%s --config '%s'%s",
              get_resume() ? "e" : "", conf,
              get_noconfirm() ? " --noconfirm" : "");
 
@@ -283,12 +286,12 @@ int compile_package(const char *pkg) {
     if (inhibit) {
         printf(COLOR_BLUE ">>> Suspend and idle inhibited for the duration of the build.\n"
                COLOR_RESET);
-        snprintf(cmd, sizeof(cmd),
+        xsnprintf(cmd, sizeof(cmd),
                  "systemd-inhibit --what=sleep:idle:handle-lid-switch "
                  "--who=archtoo --why='Compiling %s' --mode=block -- %s",
                  pkg, makepkg_cmd);
     } else {
-        snprintf(cmd, sizeof(cmd), "%s", makepkg_cmd);
+        xsnprintf(cmd, sizeof(cmd), "%s", makepkg_cmd);
         if (get_inhibit() && !have_cmd("systemd-inhibit"))
             fprintf(stderr, COLOR_YELLOW
                     "[!] systemd-inhibit not found; the machine may suspend mid-build.\n"
@@ -298,8 +301,8 @@ int compile_package(const char *pkg) {
     /* makepkg refuses to run as root, so under sudo this drops back to the
        invoking user. The environment has to be rebuilt inside that shell
        because sudo does not carry it across. */
-    char env_block[512];
-    snprintf(env_block, sizeof(env_block),
+    char env_block[1024];
+    xsnprintf(env_block, sizeof(env_block),
              "export KCFLAGS='%s'\n"
              "export KCPPFLAGS='%s'\n"
              "export MAKEFLAGS='-j%ld'\n",
@@ -327,7 +330,7 @@ int lock_pacman_pkg(const char *pkg) {
 
     /* Only an *active* IgnorePkg line counts -- the old check also matched
        the commented-out template line. */
-    snprintf(cmd, sizeof(cmd),
+    xsnprintf(cmd, sizeof(cmd),
              "grep -qE '^[[:space:]]*IgnorePkg[[:space:]]*=.*([[:space:]]|=)[[:space:]]*%s([[:space:]]|$)' '%s'",
              esc, PACMAN_CONF);
 
@@ -336,18 +339,27 @@ int lock_pacman_pkg(const char *pkg) {
         return 1;
     }
 
-    snprintf(cmd, sizeof(cmd), "%scp -n '%s' '%s.archtoo.bak'",
+    xsnprintf(cmd, sizeof(cmd), "%scp -n '%s' '%s.archtoo.bak'",
              priv_prefix(), PACMAN_CONF, PACMAN_CONF);
     run_cmd_quiet(cmd);
 
     /* Three cases, in order:
-         1. an active  "IgnorePkg = ..."  line   -> append to it
+         1. an active  "IgnorePkg = ..." line   -> append to it
          2. the stock  "#IgnorePkg   ="   line   -> uncomment, then append
             (note the padding: the old 's/^#IgnorePkg =/' never matched it)
-         3. neither                              -> insert under [options]   */
-    snprintf(cmd, sizeof(cmd),
+         3. neither                              -> insert under [options]
+       For case 1 the sed address is 0,/<re>/ -- the range runs from the top
+       of the file to the *first* active IgnorePkg line, and the commands are
+       re-tested against <re> inside the block so they only fire on that one
+       line. A bare 0,/<re>/{ ... } would append the package to every line of
+       the file up to the first match (GNU sed applies a { } block to every
+       line of the range), and a bare /<re>/{ ... } would append to every
+       active IgnorePkg line the file has. Both make pacman.conf uglier on
+       each build cycle even though unlock strips them all again. */
+    xsnprintf(cmd, sizeof(cmd),
              "if grep -qE '^[[:space:]]*IgnorePkg[[:space:]]*=' '%s'; then "
-               "%ssed -i -E '/^[[:space:]]*IgnorePkg[[:space:]]*=/{ s/[[:space:]]*$//; s/$/ %s/ }' '%s'; "
+               "%ssed -i -E '0,/^[[:space:]]*IgnorePkg[[:space:]]*=/{ "
+               "/^[[:space:]]*IgnorePkg[[:space:]]*=/{ s/[[:space:]]*$//; s/$/ %s/ } }' '%s'; "
              "elif grep -qE '^[[:space:]]*#[[:space:]]*IgnorePkg[[:space:]]*=' '%s'; then "
                "%ssed -i -E '0,/^[[:space:]]*#[[:space:]]*IgnorePkg[[:space:]]*=/{ "
                "/^[[:space:]]*#[[:space:]]*IgnorePkg[[:space:]]*=/{ s/^[[:space:]]*#[[:space:]]*//; "
@@ -363,7 +375,7 @@ int lock_pacman_pkg(const char *pkg) {
 
     /* Verify instead of assuming -- the previous version reported success
        unconditionally, even when the edit silently did nothing. */
-    snprintf(cmd, sizeof(cmd),
+    xsnprintf(cmd, sizeof(cmd),
              "grep -qE '^[[:space:]]*IgnorePkg[[:space:]]*=.*([[:space:]]|=)[[:space:]]*%s([[:space:]]|$)' '%s'",
              esc, PACMAN_CONF);
 
@@ -399,7 +411,7 @@ void cleanup_build_dir(const char *pkg) {
         return;
 
     char cmd[600];
-    snprintf(cmd, sizeof(cmd), "rm -rf '%s/%s'", BUILD_DIR, pkg);
+    xsnprintf(cmd, sizeof(cmd), "rm -rf '%s/%s'", BUILD_DIR, pkg);
     run_cmd(cmd);
     printf(COLOR_GREEN "[+] Build directory cleaned up.\n" COLOR_RESET);
 }
@@ -417,9 +429,12 @@ int cmd_build(const char *pkg) {
     g_have_backup = 0;
 
     /* Kernels run an extra hook step; number the steps accordingly instead
-       of printing 1, 2, 4, 5 for ordinary packages. */
+       of printing 1, 2, 4, 5 for ordinary packages. The name check only
+       decides the numbering (and whether to scan the archives); the actual
+       hooks are gated on the package containing a kernel. */
     const int kernel = is_kernel(pkg);
     const int total = kernel ? 5 : 4;
+    int built_kernel = 0;
     int step = 1;
 
     printf(COLOR_BLUE ">>> [%d/%d] Fetching sources for %s...\n" COLOR_RESET,
@@ -433,11 +448,26 @@ int cmd_build(const char *pkg) {
 
     if (kernel) {
         char headers[256];
-        printf(COLOR_BLUE ">>> [%d/%d] Running kernel hooks...\n" COLOR_RESET, step++, total);
-        run_kernel_hooks(pkg);
 
-        snprintf(headers, sizeof(headers), "%s-headers", pkg);
-        lock_pacman_pkg(headers);
+        /* Authoritative test: a package is only a kernel if the built
+           archive actually ships usr/lib/modules/<kver>/vmlinuz. This is what
+           stops lookalikes (linux-wifi-hotspot, linux-atm, ...) from
+           triggering mkinitcpio/GRUB and a bogus -headers lock. */
+        built_kernel = pkg_ships_kernel(pkg);
+        if (built_kernel) {
+            printf(COLOR_BLUE ">>> [%d/%d] Running kernel hooks...\n" COLOR_RESET,
+                   step++, total);
+            run_kernel_hooks(pkg);
+
+            xsnprintf(headers, sizeof(headers), "%s-headers", pkg);
+            lock_pacman_pkg(headers);
+        } else {
+            fprintf(stderr, COLOR_YELLOW
+                    "[!] %s is named like a kernel, but the built package "
+                    "contains no\n"
+                    "    usr/lib/modules/<kver>/vmlinuz; skipping kernel hooks "
+                    "and the -headers lock.\n" COLOR_RESET, pkg);
+        }
     }
 
     printf(COLOR_BLUE ">>> [%d/%d] Locking in pacman.conf...\n" COLOR_RESET, step++, total);
@@ -449,7 +479,7 @@ int cmd_build(const char *pkg) {
 
     printf(COLOR_GREEN "\n>>> DONE! %s is custom built and installed.\n" COLOR_RESET, pkg);
 
-    if (kernel)
+    if (built_kernel)
         printf(COLOR_YELLOW "[!] Reboot to load your new kernel.\n" COLOR_RESET);
 
     ok = 1;

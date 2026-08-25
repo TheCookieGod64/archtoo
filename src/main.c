@@ -118,14 +118,24 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        /* -j4 / --jobs=4 */
+        /* -j4 / --jobs=4 -- the joined forms must pass exactly the same
+           validation as "-j 4": -j999999999 must not sail through to
+           MAKEFLAGS and hand the shell a fork-bomb-shaped job count. */
         if (strncmp(argv[i], "-j", 2) == 0 && isdigit((unsigned char)argv[i][2])) {
-            set_jobs(strtol(argv[i] + 2, NULL, 10));
+            char *end = NULL;
+            long n = strtol(argv[i] + 2, &end, 10);
+            if (!end || *end != '\0' || n < 1 || n > 1024) {
+                fprintf(stderr, COLOR_RED
+                        "[-] Invalid job count '%s' (expected 1-1024).\n" COLOR_RESET, argv[i]);
+                return 1;
+            }
+            set_jobs(n);
             continue;
         }
         if (strncmp(argv[i], "--jobs=", 7) == 0) {
-            long n = strtol(argv[i] + 7, NULL, 10);
-            if (n < 1 || n > 1024) {
+            char *end = NULL;
+            long n = strtol(argv[i] + 7, &end, 10);
+            if (!end || *end != '\0' || n < 1 || n > 1024) {
                 fprintf(stderr, COLOR_RED "[-] Invalid job count.\n" COLOR_RESET);
                 return 1;
             }

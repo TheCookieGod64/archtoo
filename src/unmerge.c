@@ -21,7 +21,7 @@ void unlock_pacman_pkg(const char *pkg) {
     /* Whole-token removal. The old '\<pkg\>' treated '-' as a word boundary,
        so unlocking "linux" turned "linux-zen linux-headers" into
        "-zen -headers" and corrupted pacman.conf. */
-    snprintf(cmd, sizeof(cmd),
+    xsnprintf(cmd, sizeof(cmd),
              "%ssed -i -E '/^[[:space:]]*IgnorePkg[[:space:]]*=/{"
              "s/[[:space:]]+%s([[:space:]]|$)/\\1/g;"
              "s/=[[:space:]]*%s([[:space:]]|$)/= /g;"
@@ -47,7 +47,7 @@ int cmd_deselect(const char *pkg) {
 
     if (is_kernel(pkg)) {
         char headers[256];
-        snprintf(headers, sizeof(headers), "%s-headers", pkg);
+        xsnprintf(headers, sizeof(headers), "%s-headers", pkg);
         unlock_pacman_pkg(headers);
     }
 
@@ -75,15 +75,15 @@ int cmd_unmerge(const char *pkg) {
     char check[512];
     int have_debug;
 
-    snprintf(dbg, sizeof(dbg), "%s-debug", pkg);
-    snprintf(check, sizeof(check), "pacman -Qq '%s'", dbg);
+    xsnprintf(dbg, sizeof(dbg), "%s-debug", pkg);
+    xsnprintf(check, sizeof(check), "pacman -Qq '%s'", dbg);
     have_debug = (run_cmd_quiet(check) == 0);
 
     if (have_debug)
-        snprintf(cmd, sizeof(cmd), "%spacman -Rns '%s' '%s'%s",
+        xsnprintf(cmd, sizeof(cmd), "%spacman -Rns '%s' '%s'%s",
                  priv_prefix(), pkg, dbg, get_noconfirm() ? " --noconfirm" : "");
     else
-        snprintf(cmd, sizeof(cmd), "%spacman -Rns '%s'%s",
+        xsnprintf(cmd, sizeof(cmd), "%spacman -Rns '%s'%s",
                  priv_prefix(), pkg, get_noconfirm() ? " --noconfirm" : "");
 
     if (run_cmd(cmd) != 0) {
@@ -98,14 +98,14 @@ int cmd_unmerge(const char *pkg) {
        too, otherwise it stays in IgnorePkg forever. */
     if (is_kernel(pkg)) {
         char headers[256];
-        snprintf(headers, sizeof(headers), "%s-headers", pkg);
+        xsnprintf(headers, sizeof(headers), "%s-headers", pkg);
         unlock_pacman_pkg(headers);
     }
 
     printf(COLOR_BLUE ">>> [3/3] Cleaning up world file and build directory...\n" COLOR_RESET);
     remove_from_world(pkg);
 
-    snprintf(cmd, sizeof(cmd), "rm -rf '%s/%s'", BUILD_DIR, pkg);
+    xsnprintf(cmd, sizeof(cmd), "rm -rf '%s/%s'", BUILD_DIR, pkg);
     run_cmd(cmd);
 
     printf(COLOR_GREEN "[+] %s successfully unmerged.\n" COLOR_RESET, pkg);

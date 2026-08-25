@@ -15,7 +15,7 @@
 #define WORLD_LINE_MAX 512
 
 int is_in_world(const char *pkg) {
-    FILE *f = fopen(WORLD_FILE, "r");
+    FILE *f = fopen_nofollow(WORLD_FILE, "r");
     if (!f)
         return 0;
 
@@ -41,7 +41,9 @@ void add_to_world(const char *pkg) {
     if (is_in_world(pkg))
         return;
 
-    FILE *f = fopen(WORLD_FILE, "a");
+    /* With sudo this runs as root: never follow a pre-planted symlink in
+       the user-owned EMERGE_DIR (see run_as_user()). */
+    FILE *f = fopen_nofollow(WORLD_FILE, "a");
     if (!f) {
         fprintf(stderr, COLOR_RED "[-] Could not open world file %s\n" COLOR_RESET, WORLD_FILE);
         return;
@@ -56,14 +58,14 @@ void add_to_world(const char *pkg) {
 /* Rewrites the file in C rather than shelling out to sed, so package names
    containing regex metacharacters (gtk+, lib.foo) are handled literally. */
 void remove_from_world(const char *pkg) {
-    FILE *f = fopen(WORLD_FILE, "r");
+    FILE *f = fopen_nofollow(WORLD_FILE, "r");
     if (!f)
         return;
 
     char tmp[512];
-    snprintf(tmp, sizeof(tmp), "%s.tmp", WORLD_FILE);
+    xsnprintf(tmp, sizeof(tmp), "%s.tmp", WORLD_FILE);
 
-    FILE *out = fopen(tmp, "w");
+    FILE *out = fopen_nofollow(tmp, "w");
     if (!out) {
         fclose(f);
         fprintf(stderr, COLOR_RED "[-] Could not update world file.\n" COLOR_RESET);
@@ -73,7 +75,7 @@ void remove_from_world(const char *pkg) {
     char line[WORLD_LINE_MAX];
     while (fgets(line, sizeof(line), f)) {
         char trimmed[WORLD_LINE_MAX];
-        snprintf(trimmed, sizeof(trimmed), "%s", line);
+        xsnprintf(trimmed, sizeof(trimmed), "%s", line);
         trimmed[strcspn(trimmed, "\r\n")] = '\0';
 
         if (strcmp(trimmed, pkg) == 0)
@@ -110,7 +112,7 @@ int cmd_world_update(void) {
         printf(COLOR_BLUE "\n>>> [SYSTEM] Upgrading binary packages (pacman -Syu)...\n"
                COLOR_RESET);
 
-        snprintf(cmd, sizeof(cmd), "%spacman -Syu%s",
+        xsnprintf(cmd, sizeof(cmd), "%spacman -Syu%s",
                  priv_prefix(), get_noconfirm() ? " --noconfirm" : "");
 
         int rc = run_cmd(cmd);

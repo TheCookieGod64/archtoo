@@ -10,11 +10,12 @@
 #include "../headers/kernel.h"
 #include "../headers/utils.h"
 #include "../headers/colors.h"
+#include "../headers/config.h"
 
 /* Runs a command with root privileges, adding sudo only when needed. */
 static int run_priv_cmd(const char *c) {
     char buf[512];
-    snprintf(buf, sizeof(buf), "%s%s", priv_prefix(), c);
+    xsnprintf(buf, sizeof(buf), "%s%s", priv_prefix(), c);
     return run_cmd(buf);
 }
 
@@ -23,25 +24,67 @@ static int has_suffix(const char *s, const char *suf) {
     return ls > lf && strcmp(s + ls - lf, suf) == 0;
 }
 
-int is_kernel(const char *pkg) {
-    /* Prefix match so linux-rt, linux-xanmod, linux-zen-git, ... are covered
-       instead of only the four names that used to be hardcoded. */
-    static const char *not_kernels[] = {
-        "linux-firmware", "linux-api-headers", "linux-tools", "linux-docs", NULL
-    };
+/* Starts with one of the non-kernel family names (at a token boundary). */
+static int is_family(const char *v, const char *fam) {
+    size_t l = strlen(fam);
+    return strncmp(v, fam, l) == 0 && (v[l] == '\0' || v[l] == '-');
+}
 
-    if (strncmp(pkg, "linux", 5) != 0)
+/* Name-based kernel heuristic. Anything that merely *starts with* "linux"
+   is not a kernel: linuxcnc, linuxconsole, linux-wifi-hotspot, linux-atm,
+   linux-firmware-whence all begin the same way as linux-zen. So the name
+   has to be exactly "linux" or "linux-<variant>", and the variant must not
+   be a known non-kernel package (or family of packages) and must not carry
+   a known non-kernel suffix (-headers, -docs, ...). No list can be complete,
+   which is why the *deciding* test after a build is the content check in
+   pkg_ships_kernel(); this function only decides step numbering up front
+   and whether -headers should be unlocked on unmerge/deselect. */
+int is_kernel(const char *pkg) {
+    if (strcmp(pkg, "linux") == 0)
+        return 1;
+
+    if (strncmp(pkg, "linux-", 6) != 0)
+        return 0;
+    const char *v = pkg + 6;
+    if (*v == '\0')
         return 0;
 
-    for (int i = 0; not_kernels[i]; i++)
-        if (strcmp(pkg, not_kernels[i]) == 0)
+    static const char *not_families[] = {
+        "firmware", "api-headers", "tools", "docs", "wifi", "atm", NULL
+    };
+    for (int i = 0; not_families[i]; i++)
+        if (is_family(v, not_families[i]))
             return 0;
 
+    /* Checked against the full name, not the variant: the variant for
+       linux-headers is literally "headers", which is shorter than the
+       "-headers" suffix and would slip through. */
     if (has_suffix(pkg, "-headers") || has_suffix(pkg, "-docs") ||
-        has_suffix(pkg, "-firmware"))
+        has_suffix(pkg, "-firmware") || has_suffix(pkg, "-whence"))
         return 0;
 
     return 1;
+}
+
+/* post-build check: real kernels ship usr/lib/modules/<release>/vmlinuz
+   inside the built archive. Runs on the package's build tree, which makepkg
+   leaves until cleanup_build_dir(); glob covers split packages (the linux
+   PKGBUILD also produces linux-headers/linux-docs, which contain no vmlinuz). */
+int pkg_ships_kernel(const char *pkg) {
+    char cmd[1024];
+
+    /* ^[./]* lets the leading "./" that some archivers put in members
+       through; everything after still has to be usr/lib/modules/<kver>/vmlinuz. */
+    xsnprintf(cmd, sizeof(cmd),
+              "for f in '%s/%s'/*.pkg.tar.*; do "
+              "[ -e \"$f\" ] || continue; "
+              "tar -tf \"$f\" 2>/dev/null "
+              "| grep -q '^[./]*usr/lib/modules/.*/vmlinuz' && exit 0; "
+              "done; "
+              "exit 1",
+              BUILD_DIR, pkg);
+
+    return run_cmd_quiet(cmd) == 0;
 }
 
 void run_kernel_hooks(const char *pkg) {

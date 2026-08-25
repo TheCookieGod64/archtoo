@@ -1,5 +1,43 @@
 # Changelog
 
+## v1.4.1
+
+### Fixed
+
+- **Kernel detection no longer trusts the package name alone.** The old
+  heuristic happily treated `linux-wifi-hotspot`, `linux-atm`,
+  `linux-firmware-whence` (and even `linuxcnc`) as kernels, regenerating the
+  initramfs on every build and writing a bogus `-headers` line into
+  `pacman.conf`. The name check is now strict (`linux` or `linux-<variant>`,
+  with known non-kernel families/suffixes rejected), and the hooks are gated
+  on a content check: a kernel is only a kernel if a built archive actually
+  contains `usr/lib/modules/*/vmlinuz`.
+
+- **Symlink attack in the sudo build path closed.** The step script was
+  created with `fopen(..., "w")` at a predictable PID-only name inside
+  `EMERGE_DIR`, which is deliberately owned by the unprivileged build user;
+  a hostile process running as that user could pre-plant a symlink and make
+  root truncate an arbitrary file. The script is now created with
+  `O_CREAT|O_EXCL|O_NOFOLLOW` (atomic, never follows a symlink) under an
+  unpredictable random name. The same protection is applied to the other
+  root writes into `EMERGE_DIR`: the world file and `makepkg.archtoo.conf`
+  are opened through a `fopen_nofollow()` helper.
+
+- **`-jN` / `--jobs=N` joined forms now validate 1-1024 like `-j N` and
+  `--jobs N`.** `-j999999999` used to sail straight through into
+  `MAKEFLAGS`; `-j0` and trailing garbage (e.g. `-j4x`) are rejected too.
+
+- **Only the first active `IgnorePkg` line is appended to.** The lock
+  `sed` matched every active line (the commented-line branch already used the
+  GNU `0,/re/` first-match idiom; the active-line branch did not), so two
+  `IgnorePkg` lines in `pacman.conf` grew a duplicate entry on every build
+  cycle.
+
+- **Command truncation is now fatal instead of silent.** A tiny `xsnprintf()`
+  (buffer too small -> print error, exit) replaced `snprintf()` across the
+  codebase. The systemd-inhibit wrapper in particular could truncate a long
+  `--config` path and quietly run a different command than intended.
+
 ## v1.4.0
 
 ### Added

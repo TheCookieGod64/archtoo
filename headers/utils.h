@@ -6,6 +6,25 @@
 
 #include <stddef.h>
 
+/* snprintf that never truncates silently: if the formatted text does not
+   fit (or vsnprintf fails), it prints an error and exits. A truncated shell
+   command still runs -- it just does something else -- so this is always a
+   programming error. */
+#if defined(__GNUC__) || defined(__clang__)
+int xsnprintf(char *buf, size_t n, const char *fmt, ...)
+    __attribute__((format(printf, 3, 4)));
+#else
+int xsnprintf(char *buf, size_t n, const char *fmt, ...);
+#endif
+
+/* fopen() that refuses to follow a symlink at the final path component.
+   Several files live in EMERGE_DIR, which is deliberately owned by the
+   unprivileged build user; a hostile process running as that user could
+   pre-plant a symlink there and a privileged fopen() would truncate or
+   append to an arbitrary file. Callers that need O_EXCL (creating brand-new
+   files) should use open(2) directly with the same flag. */
+FILE *fopen_nofollow(const char *path, const char *mode);
+
 /* Runs a command through the shell and returns the real exit code
    (system() hands back a wait-status word, which is not the same thing). */
 int run_cmd(const char *cmd);
