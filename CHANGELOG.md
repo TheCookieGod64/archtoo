@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.4.2
+
+### Fixed
+
+- **Last unguarded `fopen()` removed.** `cmd_world_update()` still opened the
+  world file with plain `fopen()`; under `sudo` that read runs as root inside
+  the user-owned `EMERGE_DIR`, so it now goes through `fopen_nofollow()` like
+  every other access to that tree.
+
+- **`run_cmd_quiet()` wrapper buffer enlarged.** Since v1.4.1 `xsnprintf()`
+  makes truncation fatal, and the 2048-byte wrapper buffer was exactly the
+  size of the largest command a caller builds (`lock_pacman_pkg()`'s sed
+  pipeline). A long `--config`/`pacman.conf` path could therefore turn a
+  valid command into a hard exit instead of running it. The buffer is now
+  4608 bytes.
+
 ## v1.4.1
 
 ### Fixed

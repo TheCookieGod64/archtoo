@@ -4,7 +4,7 @@
 #ifndef ARCHTOO_VERSION_H
 #define ARCHTOO_VERSION_H
 
-#define ARCHTOO_VERSION "1.4.1"
+#define ARCHTOO_VERSION "1.4.2"
 #define ARCHTOO_NAME    "Archtoo Emerge Engine"
 
 #endif

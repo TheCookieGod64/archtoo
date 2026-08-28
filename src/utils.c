@@ -63,7 +63,11 @@ int run_cmd(const char *cmd) {
 }
 
 int run_cmd_quiet(const char *cmd) {
-    char buf[2048];
+    /* Must be comfortably larger than the largest command any caller builds
+       (lock_pacman_pkg's sed pipeline uses a 2048-byte buffer): xsnprintf
+       aborts on truncation, so an undersized wrapper buffer here would turn
+       a long-but-valid command into a hard exit. */
+    char buf[4608];
     xsnprintf(buf, sizeof(buf), "%s >/dev/null 2>&1", cmd);
     return run_cmd(buf);
 }

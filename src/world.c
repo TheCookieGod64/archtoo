@@ -126,7 +126,9 @@ int cmd_world_update(void) {
         printf(COLOR_GREEN "[+] Binary packages up to date.\n" COLOR_RESET);
     }
 
-    FILE *f = fopen(WORLD_FILE, "r");
+    /* Same symlink discipline as the rest of the file: under sudo this read
+       happens as root inside the user-owned EMERGE_DIR. */
+    FILE *f = fopen_nofollow(WORLD_FILE, "r");
     if (!f) {
         fprintf(stderr, COLOR_YELLOW "[-] No world file found.\n" COLOR_RESET);
         return 0;
