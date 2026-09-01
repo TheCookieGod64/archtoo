@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.4.3
+
+### Changed
+
+- **One sudo prompt per invocation.** A plain `emerge` now invalidates any
+  cached sudo timestamp and authenticates immediately, so it always asks for
+  the sudo password exactly once. A small credential keeper refreshes that
+  timestamp during long builds, preventing later `pacman -Syu`, package
+  installation, `pacman.conf`, and kernel-hook steps from prompting again.
+  Help and version output remain unprivileged.
+
 ## v1.4.2
 
 ### Fixed

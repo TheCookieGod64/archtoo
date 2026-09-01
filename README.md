@@ -64,7 +64,7 @@ sudo make uninstall
 Archtoo can be run either way:
 
 ```bash
-emerge <package>          # calls sudo for the privileged steps
+emerge <package>          # asks for sudo once, then keeps it alive
 sudo emerge <package>     # Gentoo-style; drops to your user to compile
 ```
 

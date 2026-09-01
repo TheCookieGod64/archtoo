@@ -154,6 +154,11 @@ int main(int argc, char *argv[]) {
 
     argi = 0;
 
+    /* Authenticate once at startup and keep sudo alive throughout long builds,
+       so later pacman/configuration steps never ask for the password again. */
+    if (!acquire_sudo())
+        return 1;
+
     if (strcmp(filtered[argi], "-U") == 0 || strcmp(filtered[argi], "--update") == 0) {
         if (!init_system())
             return 1;

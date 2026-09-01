@@ -32,6 +32,10 @@ int run_cmd(const char *cmd);
 /* Same, but stdout and stderr are discarded. */
 int run_cmd_quiet(const char *cmd);
 
+/* Invalidates any cached sudo timestamp, asks for the password once, and
+   keeps that credential alive for the duration of this emerge process. */
+int  acquire_sudo(void);
+
 int  init_system(void);
 int  file_exists(const char *path);
 int  dir_exists(const char *path);

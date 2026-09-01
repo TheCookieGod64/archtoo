@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <pwd.h>
+#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -166,6 +167,53 @@ const char *build_user(void) {
 
 const char *priv_prefix(void) {
     return (geteuid() == 0) ? "" : "sudo ";
+}
+
+static pid_t sudo_keeper = -1;
+
+static void stop_sudo_keeper(void) {
+    if (sudo_keeper > 0) {
+        kill(sudo_keeper, SIGTERM);
+        waitpid(sudo_keeper, NULL, 0);
+        sudo_keeper = -1;
+    }
+}
+
+int acquire_sudo(void) {
+    /* "sudo emerge" has already authenticated before this process starts.
+       A plain "emerge" deliberately forgets any cached timestamp so every
+       invocation asks once, even if sudo was used moments ago. */
+    if (geteuid() == 0)
+        return 1;
+
+    if (!have_cmd("sudo")) {
+        fprintf(stderr, COLOR_RED "[-] sudo is required.\n" COLOR_RESET);
+        return 0;
+    }
+
+    if (run_cmd("sudo -k && sudo -v") != 0) {
+        fprintf(stderr, COLOR_RED "[-] sudo authentication failed.\n" COLOR_RESET);
+        return 0;
+    }
+
+    sudo_keeper = fork();
+    if (sudo_keeper < 0) {
+        fprintf(stderr, COLOR_RED
+                "[-] Could not start the sudo credential keeper.\n" COLOR_RESET);
+        return 0;
+    }
+    if (sudo_keeper == 0) {
+        pid_t parent = getppid();
+        for (;;) {
+            sleep(50);
+            if (getppid() != parent || kill(parent, 0) != 0)
+                _exit(0);
+            (void)run_cmd_quiet("sudo -n -v");
+        }
+    }
+
+    atexit(stop_sudo_keeper);
+    return 1;
 }
 
 int have_cmd(const char *name) {
