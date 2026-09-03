@@ -113,7 +113,7 @@ int cmd_world_update(void) {
                COLOR_RESET);
 
         xsnprintf(cmd, sizeof(cmd), "%spacman -Syu%s",
-                 priv_prefix(), get_noconfirm() ? " --noconfirm" : "");
+                 priv_prefix(), use_noconfirm() ? " --noconfirm" : "");
 
         int rc = run_cmd(cmd);
         if (rc != 0) {

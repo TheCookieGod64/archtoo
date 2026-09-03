@@ -32,9 +32,9 @@ int run_cmd(const char *cmd);
 /* Same, but stdout and stderr are discarded. */
 int run_cmd_quiet(const char *cmd);
 
-/* Invalidates any cached sudo timestamp, asks for the password once, and
-   keeps that credential alive for the duration of this emerge process. */
-int  acquire_sudo(void);
+/* If needed, invalidates cached credentials and re-executes emerge through
+   sudo. The root process later drops to SUDO_USER for all build steps. */
+int  acquire_sudo(int argc, char *argv[]);
 
 int  init_system(void);
 int  file_exists(const char *path);
@@ -69,8 +69,21 @@ const char *build_user(void);
    extra_env is an optional block of "export X=y" lines, or NULL. */
 int run_as_user(const char *cmd, const char *extra_env);
 
+/* Load ~/.config/archtoo/config for the invoking user. */
+void load_user_config(void);
+
 void set_noconfirm(int v);
 int  get_noconfirm(void);
+
+/* Pacman/makepkg confirmations are disabled by default. -i/--interactive
+   enables them. */
+void set_interactive(int v);
+int  get_interactive(void);
+int  use_noconfirm(void);
+
+/* Seconds before an Archtoo prompt chooses its default; 0 waits forever. */
+void set_prompt_timeout(long seconds);
+long get_prompt_timeout(void);
 
 /* Explicit -j value; 0 means "use every core". */
 void set_jobs(long n);

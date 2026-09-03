@@ -1,5 +1,34 @@
 # Changelog
 
+## v1.5.0
+
+### Added
+
+- **Non-interactive pacman by default.** `pacman -Syu`, `pacman -U`, dependency
+  installation, and unmerge operations now receive `--noconfirm`. Use `-i` or
+  `--interactive` to restore pacman's confirmation prompts.
+- **Timed Archtoo prompts.** Questions such as PKGBUILD editing automatically
+  choose their displayed default after 300 seconds. Override per invocation
+  with `--prompt-timeout SEC`; zero waits forever.
+- **User configuration.** `~/.config/archtoo/config` supports
+  `pacman_confirm=true|false` and `prompt_timeout=0..86400`. CLI options take
+  precedence over the file.
+
+## v1.4.4
+
+### Fixed
+
+- **No second sudo prompt after a long build.** v1.4.3 refreshed sudo from a
+  helper process, but systems using sudo's `timestamp_type=ppid` gave the
+  later `makepkg`/`pacman -U` process a different credential scope. That made
+  package installation request a second password from non-interactive input
+  and fail. Archtoo now asks once and re-executes itself as root, while still
+  dropping source fetching and compilation back to `SUDO_USER`. Makepkg no
+  longer installs through its own nested `sudo`; after compilation Archtoo's
+  root process installs all generated split-package archives in one
+  `pacman -U` transaction. Configuration edits and kernel hooks likewise run
+  directly as root, so no later password prompt is possible.
+
 ## v1.4.3
 
 ### Changed

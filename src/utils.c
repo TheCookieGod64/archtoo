@@ -6,8 +6,8 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <pwd.h>
-#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,9 +28,16 @@ static int  g_resume = 0;
 static int  g_import_keys = 1;
 static int  g_inhibit = 1;
 static int  g_sync = 1;
+static int  g_interactive = 0;
+static long g_prompt_timeout = 300;
 
 void set_noconfirm(int v) { g_noconfirm = v; }
 int  get_noconfirm(void)  { return g_noconfirm; }
+void set_interactive(int v) { g_interactive = v; }
+int  get_interactive(void)  { return g_interactive; }
+int  use_noconfirm(void) { return g_noconfirm || !g_interactive; }
+void set_prompt_timeout(long v) { g_prompt_timeout = v; }
+long get_prompt_timeout(void) { return g_prompt_timeout; }
 
 void set_resume(int v) { g_resume = v; }
 int  get_resume(void)  { return g_resume; }
@@ -165,24 +172,48 @@ const char *build_user(void) {
     return (pw && pw->pw_name) ? pw->pw_name : NULL;
 }
 
+void load_user_config(void) {
+    const char *user = build_user();
+    struct passwd *pw = user ? getpwnam(user) : NULL;
+    if (!pw || !pw->pw_dir)
+        return;
+
+    char path[1024];
+    xsnprintf(path, sizeof(path), "%s/.config/archtoo/config", pw->pw_dir);
+    FILE *f = fopen(path, "r");
+    if (!f)
+        return;
+
+    char line[256];
+    while (fgets(line, sizeof(line), f)) {
+        char key[64], value[128];
+        char *p = line;
+        while (isspace((unsigned char)*p)) p++;
+        if (*p == '#' || *p == '\0') continue;
+        if (sscanf(p, "%63[^=]=%127s", key, value) != 2) continue;
+        size_t n = strlen(key);
+        while (n && isspace((unsigned char)key[n - 1])) key[--n] = '\0';
+
+        if (strcmp(key, "pacman_confirm") == 0) {
+            if (strcmp(value, "true") == 0) set_interactive(1);
+            else if (strcmp(value, "false") == 0) set_interactive(0);
+        } else if (strcmp(key, "prompt_timeout") == 0) {
+            char *end = NULL;
+            long seconds = strtol(value, &end, 10);
+            if (end && *end == '\0' && seconds >= 0 && seconds <= 86400)
+                set_prompt_timeout(seconds);
+        }
+    }
+    fclose(f);
+}
+
 const char *priv_prefix(void) {
     return (geteuid() == 0) ? "" : "sudo ";
 }
 
-static pid_t sudo_keeper = -1;
-
-static void stop_sudo_keeper(void) {
-    if (sudo_keeper > 0) {
-        kill(sudo_keeper, SIGTERM);
-        waitpid(sudo_keeper, NULL, 0);
-        sudo_keeper = -1;
-    }
-}
-
-int acquire_sudo(void) {
-    /* "sudo emerge" has already authenticated before this process starts.
-       A plain "emerge" deliberately forgets any cached timestamp so every
-       invocation asks once, even if sudo was used moments ago. */
+int acquire_sudo(int argc, char *argv[]) {
+    /* Once running as root, every privileged operation can execute directly;
+       run_as_user() still drops fetching and makepkg back to SUDO_USER. */
     if (geteuid() == 0)
         return 1;
 
@@ -191,29 +222,35 @@ int acquire_sudo(void) {
         return 0;
     }
 
-    if (run_cmd("sudo -k && sudo -v") != 0) {
-        fprintf(stderr, COLOR_RED "[-] sudo authentication failed.\n" COLOR_RESET);
+    /* Forget any existing timestamp so each emerge invocation asks exactly
+       once. Re-exec the complete command through sudo instead of trying to
+       refresh timestamps: sudo's timestamp_type=ppid gives makepkg's later
+       sudo process a different credential scope. */
+    if (run_cmd("sudo -k") != 0) {
+        fprintf(stderr, COLOR_RED "[-] Could not invalidate sudo credentials.\n"
+                COLOR_RESET);
         return 0;
     }
 
-    sudo_keeper = fork();
-    if (sudo_keeper < 0) {
-        fprintf(stderr, COLOR_RED
-                "[-] Could not start the sudo credential keeper.\n" COLOR_RESET);
+    char **sudo_argv = calloc((size_t)argc + 3, sizeof(*sudo_argv));
+    if (!sudo_argv) {
+        fprintf(stderr, COLOR_RED "[-] Out of memory.\n" COLOR_RESET);
         return 0;
     }
-    if (sudo_keeper == 0) {
-        pid_t parent = getppid();
-        for (;;) {
-            sleep(50);
-            if (getppid() != parent || kill(parent, 0) != 0)
-                _exit(0);
-            (void)run_cmd_quiet("sudo -n -v");
-        }
-    }
 
-    atexit(stop_sudo_keeper);
-    return 1;
+    char sudo_cmd[] = "sudo";
+    char separator[] = "--";
+    sudo_argv[0] = sudo_cmd;
+    sudo_argv[1] = separator;
+    for (int i = 0; i < argc; i++)
+        sudo_argv[i + 2] = argv[i];
+    sudo_argv[argc + 2] = NULL;
+
+    execvp("sudo", sudo_argv);
+    fprintf(stderr, COLOR_RED "[-] Could not execute sudo: %s\n" COLOR_RESET,
+            strerror(errno));
+    free(sudo_argv);
+    return 0;
 }
 
 int have_cmd(const char *name) {
@@ -455,6 +492,20 @@ int ask_yes_no(const char *question, int default_yes) {
 
     printf("%s [%s]: ", question, default_yes ? "Y/n" : "y/N");
     fflush(stdout);
+
+    if (g_prompt_timeout > 0) {
+        struct pollfd pfd = { .fd = STDIN_FILENO, .events = POLLIN };
+        int timeout_ms = (g_prompt_timeout > 2147483) ? 2147483000
+                                                       : (int)g_prompt_timeout * 1000;
+        int ready = poll(&pfd, 1, timeout_ms);
+        if (ready == 0) {
+            printf("%s (default after %lds)\n", default_yes ? "yes" : "no",
+                   g_prompt_timeout);
+            return default_yes;
+        }
+        if (ready < 0 && errno != EINTR)
+            return default_yes;
+    }
 
     if (!fgets(reply, sizeof(reply), stdin))
         return default_yes;

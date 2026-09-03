@@ -64,7 +64,7 @@ sudo make uninstall
 Archtoo can be run either way:
 
 ```bash
-emerge <package>          # asks for sudo once, then keeps it alive
+emerge <package>          # asks once, then runs privileged steps as root
 sudo emerge <package>     # Gentoo-style; drops to your user to compile
 ```
 
@@ -148,13 +148,32 @@ Both are automatic:
 - The machine is kept awake for the duration of the build via
   `systemd-inhibit`. Turn off with `--no-inhibit`.
 
-### Non-interactive Mode
-Skips every prompt and uses the safe default for each (build directories are
-kept, the PKGBUILD editor is not opened):
+### Prompts and configuration
+
+Pacman confirmations are disabled by default. To restore its `J/n` prompts:
 
 ```bash
-emerge --noconfirm <package_name>
+emerge -i htop
+emerge --interactive -U
 ```
+
+Archtoo's own questions choose their displayed default after five minutes.
+Change that per invocation (`0` means wait forever):
+
+```bash
+emerge --prompt-timeout 30 htop
+emerge --prompt-timeout 0 htop
+```
+
+Persistent defaults live in `~/.config/archtoo/config`:
+
+```ini
+pacman_confirm=false
+prompt_timeout=300
+```
+
+CLI flags override the config file. `--noconfirm` remains the strongest mode:
+it skips every Archtoo prompt as well as all pacman confirmations.
 
 Archtoo must be run as your normal user, not as root — `makepkg` refuses to
 build as root. It calls `sudo` itself where privileges are required.

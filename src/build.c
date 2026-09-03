@@ -262,9 +262,12 @@ int compile_package(const char *pkg) {
     /* -e (--noextract) is what actually makes a resume work: without it
        makepkg re-extracts $srcdir and throws away every object file. */
     char makepkg_cmd[1024];
-    xsnprintf(makepkg_cmd, sizeof(makepkg_cmd), "makepkg -sif%s --config '%s'%s",
+    /* Do not pass -i: makepkg would invoke sudo from the unprivileged build
+       process, which has a separate sudo credential scope. Archtoo installs
+       the finished archives itself as root immediately afterwards. */
+    xsnprintf(makepkg_cmd, sizeof(makepkg_cmd), "makepkg -sf%s --config '%s'%s",
              get_resume() ? "e" : "", conf,
-             get_noconfirm() ? " --noconfirm" : "");
+             use_noconfirm() ? " --noconfirm" : "");
 
     /* Multi-hour builds are routinely lost to idle suspend. Hold the machine
        awake for exactly as long as the compile runs. */
@@ -315,6 +318,21 @@ int compile_package(const char *pkg) {
     }
     if (rc != 0) {
         fprintf(stderr, COLOR_RED "[-] Compilation failed (exit %d).\n" COLOR_RESET, rc);
+        return 0;
+    }
+
+    /* The main emerge process is root after acquire_sudo() re-executes it.
+       Install every split-package archive in one pacman transaction, while
+       excluding optional detached signature files. */
+    printf(COLOR_BLUE ">>> Installing built package(s) with pacman...\n" COLOR_RESET);
+    xsnprintf(cmd, sizeof(cmd),
+             "find . -maxdepth 1 -type f -name '*.pkg.tar.*' "
+             "! -name '*.sig' -exec pacman -U%s -- {} +",
+             use_noconfirm() ? " --noconfirm" : "");
+    rc = run_cmd(cmd);
+    if (rc != 0) {
+        fprintf(stderr, COLOR_RED "[-] Package installation failed (exit %d).\n"
+                COLOR_RESET, rc);
         return 0;
     }
 

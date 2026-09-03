@@ -81,10 +81,10 @@ int cmd_unmerge(const char *pkg) {
 
     if (have_debug)
         xsnprintf(cmd, sizeof(cmd), "%spacman -Rns '%s' '%s'%s",
-                 priv_prefix(), pkg, dbg, get_noconfirm() ? " --noconfirm" : "");
+                 priv_prefix(), pkg, dbg, use_noconfirm() ? " --noconfirm" : "");
     else
         xsnprintf(cmd, sizeof(cmd), "%spacman -Rns '%s'%s",
-                 priv_prefix(), pkg, get_noconfirm() ? " --noconfirm" : "");
+                 priv_prefix(), pkg, use_noconfirm() ? " --noconfirm" : "");
 
     if (run_cmd(cmd) != 0) {
         fprintf(stderr, COLOR_RED "[-] Unmerge failed.\n" COLOR_RESET);

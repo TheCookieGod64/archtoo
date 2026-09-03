@@ -27,6 +27,8 @@ static void print_usage(void) {
     printf("  emerge -v              Show version information\n");
     printf("\nOptions:\n");
     printf("  --noconfirm            Never prompt; use safe defaults\n");
+    printf("  -i, --interactive      Enable pacman confirmation prompts\n");
+    printf("  --prompt-timeout SEC   Archtoo prompt timeout (0 waits forever)\n");
     printf("  -j, --jobs N           Parallel build jobs (default: all cores)\n");
     printf("  -r, --resume           Reuse the existing build tree and continue\n");
     printf("                         an interrupted compile\n");
@@ -73,12 +75,35 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    /* Config supplies defaults; command-line flags below override it. */
+    load_user_config();
+
     /* Collect global flags from anywhere in the argument list. */
     int filtered_argc = 0;
     char *filtered[256];
     for (int i = 1; i < argc && filtered_argc < 255; i++) {
         if (strcmp(argv[i], "--noconfirm") == 0) {
             set_noconfirm(1);
+            continue;
+        }
+
+        if (strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--interactive") == 0) {
+            set_interactive(1);
+            continue;
+        }
+
+        if (strcmp(argv[i], "--prompt-timeout") == 0) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, COLOR_RED "[-] --prompt-timeout needs seconds.\n" COLOR_RESET);
+                return 1;
+            }
+            char *end = NULL;
+            long seconds = strtol(argv[++i], &end, 10);
+            if (!end || *end != '\0' || seconds < 0 || seconds > 86400) {
+                fprintf(stderr, COLOR_RED "[-] Invalid timeout (expected 0-86400).\n" COLOR_RESET);
+                return 1;
+            }
+            set_prompt_timeout(seconds);
             continue;
         }
 
@@ -154,9 +179,9 @@ int main(int argc, char *argv[]) {
 
     argi = 0;
 
-    /* Authenticate once at startup and keep sudo alive throughout long builds,
-       so later pacman/configuration steps never ask for the password again. */
-    if (!acquire_sudo())
+    /* Authenticate once and re-exec as root. Build steps are still handed
+       back to SUDO_USER, while pacman never needs another password prompt. */
+    if (!acquire_sudo(argc, argv))
         return 1;
 
     if (strcmp(filtered[argi], "-U") == 0 || strcmp(filtered[argi], "--update") == 0) {
