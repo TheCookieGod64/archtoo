@@ -98,13 +98,21 @@ Upgrades the binary system with `pacman -Syu`, then rebuilds everything
 listed in `/usr/local/emerge/world`:
 
 ```bash
-emerge -U
-emerge -U --no-sync      # rebuild only, skip pacman -Syu
+emerge -U                         # refresh AUR sources, then rebuild
+emerge -U --no-sync               # skip pacman -Syu
+emerge -U --no-aur-sync           # reuse local AUR checkouts
+emerge -U --no-sync --no-aur-sync # fully local world rebuild
 ```
 
 World packages are held in `IgnorePkg`, so the pacman step cannot touch them
 and cannot cause a partial upgrade. If the upgrade fails, the rebuild is
 abandoned rather than run on top of a half-updated system.
+
+For AUR-backed world packages, the default update discards the old checkout
+and clones the current AUR Git repository directly (no `yay`, `paru`, or other
+AUR helper). `--no-aur-sync` instead preserves and rebuilds an existing local
+AUR checkout without any AUR network request. If no local checkout exists,
+that package fails rather than silently contacting AUR.
 
 ### Deselect a Package
 Hands a package back to pacman without uninstalling it -- the `IgnorePkg`

@@ -1,5 +1,30 @@
 # Changelog
 
+## v1.6.0
+
+### Added
+
+- **Direct AUR refresh during `emerge -U`.** AUR-backed packages in Archtoo's
+  `@world` set are refreshed directly from `aur.archlinux.org` before being
+  rebuilt. No `yay`, `paru`, or other AUR helper is invoked.
+- **`--no-aur-sync`.** This opt-out makes existing AUR checkouts and their
+  source trees fully local: Archtoo performs no AUR clone/fetch and passes
+  makepkg `-e` so upstream sources are not downloaded again. If a world
+  package is absent from the official repositories and has no existing local
+  AUR checkout, the update fails that package instead of contacting AUR.
+
+### Fixed
+
+- Git authentication prompts are disabled for repository discovery. A package
+  absent from the official repos now falls through to AUR immediately instead
+  of making `pkgctl` ask for a GitLab username.
+- **Ctrl-C stops the complete world update.** The old command path allowed
+  makepkg to convert an interrupt into a generic exit status, so Archtoo
+  continued with the next world package. Commands now use an explicit
+  fork/exec/wait runner, child signals are reset correctly, and unprivileged
+  build steps preserve interruption as status 130. Archtoo restores the
+  active backup and terminates the entire operation immediately.
+
 ## v1.5.0
 
 ### Added

@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <pwd.h>
+#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,6 +29,7 @@ static int  g_resume = 0;
 static int  g_import_keys = 1;
 static int  g_inhibit = 1;
 static int  g_sync = 1;
+static int  g_aur_sync = 1;
 static int  g_interactive = 0;
 static long g_prompt_timeout = 300;
 
@@ -51,6 +53,9 @@ int  get_inhibit(void)  { return g_inhibit; }
 void set_sync(int v) { g_sync = v; }
 int  get_sync(void)  { return g_sync; }
 
+void set_aur_sync(int v) { g_aur_sync = v; }
+int  get_aur_sync(void)  { return g_aur_sync; }
+
 void set_jobs(long n) { g_jobs = n; }
 
 /* An explicit --jobs wins; otherwise use every core. On a memory-tight
@@ -62,9 +67,36 @@ long get_jobs(void) {
 }
 
 int run_cmd(const char *cmd) {
-    int st = system(cmd);
-    if (st == -1)
+    /* Do not use system(3): it makes the parent ignore SIGINT while waiting.
+       During a world build that let makepkg consume Ctrl-C and return 1 while
+       emerge continued with the next package. Keeping our own parent alive
+       and waiting normally lets cmd_build's signal handler restore the active
+       backup and terminate the entire world update immediately. */
+    pid_t pid = fork();
+    if (pid < 0)
         return -1;
+    if (pid == 0) {
+        /* A handler installed by cmd_build() belongs to the emerge parent.
+           Commands must receive normal terminal signal semantics instead of
+           inheriting a handler that manipulates the parent's backup state. */
+        struct sigaction sa;
+        memset(&sa, 0, sizeof(sa));
+        sa.sa_handler = SIG_DFL;
+        sigemptyset(&sa.sa_mask);
+        sigaction(SIGINT, &sa, NULL);
+        sigaction(SIGTERM, &sa, NULL);
+        sigaction(SIGHUP, &sa, NULL);
+
+        execl("/bin/sh", "sh", "-c", cmd, (char *)NULL);
+        _exit(127);
+    }
+
+    int st;
+    while (waitpid(pid, &st, 0) < 0) {
+        if (errno == EINTR)
+            continue;
+        return -1;
+    }
     if (WIFSIGNALED(st))
         return 128 + WTERMSIG(st);
     return WIFEXITED(st) ? WEXITSTATUS(st) : -1;
@@ -352,7 +384,11 @@ int run_as_user(const char *cmd, const char *extra_env) {
         unlink(script);
         return -1;
     }
-    fprintf(f, "#!/bin/sh\n%s%s\n", extra_env ? extra_env : "", cmd);
+    /* sudo may shield the privileged emerge parent from terminal SIGINT.
+       Preserve interruption explicitly in the foreground step's status. */
+    fprintf(f, "#!/bin/sh\ntrap 'exit 130' INT\ntrap 'exit 143' TERM\n"
+               "trap 'exit 129' HUP\n%s%s\n",
+            extra_env ? extra_env : "", cmd);
     if (fclose(f) != 0) {
         fprintf(stderr, COLOR_RED "[-] Cannot finish writing %s\n" COLOR_RESET, script);
         unlink(script);

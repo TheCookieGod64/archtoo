@@ -23,6 +23,7 @@ static char g_target[768];
 static char g_backup[768];
 static volatile sig_atomic_t g_have_backup = 0;
 static volatile sig_atomic_t g_interrupted = 0;
+static int g_reused_local_sources = 0;
 
 /* Async-signal-safe: rename(2) and write(2) only. */
 static void restore_on_signal(int sig) {
@@ -123,10 +124,21 @@ static int has_pkgbuild(const char *dir) {
     return file_exists(p);
 }
 
+static int is_aur_checkout(const char *path) {
+    char config[700];
+    char cmd[900];
+    xsnprintf(config, sizeof(config), "%s/.git/config", path);
+    if (!file_exists(config))
+        return 0;
+    xsnprintf(cmd, sizeof(cmd), "grep -qF 'aur.archlinux.org' '%s'", config);
+    return run_cmd_quiet(cmd) == 0;
+}
+
 int fetch_sources(const char *pkg) {
     char path[512];
     char cmd[1024];
 
+    g_reused_local_sources = 0;
     xsnprintf(path, sizeof(path), "%s/%s", BUILD_DIR, pkg);
 
     if (chdir(BUILD_DIR) != 0) {
@@ -153,6 +165,18 @@ int fetch_sources(const char *pkg) {
                 "starting fresh.\n" COLOR_RESET, pkg);
     }
 
+    /* --no-aur-sync is deliberately different from a normal world rebuild:
+       an existing AUR checkout is used exactly as it stands, with no fetch,
+       pull, clone, or RPC request. makepkg receives -e below so it also keeps
+       the local srcdir rather than re-downloading upstream sources. */
+    if (!get_aur_sync() && dir_exists(path) && is_aur_checkout(path)) {
+        printf(COLOR_YELLOW
+               "[!] AUR refresh disabled; using local checkout %s\n" COLOR_RESET,
+               path);
+        g_reused_local_sources = 1;
+        return 1;
+    }
+
     /* Otherwise always start from a clean checkout: an existing tree is moved
        to BACKUP_DIR and deleted, so the package is genuinely recompiled
        rather than reusing stale sources or a prebuilt .pkg.tar.zst. The
@@ -162,15 +186,24 @@ int fetch_sources(const char *pkg) {
 
     printf("Searching in official Arch repositories...\n");
     xsnprintf(cmd, sizeof(cmd),
-             "pkgctl repo clone --protocol=https '%s' 2>'%s/.archtoo-fetch.log'",
+             "GIT_TERMINAL_PROMPT=0 pkgctl repo clone --protocol=https '%s' 2>'%s/.archtoo-fetch.log'",
              pkg, BUILD_DIR);
 
     if (run_as_user(cmd, NULL) == 0 && has_pkgbuild(path))
         return 1;
 
-    printf(COLOR_YELLOW "[!] Not found in official repos. Trying AUR...\n" COLOR_RESET);
+    if (!get_aur_sync()) {
+        fprintf(stderr, COLOR_RED
+                "[-] %s is not in the official repos and no reusable local AUR\n"
+                "    checkout exists; --no-aur-sync forbids cloning it.\n"
+                COLOR_RESET, pkg);
+        return 0;
+    }
+
+    printf(COLOR_YELLOW "[!] Not found in official repos. Refreshing from AUR...\n"
+           COLOR_RESET);
     xsnprintf(cmd, sizeof(cmd),
-             "git clone 'https://aur.archlinux.org/%s.git' 2>>'%s/.archtoo-fetch.log'",
+             "GIT_TERMINAL_PROMPT=0 git clone 'https://aur.archlinux.org/%s.git' 2>>'%s/.archtoo-fetch.log'",
              pkg, BUILD_DIR);
 
     if (run_as_user(cmd, NULL) == 0 && has_pkgbuild(path))
@@ -253,8 +286,9 @@ int compile_package(const char *pkg) {
     if (!write_makepkg_conf(conf, sizeof(conf)))
         return 0;
 
+    int reuse_sources = get_resume() || g_reused_local_sources;
     printf(COLOR_BLUE ">>> Compiling with makepkg (%s, -j%ld)%s...\n" COLOR_RESET,
-           DEFAULT_CFLAGS, get_jobs(), get_resume() ? " [resuming]" : "");
+           DEFAULT_CFLAGS, get_jobs(), reuse_sources ? " [reusing sources]" : "");
 
     /* -f is required: without it makepkg finds a leftover .pkg.tar.zst and
        reinstalls it instead of compiling, so the whole point of the tool
@@ -266,7 +300,7 @@ int compile_package(const char *pkg) {
        process, which has a separate sudo credential scope. Archtoo installs
        the finished archives itself as root immediately afterwards. */
     xsnprintf(makepkg_cmd, sizeof(makepkg_cmd), "makepkg -sf%s --config '%s'%s",
-             get_resume() ? "e" : "", conf,
+             reuse_sources ? "e" : "", conf,
              use_noconfirm() ? " --noconfirm" : "");
 
     /* Multi-hour builds are routinely lost to idle suspend. Hold the machine
@@ -312,9 +346,10 @@ int compile_package(const char *pkg) {
              DEFAULT_KCFLAGS, DEFAULT_KCFLAGS, get_jobs());
 
     int rc = run_as_user(cmd, env_block);
-    if (rc == 130 || rc == 131) {
+    if (rc == 130 || rc == 131 || rc == 143 || rc == 129) {
         fprintf(stderr, COLOR_RED "\n[-] Build interrupted by user.\n" COLOR_RESET);
-        return 0;
+        restore_backup();
+        exit(130);
     }
     if (rc != 0) {
         fprintf(stderr, COLOR_RED "[-] Compilation failed (exit %d).\n" COLOR_RESET, rc);
