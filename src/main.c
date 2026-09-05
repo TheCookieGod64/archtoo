@@ -35,6 +35,7 @@ static void print_usage(void) {
     printf("  --no-keys              Do not import missing PGP signing keys\n");
     printf("  --no-inhibit           Allow the machine to suspend while building\n");
     printf("  --no-sync              Skip pacman -Syu during a world update\n");
+    printf("  --no-aur-sync          Reuse local AUR @world sources; do not refresh\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -124,6 +125,11 @@ int main(int argc, char *argv[]) {
 
         if (strcmp(argv[i], "--no-sync") == 0) {
             set_sync(0);
+            continue;
+        }
+
+        if (strcmp(argv[i], "--no-aur-sync") == 0) {
+            set_aur_sync(0);
             continue;
         }
 

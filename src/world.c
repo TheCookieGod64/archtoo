@@ -126,6 +126,13 @@ int cmd_world_update(void) {
         printf(COLOR_GREEN "[+] Binary packages up to date.\n" COLOR_RESET);
     }
 
+    if (get_aur_sync())
+        printf(COLOR_BLUE ">>> [AUR] Refresh enabled for AUR-backed @world packages.\n"
+               COLOR_RESET);
+    else
+        printf(COLOR_YELLOW ">>> [AUR] Refresh disabled; reusing local AUR checkouts.\n"
+               COLOR_RESET);
+
     /* Same symlink discipline as the rest of the file: under sudo this read
        happens as root inside the user-owned EMERGE_DIR. */
     FILE *f = fopen_nofollow(WORLD_FILE, "r");
