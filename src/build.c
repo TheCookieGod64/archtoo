@@ -134,6 +134,18 @@ static int is_aur_checkout(const char *path) {
     return run_cmd_quiet(cmd) == 0;
 }
 
+static int has_reusable_source_tree(const char *path) {
+    char src[700];
+    char cmd[1000];
+
+    xsnprintf(src, sizeof(src), "%s/src", path);
+    if (!dir_exists(src))
+        return 0;
+    xsnprintf(cmd, sizeof(cmd),
+             "find '%s' -mindepth 1 -maxdepth 1 -print -quit | grep -q .", src);
+    return run_cmd_quiet(cmd) == 0;
+}
+
 int fetch_sources(const char *pkg) {
     char path[512];
     char cmd[1024];
@@ -153,6 +165,15 @@ int fetch_sources(const char *pkg) {
         xsnprintf(git_dir, sizeof(git_dir), "%s/.git", path);
 
         if (dir_exists(path)) {
+            if (!get_aur_sync() && is_aur_checkout(path) &&
+                !has_reusable_source_tree(path)) {
+                fprintf(stderr, COLOR_RED
+                        "[-] Cannot resume %s: its local AUR source tree is "
+                        "missing, and\n"
+                        "    --no-aur-sync forbids retrieving it again.\n"
+                        COLOR_RESET, pkg);
+                return 0;
+            }
             printf(COLOR_GREEN "[+] Resuming in existing build tree %s\n" COLOR_RESET, path);
             if (!dir_exists(git_dir))
                 fprintf(stderr, COLOR_YELLOW
@@ -170,6 +191,14 @@ int fetch_sources(const char *pkg) {
        pull, clone, or RPC request. makepkg receives -e below so it also keeps
        the local srcdir rather than re-downloading upstream sources. */
     if (!get_aur_sync() && dir_exists(path) && is_aur_checkout(path)) {
+        if (!has_reusable_source_tree(path)) {
+            fprintf(stderr, COLOR_RED
+                    "[-] Local AUR checkout exists for %s, but its source tree "
+                    "is not reusable;\n"
+                    "    --no-aur-sync forbids downloading or extracting fresh "
+                    "AUR sources.\n" COLOR_RESET, pkg);
+            return 0;
+        }
         printf(COLOR_YELLOW
                "[!] AUR refresh disabled; using local checkout %s\n" COLOR_RESET,
                path);
@@ -251,13 +280,48 @@ static void import_pgp_keys(void) {
     run_as_user(cmd, NULL);
 }
 
+/* Resolve repository build dependencies before makepkg is started. Running
+   makepkg with -s would invoke nested sudo after privileges have been dropped,
+   causing a second password prompt and interactive provider selection. */
+static int install_build_dependencies(void) {
+    char cmd[4096];
+
+    if (run_as_user("makepkg --printsrcinfo > .archtoo-srcinfo", NULL) != 0) {
+        fprintf(stderr, COLOR_RED
+                "[-] Could not inspect PKGBUILD dependencies.\n" COLOR_RESET);
+        return 0;
+    }
+
+    xsnprintf(cmd, sizeof(cmd),
+             "deps=$(awk '$1 ~ /^(depends|makedepends|checkdepends)(_[A-Za-z0-9_]+)?$/ "
+             "{ print $3 }' .archtoo-srcinfo | sed 's/[<>=].*$//' | sort -u); "
+             "missing=; "
+             "if [ -n \"$deps\" ]; then missing=$(pacman -T $deps 2>/dev/null || true); fi; "
+             "if [ -n \"$missing\" ]; then "
+             "echo '>>> Installing missing repository build dependencies...'; "
+             "pacman -S --needed%s%s -- $missing; "
+             "fi",
+             use_noconfirm() ? " --noconfirm --ask=6" : "",
+             use_noconfirm() ? "" : "");
+
+    int rc = run_cmd(cmd);
+    unlink(".archtoo-srcinfo");
+    if (rc != 0) {
+        fprintf(stderr, COLOR_RED
+                "[-] Could not install required repository build dependencies "
+                "(exit %d).\n" COLOR_RESET, rc);
+        return 0;
+    }
+    return 1;
+}
+
 int compile_package(const char *pkg) {
     char path[512];
     char conf[512];
-    /* cmd holds the systemd-inhibit wrapper (~150 chars of prefix) around
-       makepkg_cmd, so it needs real headroom; a truncated shell command
-       still runs, it just runs the wrong thing. */
-    char cmd[2048];
+    /* Besides the makepkg wrapper, cmd also holds the debug-package ownership
+       check performed before installation. Keep ample room; xsnprintf aborts
+       rather than ever executing a truncated shell command. */
+    char cmd[8192];
 
     xsnprintf(path, sizeof(path), "%s/%s", BUILD_DIR, pkg);
 
@@ -279,6 +343,9 @@ int compile_package(const char *pkg) {
 
     import_pgp_keys();
 
+    if (!install_build_dependencies())
+        return 0;
+
     set_build_env();
 
     /* makepkg sources /etc/makepkg.conf and clobbers any exported CFLAGS,
@@ -286,7 +353,12 @@ int compile_package(const char *pkg) {
     if (!write_makepkg_conf(conf, sizeof(conf)))
         return 0;
 
-    int reuse_sources = get_resume() || g_reused_local_sources;
+    int reuse_sources = g_reused_local_sources ||
+                        (get_resume() && has_reusable_source_tree(path));
+    if (get_resume() && !reuse_sources)
+        printf(COLOR_YELLOW
+               "[!] Existing checkout has no reusable source tree; makepkg will "
+               "fetch and extract it again.\n" COLOR_RESET);
     printf(COLOR_BLUE ">>> Compiling with makepkg (%s, -j%ld)%s...\n" COLOR_RESET,
            DEFAULT_CFLAGS, get_jobs(), reuse_sources ? " [reusing sources]" : "");
 
@@ -299,7 +371,7 @@ int compile_package(const char *pkg) {
     /* Do not pass -i: makepkg would invoke sudo from the unprivileged build
        process, which has a separate sudo credential scope. Archtoo installs
        the finished archives itself as root immediately afterwards. */
-    xsnprintf(makepkg_cmd, sizeof(makepkg_cmd), "makepkg -sf%s --config '%s'%s",
+    xsnprintf(makepkg_cmd, sizeof(makepkg_cmd), "makepkg -f%s --config '%s'%s",
              reuse_sources ? "e" : "", conf,
              use_noconfirm() ? " --noconfirm" : "");
 
@@ -356,6 +428,41 @@ int compile_package(const char *pkg) {
         return 0;
     }
 
+    /* Auto-generated debug split packages may collide even when their base
+       packages declare conflicts correctly. Inspect files from each newly
+       built *-debug archive and ask pacman for their current owners. Remove
+       only different installed *-debug owners; never broadly overwrite files
+       and never infer removals from translated pacman diagnostics. */
+    xsnprintf(cmd, sizeof(cmd),
+             "remove_debug=; "
+             "for archive in ./*.pkg.tar.*; do "
+             "[ -f \"$archive\" ] || continue; "
+             "case $archive in *.sig) continue;; esac; "
+             "pkgname=$(bsdtar -xOf \"$archive\" .PKGINFO 2>/dev/null "
+             "| sed -n 's/^pkgname = //p' | head -n1); "
+             "case $pkgname in *-debug) ;; *) continue;; esac; "
+             "while IFS= read -r entry; do "
+             "case $entry in */|'') continue;; esac; "
+             "entry=${entry#./}; "
+             "owner=$(pacman -Qoq \"/$entry\" 2>/dev/null | head -n1); "
+             "case $owner in *-debug) ;; *) continue;; esac; "
+             "[ \"$owner\" = \"$pkgname\" ] && continue; "
+             "case \" $remove_debug \" in *\" $owner \"*) ;; "
+             "*) remove_debug=\"$remove_debug $owner\";; esac; "
+             "done < <(bsdtar -tf \"$archive\"); "
+             "done; "
+             "if [ -n \"$remove_debug\" ]; then "
+             "echo \">>> Removing conflicting debug package(s):$remove_debug\"; "
+             "pacman -R%s -- $remove_debug || exit $?; "
+             "fi",
+             use_noconfirm() ? " --noconfirm" : "");
+    if (run_cmd(cmd) != 0) {
+        fprintf(stderr, COLOR_RED
+                "[-] Could not remove conflicting debug package(s).\n"
+                COLOR_RESET);
+        return 0;
+    }
+
     /* The main emerge process is root after acquire_sudo() re-executes it.
        Install every split-package archive in one pacman transaction, while
        excluding optional detached signature files. */
@@ -363,7 +470,7 @@ int compile_package(const char *pkg) {
     xsnprintf(cmd, sizeof(cmd),
              "find . -maxdepth 1 -type f -name '*.pkg.tar.*' "
              "! -name '*.sig' -exec pacman -U%s -- {} +",
-             use_noconfirm() ? " --noconfirm" : "");
+             use_noconfirm() ? " --noconfirm --ask=6" : "");
     rc = run_cmd(cmd);
     if (rc != 0) {
         fprintf(stderr, COLOR_RED "[-] Package installation failed (exit %d).\n"

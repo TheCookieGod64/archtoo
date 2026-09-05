@@ -1,5 +1,27 @@
 # Changelog
 
+## v1.6.1
+
+- Install missing official-repository build dependencies from Archtoo's
+  privileged parent before starting `makepkg`. This removes nested sudo
+  password prompts and nonblocking provider-selection prompts from builds.
+- Remove `makepkg -s`; dependency installation no longer escapes the
+  one-sudo-password architecture.
+- Allow pacman to resolve replacement conflicts noninteractively, such as
+  replacing `yay-bin` with a locally built `yay`, while retaining the default
+  noninteractive behavior.
+- Handle missing conflict metadata on automatically generated debug splits.
+  Archtoo compares files in newly built `*-debug` archives with pacman's
+  ownership database and removes only different installed `*-debug` owners
+  before the final transaction. This fixes `yay-debug` versus `yay-bin-debug`
+  without unsafe broad file overwrites or locale-dependent error parsing.
+- Make `--resume` inspect the existing `src/` tree before passing makepkg's
+  `--noextract` option. A checkout without extracted sources is retained, but
+  makepkg is allowed to fetch and extract those sources again.
+- Keep `--no-aur-sync` strict when combined with `--resume`: a missing local
+  AUR source tree fails locally instead of triggering a network request.
+- Build GitHub release archives as generic x86-64 binary-only artifacts.
+
 ## v1.6.0
 
 ### Added
