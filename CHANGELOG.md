@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.6.1
+## v1.7.0
 
 - Install missing official-repository build dependencies from Archtoo's
   privileged parent before starting `makepkg`. This removes nested sudo
@@ -20,6 +20,11 @@
   makepkg is allowed to fetch and extract those sources again.
 - Keep `--no-aur-sync` strict when combined with `--resume`: a missing local
   AUR source tree fails locally instead of triggering a network request.
+- Add `emerge_confirm=false` to the user config. It immediately chooses the
+  safe default for Archtoo's own questions, independently of
+  `pacman_confirm=false`, which keeps pacman noninteractive.
+- Reduce `src/main.c` to the process entry point only. CLI parsing, help and
+  version output, validation, and command dispatch now live in `src/cli.c`.
 - Build GitHub release archives as generic x86-64 binary-only artifacts.
 
 ## v1.6.0

@@ -18,8 +18,10 @@ Archtoo is a lightweight, Gentoo-style package compilation engine written in C f
 archtoo/
 ├── bin/          # Output directory for the executable
 ├── build/        # Intermediate object files (.o)
-├── headers/      # C header files (.h)
-├── src/          # C source files (.c)
+├── headers/      # Public declarations shared by source modules
+├── src/          # Implementation modules (CLI, builds, world, utilities, etc.)
+│   ├── main.c    # Minimal process entry point
+│   └── cli.c     # Argument parsing, help/version output, and dispatch
 ├── Makefile      # Build configuration
 ├── LICENSE       # GPL-3.0-or-later (operative)
 ├── LICENSE.CKL   # GPLv3 s7 additional terms + CKL-2.0 tradition
@@ -176,7 +178,14 @@ emerge --prompt-timeout 0 htop
 Persistent defaults live in `~/.config/archtoo/config`:
 
 ```ini
+# false immediately selects the safe default for Archtoo's own questions.
+# The current editor and cleanup questions both default to no.
+emerge_confirm=false
+
+# false passes the noninteractive policy to pacman.
 pacman_confirm=false
+
+# Used only when emerge_confirm=true; 0 waits forever.
 prompt_timeout=300
 ```
 

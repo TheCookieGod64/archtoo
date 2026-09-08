@@ -31,6 +31,7 @@ static int  g_inhibit = 1;
 static int  g_sync = 1;
 static int  g_aur_sync = 1;
 static int  g_interactive = 0;
+static int  g_emerge_confirm = 1;
 static long g_prompt_timeout = 300;
 
 void set_noconfirm(int v) { g_noconfirm = v; }
@@ -229,6 +230,9 @@ void load_user_config(void) {
         if (strcmp(key, "pacman_confirm") == 0) {
             if (strcmp(value, "true") == 0) set_interactive(1);
             else if (strcmp(value, "false") == 0) set_interactive(0);
+        } else if (strcmp(key, "emerge_confirm") == 0) {
+            if (strcmp(value, "true") == 0) g_emerge_confirm = 1;
+            else if (strcmp(value, "false") == 0) g_emerge_confirm = 0;
         } else if (strcmp(key, "prompt_timeout") == 0) {
             char *end = NULL;
             long seconds = strtol(value, &end, 10);
@@ -520,7 +524,7 @@ int write_makepkg_conf(char *path_out, size_t n) {
 int ask_yes_no(const char *question, int default_yes) {
     char reply[64];
 
-    if (g_noconfirm || !isatty(STDIN_FILENO)) {
+    if (g_noconfirm || !g_emerge_confirm || !isatty(STDIN_FILENO)) {
         printf("%s [%s]: %s (auto)\n", question, default_yes ? "Y/n" : "y/N",
                default_yes ? "yes" : "no");
         return default_yes;

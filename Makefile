@@ -1,5 +1,5 @@
 # Keep in sync with headers/version.h
-VERSION     = 1.6.1
+VERSION     = 1.7.0
 
 CC          ?= gcc
 STD         = -std=gnu11
@@ -24,6 +24,7 @@ PREFIX      ?= /usr/local
 BINDIR      ?= $(PREFIX)/bin
 
 SRCS        = $(SRC_DIR)/main.c \
+              $(SRC_DIR)/cli.c \
               $(SRC_DIR)/utils.c \
               $(SRC_DIR)/world.c \
               $(SRC_DIR)/kernel.c \
