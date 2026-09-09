@@ -1,0 +1,238 @@
+# archtoo
+
+Archtoo is a lightweight, Gentoo-style package compilation engine written in C for Arch Linux. It bridges the gap between binary package management and source-based hardware optimization by automating source fetching, `makepkg` compilation, and package locking in `/etc/pacman.conf`.
+
+## Features
+
+- Hardware-Native Compilation: Builds with `-march=native -O3 -pipe` and multi-threaded `MAKEFLAGS` via a generated makepkg config (environment variables alone are ignored by `makepkg`, which sources `/etc/makepkg.conf`).
+- Dual Source Resolution: Clones official Arch Linux repositories via `pkgctl` with automatic fallback to the Arch User Repository (AUR).
+- Pacman Protection: Locks built packages in `/etc/pacman.conf` under `IgnorePkg` to prevent `pacman -Syu` from overwriting custom binaries.
+- World Set Management: Tracks all user-compiled packages in `/usr/local/emerge/world`.
+- World Updates (`-U`): Rebuilds all tracked `@world` packages with a single command.
+- Kernel Build Hooks: Automatically runs `mkinitcpio -P` and `grub-mkconfig` when building kernel targets (e.g., `linux-zen`).
+- Clean Unmerge (`-C`): Removes packages via `pacman -Rns`, cleans world file entries, and removes pacman locks.
+
+## Project Structure
+
+```
+archtoo/
+├── bin/          # Output directory for the executable
+├── build/        # Intermediate object files (.o)
+├── headers/      # Public declarations shared by source modules
+├── src/          # Implementation modules (CLI, builds, world, utilities, etc.)
+│   ├── main.c    # Minimal process entry point
+│   └── cli.c     # Argument parsing, help/version output, and dispatch
+├── Makefile      # Build configuration
+├── LICENSE       # GPL-3.0-or-later (operative)
+├── LICENSE.CKL   # GPLv3 s7 additional terms + CKL-2.0 tradition
+├── CHANGELOG.md
+└── README.md
+```
+
+## Prerequisites
+
+Ensure the required development utilities are installed:
+
+```bash
+sudo pacman -S --needed base-devel devtools git
+```
+
+## Building and Installation
+
+Clone the repository, compile the C source code, and install the binary to `/usr/local/bin`:
+
+```bash
+git clone https://github.com/TheCookieGod64/archtoo.git
+cd archtoo
+make
+sudo make install
+```
+
+`make check` runs a strict warning-free compile (`-Wpedantic -Werror`), and
+`make dist` produces a portable `-march=x86-64` release archive. The default
+`make` target uses `-march=native`, so do not copy `bin/emerge` to a different
+machine — build it there instead.
+
+To remove the installed binary:
+
+```bash
+sudo make uninstall
+```
+
+## Usage
+
+### Build and Install a Package
+
+Archtoo can be run either way:
+
+```bash
+emerge <package>          # asks once, then runs privileged steps as root
+sudo emerge <package>     # Gentoo-style; drops to your user to compile
+```
+
+Building always starts from a clean checkout. An existing build tree is moved
+to `/usr/local/emerge/backups/`, deleted and re-cloned, so the package is
+really recompiled. If the build fails or you press Ctrl-C, the previous tree
+is put back automatically.
+
+Fetches source code, offers optional PKGBUILD editing, compiles with native flags, installs, and locks the package:
+
+```bash
+emerge <package_name>...
+```
+
+Examples:
+```bash
+emerge htop
+emerge linux-zen
+emerge htop neovim ripgrep      # several at once
+```
+
+### Unmerge a Package
+Removes the package, unlocks it in `/etc/pacman.conf`, and removes its record from the world file:
+
+```bash
+emerge -C <package_name>
+```
+
+### Rebuild World Set
+Upgrades the binary system with `pacman -Syu`, then rebuilds everything
+listed in `/usr/local/emerge/world`:
+
+```bash
+emerge -U                         # refresh AUR sources, then rebuild
+emerge -U --no-sync               # skip pacman -Syu
+emerge -U --no-aur-sync           # reuse local AUR checkouts
+emerge -U --no-sync --no-aur-sync # fully local world rebuild
+```
+
+World packages are held in `IgnorePkg`, so the pacman step cannot touch them
+and cannot cause a partial upgrade. If the upgrade fails, the rebuild is
+abandoned rather than run on top of a half-updated system.
+
+For AUR-backed world packages, the default update discards the old checkout
+and clones the current AUR Git repository directly (no `yay`, `paru`, or other
+AUR helper). `--no-aur-sync` instead preserves and rebuilds an existing local
+AUR checkout without any AUR network request. If no local checkout exists,
+that package fails rather than silently contacting AUR.
+
+### Deselect a Package
+Hands a package back to pacman without uninstalling it -- the `IgnorePkg`
+lock is removed and it is dropped from the world set, but it stays installed:
+
+```bash
+emerge -D <package_name>
+```
+
+Use this instead of `-C` for anything other packages depend on. `pacman -Rns
+ffmpeg` would refuse outright, since half the system links against it.
+
+### Query, Search, and V2 Helpers
+```bash
+emerge -S hello              # search repositories and the AUR
+emerge -A hello              # repo info, or AUR info if not in repos
+emerge -Q hello              # installed-package info
+emerge -G hello              # clone the AUR PKGBUILD into ./hello
+emerge -B ./hello            # build a local PKGBUILD directory
+emerge --providers hello     # exact name or Provides matches only
+emerge --deps hello          # Depends/MakeDepends plus graph install order
+emerge --orphans             # packages installed as deps, required by none
+emerge --stats               # installed / explicit / foreign / @world counts
+emerge --news                # recent Arch Linux news items
+emerge --devel               # installed VCS packages (-git/-hg/...)
+emerge --clean               # drop download leftovers, then pacman -Sc
+```
+
+### Display Version
+```bash
+emerge -v
+```
+
+### Build Jobs and Resuming
+
+Limit parallelism on a memory-tight machine, and continue an interrupted
+build instead of starting over:
+
+```bash
+emerge --jobs 2 firefox        # -j2 instead of one job per core
+emerge --resume firefox        # continue where the last attempt stopped
+emerge -j2 -r firefox          # both
+```
+
+`--resume` keeps the existing build tree and tells makepkg not to re-extract
+the sources, so object files from the previous attempt are reused. Large
+packages such as Firefox can take many hours; without `--resume`, pressing
+Ctrl-C means starting again from nothing.
+
+### PGP Keys and Suspend
+
+Both are automatic:
+
+- Signing keys listed in a PKGBUILD's `validpgpkeys` are imported before the
+  build, so signature verification does not stop the compile. Turn off with
+  `--no-keys`.
+- The machine is kept awake for the duration of the build via
+  `systemd-inhibit`. Turn off with `--no-inhibit`.
+
+### Prompts and configuration
+
+Pacman confirmations are disabled by default. To restore its `J/n` prompts:
+
+```bash
+emerge -i htop
+emerge --interactive -U
+```
+
+Archtoo's own questions choose their displayed default after five minutes.
+Change that per invocation (`0` means wait forever):
+
+```bash
+emerge --prompt-timeout 30 htop
+emerge --prompt-timeout 0 htop
+```
+
+Persistent defaults live in `~/.config/archtoo/config`:
+
+```ini
+# false immediately selects the safe default for Archtoo's own questions.
+# The current editor and cleanup questions both default to no.
+emerge_confirm=false
+
+# false passes the noninteractive policy to pacman.
+pacman_confirm=false
+
+# Used only when emerge_confirm=true; 0 waits forever.
+prompt_timeout=300
+```
+
+CLI flags override the config file. `--noconfirm` remains the strongest mode:
+it skips every Archtoo prompt as well as all pacman confirmations.
+
+Archtoo must be run as your normal user, not as root — `makepkg` refuses to
+build as root. It calls `sudo` itself where privileges are required.
+
+All commands return a non-zero exit status on failure, so they can be used in
+scripts.
+
+## System Paths
+
+- Executable Binary: `/usr/local/bin/emerge`
+- World Tracking File: `/usr/local/emerge/world`
+- Central Build Directory: `/usr/local/emerge/builds/`
+- Build Tree Backups: `/usr/local/emerge/backups/`
+- Generated makepkg config: `/usr/local/emerge/makepkg.archtoo.conf`
+- `pacman.conf` backup (created before the first lock): `/etc/pacman.conf.archtoo.bak`
+
+## License
+
+Archtoo is licensed under the **GNU General Public License v3.0 or later**
+(SPDX: `GPL-3.0-or-later`). The full text is in [`LICENSE`](LICENSE).
+
+Additional attribution terms, granted under GPLv3 section 7, are in
+[`LICENSE.CKL`](LICENSE.CKL) — which also preserves the original
+TheCookieGod64 Public License (CKL-2.0) as the non-binding tradition it
+deserves to be. The Shrek clause survives. It is just no longer a condition
+of use, because GPLv3 section 7 does not permit adding restrictions on top
+of the GPL.
+
+If the two documents ever disagree, the GPL wins.
