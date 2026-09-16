@@ -47,6 +47,10 @@ static void print_usage(void) {
     printf("  -i, --interactive      Enable pacman confirmation prompts\n");
     printf("  --prompt-timeout SEC   Archtoo prompt timeout (0 waits forever)\n");
     printf("  -j, --jobs N           Parallel build jobs (default: all cores)\n");
+    printf("  --target ARCH          Custom -march target (default: native)\n");
+    printf("                         e.g. skylake, znver3, x86-64-v3, native\n");
+    printf("  --target=ARCH          Same as --target ARCH\n");
+    printf("  --march=ARCH           Alias for --target=ARCH\n");
     printf("  -r, --resume           Reuse the existing build tree and continue\n");
     printf("                         an interrupted compile\n");
     printf("  --no-keys              Do not import missing PGP signing keys\n");
@@ -60,29 +64,6 @@ static void print_usage(void) {
 int archtoo_cli_main(int argc, char *argv[]) {
     int argi = 1;
 
-    /* Version and usage need no privileges and no /usr/local/emerge, so they
-       are handled before init_system() shells out to sudo. */
-    if (argc < 2) {
-        print_usage();
-        return 1;
-    }
-
-    if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0) {
-        printf("%s v%s\n", ARCHTOO_NAME, ARCHTOO_VERSION);
-        printf("Copyright (C) 2026 TheCookieGod64\n");
-        printf("License GPLv3+: GNU GPL version 3 or later "
-               "<https://gnu.org/licenses/gpl.html>\n");
-        printf("This is free software: you are free to change and redistribute it.\n");
-        printf("There is NO WARRANTY, to the extent permitted by law.\n");
-        printf("See LICENSE.CKL for additional terms and the CKL-2.0 tradition.\n");
-        return 0;
-    }
-
-    if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
-        print_usage();
-        return 0;
-    }
-
     /* Gentoo-style: "sudo emerge <pkg>" is supported. makepkg still cannot
        run as root, so the compile is handed back to SUDO_USER. A bare root
        login has no unprivileged user to fall back to. */
@@ -95,8 +76,39 @@ int archtoo_cli_main(int argc, char *argv[]) {
         return 1;
     }
 
-    /* Config supplies defaults; command-line flags below override it. */
+    /* Config supplies defaults; command-line flags below override it.
+       Load early so --help/--version and no-arg invocation can show the
+       active target from config. */
     load_user_config();
+
+    /* Version and usage need no privileges and no /usr/local/emerge, so they
+       are handled before init_system() shells out to sudo. */
+    if (argc < 2) {
+        if (strcmp(get_target_arch(), "native") != 0) {
+            printf(COLOR_CYAN "Current target from config: %s\n" COLOR_RESET, get_target_arch());
+        }
+        print_usage();
+        return 1;
+    }
+
+    if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0) {
+        printf("%s v%s (target=%s)\n", ARCHTOO_NAME, ARCHTOO_VERSION, get_target_arch());
+        printf("Copyright (C) 2026 TheCookieGod64\n");
+        printf("License GPLv3+: GNU GPL version 3 or later "
+               "<https://gnu.org/licenses/gpl.html>\n");
+        printf("This is free software: you are free to change and redistribute it.\n");
+        printf("There is NO WARRANTY, to the extent permitted by law.\n");
+        printf("See LICENSE.CKL for additional terms and the CKL-2.0 tradition.\n");
+        return 0;
+    }
+
+    if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
+        print_usage();
+        if (strcmp(get_target_arch(), "native") != 0) {
+            printf(COLOR_CYAN "\nActive target (from config): %s\n" COLOR_RESET, get_target_arch());
+        }
+        return 0;
+    }
 
     /* Collect global flags from anywhere in the argument list. */
     int filtered_argc = 0;
@@ -210,13 +222,101 @@ int archtoo_cli_main(int argc, char *argv[]) {
             continue;
         }
 
+        if (strcmp(argv[i], "--target") == 0 || strcmp(argv[i], "--march") == 0 ||
+            strcmp(argv[i], "--cpu") == 0) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, COLOR_RED "[-] %s needs an architecture name (e.g. skylake, znver3, native).\n" COLOR_RESET, argv[i]);
+                return 1;
+            }
+            const char *arch = argv[++i];
+            if (strcmp(arch, "help") == 0 || strcmp(arch, "list") == 0) {
+                print_known_targets();
+                return 0;
+            }
+            if (!valid_target_arch(arch)) {
+                fprintf(stderr, COLOR_RED "[-] Invalid target architecture '%s'. Use --target help for list.\n" COLOR_RESET, arch);
+                return 1;
+            }
+            set_target_arch(arch);
+            continue;
+        }
+
+        if (strncmp(argv[i], "--target=", 9) == 0) {
+            const char *arch = argv[i] + 9;
+            if (!*arch) {
+                fprintf(stderr, COLOR_RED "[-] --target= needs a value.\n" COLOR_RESET);
+                return 1;
+            }
+            if (strcmp(arch, "help") == 0 || strcmp(arch, "list") == 0) {
+                print_known_targets();
+                return 0;
+            }
+            if (!valid_target_arch(arch)) {
+                fprintf(stderr, COLOR_RED "[-] Invalid target architecture '%s'. Use --target help for list.\n" COLOR_RESET, arch);
+                return 1;
+            }
+            set_target_arch(arch);
+            continue;
+        }
+
+        if (strncmp(argv[i], "--march=", 8) == 0) {
+            const char *arch = argv[i] + 8;
+            if (!*arch) {
+                fprintf(stderr, COLOR_RED "[-] --march= needs a value.\n" COLOR_RESET);
+                return 1;
+            }
+            if (strcmp(arch, "help") == 0 || strcmp(arch, "list") == 0) {
+                print_known_targets();
+                return 0;
+            }
+            if (!valid_target_arch(arch)) {
+                fprintf(stderr, COLOR_RED "[-] Invalid march value '%s'.\n" COLOR_RESET, arch);
+                return 1;
+            }
+            set_target_arch(arch);
+            continue;
+        }
+
+        if (strncmp(argv[i], "--cpu=", 6) == 0) {
+            const char *arch = argv[i] + 6;
+            if (!*arch) {
+                fprintf(stderr, COLOR_RED "[-] --cpu= needs a value.\n" COLOR_RESET);
+                return 1;
+            }
+            if (!valid_target_arch(arch)) {
+                fprintf(stderr, COLOR_RED "[-] Invalid cpu value '%s'.\n" COLOR_RESET, arch);
+                return 1;
+            }
+            set_target_arch(arch);
+            continue;
+        }
+
         filtered[filtered_argc++] = argv[i];
     }
     filtered[filtered_argc] = NULL;
 
     guide_maybe_show();
 
+    /* Support -v/--version and -h/--help even when combined with global flags like --target */
+    if (filtered_argc == 1) {
+        if (strcmp(filtered[0], "-v") == 0 || strcmp(filtered[0], "--version") == 0) {
+            printf("%s v%s (target=%s)\n", ARCHTOO_NAME, ARCHTOO_VERSION, get_target_arch());
+            printf("Copyright (C) 2026 TheCookieGod64\n");
+            printf("License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>\n");
+            return 0;
+        }
+        if (strcmp(filtered[0], "-h") == 0 || strcmp(filtered[0], "--help") == 0) {
+            print_usage();
+            return 0;
+        }
+    }
+
     if (filtered_argc == 0) {
+        if (strcmp(get_target_arch(), "native") != 0) {
+            printf(COLOR_CYAN "Current target: %s\n" COLOR_RESET, get_target_arch());
+            printf("CFLAGS: -march=%s -O3 -pipe\n", get_target_arch());
+            printf("RUSTFLAGS: -C opt-level=3 -C target-cpu=%s\n", get_target_arch());
+        }
         return 0;
     }
 

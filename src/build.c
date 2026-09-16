@@ -359,8 +359,12 @@ int compile_package(const char *pkg) {
         printf(COLOR_YELLOW
                "[!] Existing checkout has no reusable source tree; makepkg will "
                "fetch and extract it again.\n" COLOR_RESET);
-    printf(COLOR_BLUE ">>> Compiling with makepkg (%s, -j%ld)%s...\n" COLOR_RESET,
-           DEFAULT_CFLAGS, get_jobs(), reuse_sources ? " [reusing sources]" : "");
+    {
+        char cflags_disp[256];
+        xsnprintf(cflags_disp, sizeof(cflags_disp), "-march=%s -O3 -pipe", get_target_arch());
+        printf(COLOR_BLUE ">>> Compiling with makepkg (%s, -j%ld)%s...\n" COLOR_RESET,
+               cflags_disp, get_jobs(), reuse_sources ? " [reusing sources]" : "");
+    }
 
     /* -f is required: without it makepkg finds a leftover .pkg.tar.zst and
        reinstalls it instead of compiling, so the whole point of the tool
@@ -411,11 +415,13 @@ int compile_package(const char *pkg) {
        invoking user. The environment has to be rebuilt inside that shell
        because sudo does not carry it across. */
     char env_block[1024];
+    char kflags_env[256];
+    xsnprintf(kflags_env, sizeof(kflags_env), "-march=%s -O3 -pipe", get_target_arch());
     xsnprintf(env_block, sizeof(env_block),
              "export KCFLAGS='%s'\n"
              "export KCPPFLAGS='%s'\n"
              "export MAKEFLAGS='-j%ld'\n",
-             DEFAULT_KCFLAGS, DEFAULT_KCFLAGS, get_jobs());
+             kflags_env, kflags_env, get_jobs());
 
     int rc = run_as_user(cmd, env_block);
     if (rc == 130 || rc == 131 || rc == 143 || rc == 129) {

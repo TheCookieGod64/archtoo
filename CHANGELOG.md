@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.1.0
+
+- **New `--target` / `--march` / `--cpu` option**: Override `-march` instead of always using `native`. Examples: `emerge --target=skylake htop`, `emerge --target=znver3 firefox`, `emerge --target=x86-64-v3 -U`. Validated to `[A-Za-z0-9._-]` (max 64 chars), rejects shell metacharacters. Shows list via `--target help`.
+- `CFLAGS` / `CXXFLAGS` now `-march=<target> -O3 -pipe`, `KCFLAGS` / `KCPPFLAGS` same, `RUSTFLAGS` → `-C opt-level=3 -C target-cpu=<target>`. Written into `makepkg.archtoo.conf` with `# target=<name>` comment.
+- **Config file support**: `~/.config/archtoo/config` now accepts `target_arch=skylake` (aliases: `target=`, `march=`, `cpu=`). CLI `--target` overrides config file. Version/help output shows active target.
+- Help text updated, completion list includes `--target`, `--march`, `--cpu`.
+- Build output shows active target: `Compiling with makepkg (-march=skylake -O3 -pipe, -jN)`.
+
 ## v2.0.0-dev
 
 - Replace the v2 command stubs with real implementations: search, info,

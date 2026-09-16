@@ -107,6 +107,12 @@ long get_prompt_timeout(void);
 void set_jobs(long n);
 long get_jobs(void);
 
+/* Custom -march target: native by default, but overridable via --target. */
+void set_target_arch(const char *arch);
+const char *get_target_arch(void);
+int valid_target_arch(const char *s);
+void print_known_targets(void);
+
 /* Reuse an existing build tree and continue an interrupted compile. */
 void set_resume(int v);
 int  get_resume(void);

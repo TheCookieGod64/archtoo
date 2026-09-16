@@ -41,6 +41,7 @@ typedef struct {
     long prompt_timeout;
     guide_policy_t welcome_policy;
     char aur_rpc_url[256];
+    char target_arch[128];
 } archtoo_config_t;
 
 void config_defaults(archtoo_config_t *config);

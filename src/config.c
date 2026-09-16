@@ -51,6 +51,7 @@ void config_defaults(archtoo_config_t *config) {
     config->welcome_policy = GUIDE_FIRST_RUN;
     snprintf(config->aur_rpc_url, sizeof(config->aur_rpc_url),
              "https://aur.archlinux.org/rpc/v5");
+    snprintf(config->target_arch, sizeof(config->target_arch), "native");
 }
 
 static int config_path(char *path, size_t n) {
@@ -105,6 +106,11 @@ int config_load(archtoo_config_t *config, char *error, size_t error_size) {
         } else if (strcmp(key,"aur_rpc_url")==0) {
             if(strncmp(value,"https://",8)!=0 || strlen(value)>=sizeof(config->aur_rpc_url)) goto invalid;
             snprintf(config->aur_rpc_url,sizeof(config->aur_rpc_url),"%s",value);
+        } else if (strcmp(key,"target_arch")==0 || strcmp(key,"target")==0 ||
+                   strcmp(key,"march")==0 || strcmp(key,"cpu")==0) {
+            if (!valid_target_arch(value)) goto invalid;
+            if (strlen(value) >= sizeof(config->target_arch)) goto invalid;
+            snprintf(config->target_arch, sizeof(config->target_arch), "%s", value);
         } else {
             error_format(error,error_size,"unknown config key on line %lu: %s",line_number,key);
             fclose(file); return 0;
@@ -125,6 +131,11 @@ void config_apply(const archtoo_config_t *config) {
     set_prompt_timeout(config->prompt_timeout);
     set_emerge_confirm(config->emerge_confirm);
     guide_set_policy(config->welcome_policy);
+    if (config->target_arch[0] && strcmp(config->target_arch, "native") != 0) {
+        set_target_arch(config->target_arch);
+    } else if (config->target_arch[0]) {
+        set_target_arch(config->target_arch);
+    }
 }
 
 const archtoo_config_t *config_current(void) {

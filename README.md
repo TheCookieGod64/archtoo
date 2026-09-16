@@ -4,7 +4,8 @@ Archtoo is a lightweight, Gentoo-style package compilation engine written in C f
 
 ## Features
 
-- Hardware-Native Compilation: Builds with `-march=native -O3 -pipe` and multi-threaded `MAKEFLAGS` via a generated makepkg config (environment variables alone are ignored by `makepkg`, which sources `/etc/makepkg.conf`).
+- Hardware-Native Compilation: Builds with `-march=native -O3 -pipe` by default and multi-threaded `MAKEFLAGS` via a generated makepkg config (environment variables alone are ignored by `makepkg`, which sources `/etc/makepkg.conf`). Override with `--target=skylake` / `znver3` / `x86-64-v3` etc.
+- Custom CPU Targets (`--target`): Choose any GCC `-march` value instead of `native` — e.g. `emerge --target=skylake htop`, `emerge --target=znver3 firefox`, `emerge --target=x86-64-v3 -U`.
 - Dual Source Resolution: Clones official Arch Linux repositories via `pkgctl` with automatic fallback to the Arch User Repository (AUR).
 - Pacman Protection: Locks built packages in `/etc/pacman.conf` under `IgnorePkg` to prevent `pacman -Syu` from overwriting custom binaries.
 - World Set Management: Tracks all user-compiled packages in `/usr/local/emerge/world`.
@@ -148,16 +149,28 @@ emerge --clean               # drop download leftovers, then pacman -Sc
 emerge -v
 ```
 
-### Build Jobs and Resuming
+### Build Jobs, Target CPU, and Resuming
 
-Limit parallelism on a memory-tight machine, and continue an interrupted
+Limit parallelism on a memory-tight machine, pick a specific CPU architecture, and continue an interrupted
 build instead of starting over:
 
 ```bash
 emerge --jobs 2 firefox        # -j2 instead of one job per core
 emerge --resume firefox        # continue where the last attempt stopped
 emerge -j2 -r firefox          # both
+emerge --target=skylake htop   # -march=skylake instead of native
+emerge --target=znver3 firefox # AMD Zen 3
+emerge --target=x86-64-v3 -U   # portable baseline for world rebuild
+emerge --target help           # list common march values
 ```
+
+`--target` accepts any GCC `-march` name: `native` (default), `x86-64`, `x86-64-v2/v3/v4`, `skylake`, `alderlake`, `znver1..znver5`, `cannonlake`, `tigerlake`, etc. It sets:
+
+- `CFLAGS` / `CXXFLAGS` → `-march=<target> -O3 -pipe`
+- `KCFLAGS` / `KCPPFLAGS` for kernel PKGBUILDs
+- `RUSTFLAGS` → `-C opt-level=3 -C target-cpu=<target>`
+
+The choice is written into `/usr/local/emerge/makepkg.archtoo.conf` as `# target=<name>` for debugging. Aliases `--march` and `--cpu` work too.
 
 `--resume` keeps the existing build tree and tells makepkg not to re-extract
 the sources, so object files from the previous attempt are reused. Large
@@ -203,9 +216,18 @@ pacman_confirm=false
 
 # Used only when emerge_confirm=true; 0 waits forever.
 prompt_timeout=300
+
+# Custom CPU target: native (default), skylake, znver3, x86-64-v3, etc.
+# Also accepts keys: target, march, cpu as aliases.
+target_arch=skylake
+
+# Welcome guide policy: first-run, always, never
+welcome_policy=first-run
 ```
 
-CLI flags override the config file. `--noconfirm` remains the strongest mode:
+You can also use `target=`, `march=`, or `cpu=` as aliases for `target_arch`.
+
+CLI flags override the config file (`--target` beats config). `--noconfirm` remains the strongest mode:
 it skips every Archtoo prompt as well as all pacman confirmations.
 
 Archtoo must be run as your normal user, not as root — `makepkg` refuses to
