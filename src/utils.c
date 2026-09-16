@@ -34,6 +34,8 @@ static int  g_interactive = 0;
 static int  g_emerge_confirm = 1;
 static long g_prompt_timeout = 300;
 static char g_target_arch[128] = "native";
+static char g_opt_level[16] = "3";
+static int  g_use_pipe = 1;
 
 void set_noconfirm(int v) { g_noconfirm = v; }
 int  get_noconfirm(void)  { return g_noconfirm; }
@@ -124,19 +126,75 @@ void print_known_targets(void) {
     printf("  emerge --target=native -U   (explicit default)\n");
 }
 
+/* --- Optimization level handling --- */
+int valid_opt_level(const char *s) {
+    if (!s || !*s)
+        return 0;
+    /* Allow help/list */
+    if (strcmp(s, "help") == 0 || strcmp(s, "list") == 0)
+        return 1;
+    /* Normalize: strip leading -O or O */
+    const char *p = s;
+    if (*p == '-') p++;
+    if (*p == 'O' || *p == 'o') p++;
+    if (!*p) return 0;
+    /* Now p should be 0,1,2,3,s,fast,g,z */
+    if (strcmp(p, "0") == 0) return 1;
+    if (strcmp(p, "1") == 0) return 1;
+    if (strcmp(p, "2") == 0) return 1;
+    if (strcmp(p, "3") == 0) return 1;
+    if (strcmp(p, "s") == 0) return 1;
+    if (strcmp(p, "fast") == 0) return 1;
+    if (strcmp(p, "g") == 0) return 1;
+    if (strcmp(p, "z") == 0) return 1;
+    return 0;
+}
+
+void set_opt_level(const char *level) {
+    if (!level || !valid_opt_level(level))
+        return;
+    if (strcmp(level, "help") == 0 || strcmp(level, "list") == 0)
+        return;
+    const char *p = level;
+    if (*p == '-') p++;
+    if (*p == 'O' || *p == 'o') p++;
+    /* p now is normalized */
+    if (strcmp(p, "0") == 0 || strcmp(p, "1") == 0 || strcmp(p, "2") == 0 ||
+        strcmp(p, "3") == 0 || strcmp(p, "s") == 0 || strcmp(p, "g") == 0 ||
+        strcmp(p, "z") == 0 || strcmp(p, "fast") == 0) {
+        xsnprintf(g_opt_level, sizeof(g_opt_level), "%s", p);
+    }
+}
+
+const char *get_opt_level(void) {
+    return g_opt_level;
+}
+
+void print_known_opt_levels(void) {
+    printf(COLOR_CYAN "Known --opt-level values:\n" COLOR_RESET);
+    printf("  0      -O0 no optimization (debug)\n");
+    printf("  1      -O1 basic\n");
+    printf("  2      -O2 balanced (Arch default, good for low RAM)\n");
+    printf("  3      -O3 aggressive (archtoo default)\n");
+    printf("  s      -Os optimize for size\n");
+    printf("  z      -Oz even more size (clang)\n");
+    printf("  fast   -Ofast break standards, max speed\n");
+    printf("  g      -Og debug friendly\n");
+    printf("\nExamples:\n");
+    printf("  emerge --opt-level=2 htop\n");
+    printf("  emerge -O2 htop               (short)\n");
+    printf("  emerge --target=skylake -O2 htop\n");
+    printf("  emerge --opt-level=fast --no-pipe firefox\n");
+}
+
+void set_use_pipe(int v) { g_use_pipe = v ? 1 : 0; }
+int get_use_pipe(void) { return g_use_pipe; }
+
 int run_cmd(const char *cmd) {
-    /* Do not use system(3): it makes the parent ignore SIGINT while waiting.
-       During a world build that let makepkg consume Ctrl-C and return 1 while
-       emerge continued with the next package. Keeping our own parent alive
-       and waiting normally lets cmd_build's signal handler restore the active
-       backup and terminate the entire world update immediately. */
     pid_t pid = fork();
     if (pid < 0)
         return -1;
     if (pid == 0) {
-        /* A handler installed by cmd_build() belongs to the emerge parent.
-           Commands must receive normal terminal signal semantics instead of
-           inheriting a handler that manipulates the parent's backup state. */
         struct sigaction sa;
         memset(&sa, 0, sizeof(sa));
         sa.sa_handler = SIG_DFL;
@@ -144,11 +202,9 @@ int run_cmd(const char *cmd) {
         sigaction(SIGINT, &sa, NULL);
         sigaction(SIGTERM, &sa, NULL);
         sigaction(SIGHUP, &sa, NULL);
-
         execl("/bin/sh", "sh", "-c", cmd, (char *)NULL);
         _exit(127);
     }
-
     int st;
     while (waitpid(pid, &st, 0) < 0) {
         if (errno == EINTR)
@@ -161,10 +217,6 @@ int run_cmd(const char *cmd) {
 }
 
 int run_cmd_quiet(const char *cmd) {
-    /* Must be comfortably larger than the largest command any caller builds
-       (lock_pacman_pkg's sed pipeline uses a 2048-byte buffer): xsnprintf
-       aborts on truncation, so an undersized wrapper buffer here would turn
-       a long-but-valid command into a hard exit. */
     char buf[4608];
     xsnprintf(buf, sizeof(buf), "%s >/dev/null 2>&1", cmd);
     return run_cmd(buf);
@@ -176,14 +228,12 @@ int run_cmd_capture(const char *cmd, char **out) {
     size_t cap = 4096, len = 0;
     char *buf;
     int st;
-
     if (out)
         *out = NULL;
     if (!cmd || !out)
         return -1;
     if (pipe(pipefd) != 0)
         return -1;
-
     pid = fork();
     if (pid < 0) {
         close(pipefd[0]);
@@ -193,14 +243,12 @@ int run_cmd_capture(const char *cmd, char **out) {
     if (pid == 0) {
         struct sigaction sa;
         int dn;
-
         memset(&sa, 0, sizeof(sa));
         sa.sa_handler = SIG_DFL;
         sigemptyset(&sa.sa_mask);
         sigaction(SIGINT, &sa, NULL);
         sigaction(SIGTERM, &sa, NULL);
         sigaction(SIGHUP, &sa, NULL);
-
         close(pipefd[0]);
         if (dup2(pipefd[1], STDOUT_FILENO) < 0)
             _exit(127);
@@ -213,7 +261,6 @@ int run_cmd_capture(const char *cmd, char **out) {
         execl("/bin/sh", "sh", "-c", cmd, (char *)NULL);
         _exit(127);
     }
-
     close(pipefd[1]);
     buf = malloc(cap);
     if (!buf) {
@@ -221,14 +268,11 @@ int run_cmd_capture(const char *cmd, char **out) {
         waitpid(pid, NULL, 0);
         return -1;
     }
-
     for (;;) {
         ssize_t n;
-
         if (len + 1024 >= cap) {
             size_t ncap = cap * 2;
             char *nbuf;
-
             if (ncap > 16u * 1024u * 1024u) {
                 free(buf);
                 close(pipefd[0]);
@@ -245,7 +289,6 @@ int run_cmd_capture(const char *cmd, char **out) {
             buf = nbuf;
             cap = ncap;
         }
-
         n = read(pipefd[0], buf + len, cap - len - 1);
         if (n < 0) {
             if (errno == EINTR)
@@ -261,14 +304,12 @@ int run_cmd_capture(const char *cmd, char **out) {
     }
     close(pipefd[0]);
     buf[len] = '\0';
-
     while (waitpid(pid, &st, 0) < 0) {
         if (errno == EINTR)
             continue;
         free(buf);
         return -1;
     }
-
     *out = buf;
     if (WIFSIGNALED(st))
         return 128 + WTERMSIG(st);
@@ -277,7 +318,6 @@ int run_cmd_capture(const char *cmd, char **out) {
 
 int shell_quote(const char *in, char *out, size_t n) {
     size_t j = 0;
-
     if (!in || !out || n < 3)
         return 0;
     out[j++] = '\'';
@@ -315,7 +355,6 @@ int valid_search_query(const char *s) {
 
 void dep_basename(const char *dep, char *out, size_t n) {
     size_t i = 0;
-
     if (!out || n == 0)
         return;
     if (!dep) {
@@ -333,17 +372,11 @@ void dep_basename(const char *dep, char *out, size_t n) {
     out[i] = '\0';
 }
 
-/* snprintf that never truncates silently: on overflow the caller is about
-   to run a *different* command than it thinks, so dying is the only honest
-   outcome. The strings this tool formats are all short, so a fire here is a
-   genuine bug: a -D override made a path too long for its buffer. */
 int xsnprintf(char *buf, size_t n, const char *fmt, ...) {
     va_list ap;
-
     va_start(ap, fmt);
     int ret = vsnprintf(buf, n, fmt, ap);
     va_end(ap);
-
     if (ret < 0 || (size_t)ret >= n) {
         fprintf(stderr, COLOR_RED
                 "[-] Internal error: formatted output needs %d bytes but only "
@@ -354,21 +387,17 @@ int xsnprintf(char *buf, size_t n, const char *fmt, ...) {
     return ret;
 }
 
-/* fopen() with O_NOFOLLOW: see the header. */
 FILE *fopen_nofollow(const char *path, const char *mode) {
     int flags;
-
     switch (mode[0]) {
     case 'r': flags = O_RDONLY; break;
     case 'w': flags = O_WRONLY | O_CREAT | O_TRUNC; break;
     case 'a': flags = O_WRONLY | O_CREAT | O_APPEND; break;
     default:  errno = EINVAL; return NULL;
     }
-
     int fd = open(path, flags | O_NOFOLLOW, 0644);
     if (fd < 0)
         return NULL;
-
     FILE *f = fdopen(fd, mode);
     if (!f)
         close(fd);
@@ -416,7 +445,6 @@ int regex_escape(const char *in, char *out, size_t n) {
     return 1;
 }
 
-/* Resolves the real invoking user, even under sudo/su. */
 const char *build_user(void) {
     const char *u = getenv("SUDO_USER");
     if (u && *u)
@@ -428,7 +456,6 @@ const char *build_user(void) {
 void load_user_config(void) {
     archtoo_config_t config;
     char error[512];
-
     if (!config_load(&config, error, sizeof(error))) {
         fprintf(stderr, COLOR_RED "[-] Configuration error: %s\n" COLOR_RESET,
                 error);
@@ -442,32 +469,22 @@ const char *priv_prefix(void) {
 }
 
 int acquire_sudo(int argc, char *argv[]) {
-    /* Once running as root, every privileged operation can execute directly;
-       run_as_user() still drops fetching and makepkg back to SUDO_USER. */
     if (geteuid() == 0)
         return 1;
-
     if (!have_cmd("sudo")) {
         fprintf(stderr, COLOR_RED "[-] sudo is required.\n" COLOR_RESET);
         return 0;
     }
-
-    /* Forget any existing timestamp so each emerge invocation asks exactly
-       once. Re-exec the complete command through sudo instead of trying to
-       refresh timestamps: sudo's timestamp_type=ppid gives makepkg's later
-       sudo process a different credential scope. */
     if (run_cmd("sudo -k") != 0) {
         fprintf(stderr, COLOR_RED "[-] Could not invalidate sudo credentials.\n"
                 COLOR_RESET);
         return 0;
     }
-
     char **sudo_argv = calloc((size_t)argc + 3, sizeof(*sudo_argv));
     if (!sudo_argv) {
         fprintf(stderr, COLOR_RED "[-] Out of memory.\n" COLOR_RESET);
         return 0;
     }
-
     char sudo_cmd[] = "sudo";
     char separator[] = "--";
     sudo_argv[0] = sudo_cmd;
@@ -475,7 +492,6 @@ int acquire_sudo(int argc, char *argv[]) {
     for (int i = 0; i < argc; i++)
         sudo_argv[i + 2] = argv[i];
     sudo_argv[argc + 2] = NULL;
-
     execvp("sudo", sudo_argv);
     fprintf(stderr, COLOR_RED "[-] Could not execute sudo: %s\n" COLOR_RESET,
             strerror(errno));
@@ -492,24 +508,16 @@ int have_cmd(const char *name) {
 void fix_owner(const char *path) {
     if (geteuid() != 0)
         return;
-
     const char *user = build_user();
     if (!user)
         return;
-
     char cmd[1024];
     xsnprintf(cmd, sizeof(cmd), "chown '%s' '%s'", user, path);
     run_cmd_quiet(cmd);
 }
 
-/* Unpredictable nonce for step-script names. A hostile process can read
-   /proc for the PID, but an 0x-prefixed 32-bit value from /dev/urandom is
-   not guessable in time. The O_EXCL|O_NOFOLLOW create below is the real
-   guard; the nonce just stops an attacker from burning every candidate
-   name in advance. */
 static unsigned long step_nonce(void) {
     unsigned char b[4];
-
     int fd = open("/dev/urandom", O_RDONLY | O_CLOEXEC);
     if (fd >= 0) {
         ssize_t n = read(fd, b, sizeof(b));
@@ -518,18 +526,12 @@ static unsigned long step_nonce(void) {
             return ((unsigned long)b[0] << 24) | ((unsigned long)b[1] << 16) |
                    ((unsigned long)b[2] << 8) | (unsigned long)b[3];
     }
-
-    /* No getrandom (or unreadable): mix time, PID and clock. Not strong
-       entropy, but O_EXCL|O_NOFOLLOW is what actually keeps us safe. */
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
     return (unsigned long)ts.tv_nsec ^ ((unsigned long)getpid() << 16) ^
            (unsigned long)clock();
 }
 
-/* makepkg refuses to run as root, so when emerge is invoked with sudo the
-   build steps are handed back to the unprivileged user, the same way
-   Portage drops to the "portage" user. */
 int run_as_user(const char *cmd, const char *extra_env) {
     if (geteuid() != 0) {
         if (!extra_env || !*extra_env)
@@ -538,7 +540,6 @@ int run_as_user(const char *cmd, const char *extra_env) {
         xsnprintf(buf, sizeof(buf), "%s%s", extra_env, cmd);
         return run_cmd(buf);
     }
-
     const char *user = build_user();
     if (!user) {
         fprintf(stderr, COLOR_RED
@@ -546,19 +547,6 @@ int run_as_user(const char *cmd, const char *extra_env) {
                 "unprivileged user to build as.\n" COLOR_RESET);
         return -1;
     }
-
-    /* Hand the command over via a script so nothing has to survive two
-       layers of shell quoting.
-
-       The script lives in EMERGE_DIR, which init_system() deliberately hands
-       to the unprivileged build user. The old PID-only name was predictable,
-       so a hostile process running as that user could pre-plant a symlink
-       and root's fopen() would follow it, truncating or rewriting an
-       arbitrary file. O_CREAT|O_EXCL makes the create atomic (open(2) refuses
-       to follow a symlink when both are set), O_NOFOLLOW is the explicit
-       belt-and-braces, and the nonce name makes pre-planting impractical.
-       On EEXIST we pick a fresh name; anything else is a real error and we
-       give up rather than guessing that the directory is still writable. */
     char script[600];
     int fd = -1;
     for (int attempt = 0; attempt < 16 && fd < 0; attempt++) {
@@ -566,15 +554,13 @@ int run_as_user(const char *cmd, const char *extra_env) {
                   EMERGE_DIR, (long)getpid(), step_nonce() & 0xffffffffUL);
         fd = open(script, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW, 0700);
         if (fd < 0 && errno != EEXIST)
-            break; /* EACCES, ENOSPC, ... -- retrying will not help */
+            break;
     }
-
     if (fd < 0) {
         fprintf(stderr, COLOR_RED "[-] Cannot create step script in %s: %s\n"
                 COLOR_RESET, EMERGE_DIR, strerror(errno));
         return -1;
     }
-
     FILE *f = fdopen(fd, "w");
     if (!f) {
         fprintf(stderr, COLOR_RED "[-] fdopen failed for %s\n" COLOR_RESET, script);
@@ -582,8 +568,6 @@ int run_as_user(const char *cmd, const char *extra_env) {
         unlink(script);
         return -1;
     }
-    /* sudo may shield the privileged emerge parent from terminal SIGINT.
-       Preserve interruption explicitly in the foreground step's status. */
     fprintf(f, "#!/bin/sh\ntrap 'exit 130' INT\ntrap 'exit 143' TERM\n"
                "trap 'exit 129' HUP\n%s%s\n",
             extra_env ? extra_env : "", cmd);
@@ -593,13 +577,9 @@ int run_as_user(const char *cmd, const char *extra_env) {
         return -1;
     }
     chmod(script, 0755);
-
     fix_owner(script);
-
-    /* sudo keeps the current working directory, which makepkg needs. */
     char cmd_buf[1024];
     xsnprintf(cmd_buf, sizeof(cmd_buf), "sudo -u '%s' -- /bin/sh '%s'", user, script);
-
     int rc = run_cmd(cmd_buf);
     unlink(script);
     return rc;
@@ -607,7 +587,6 @@ int run_as_user(const char *cmd, const char *extra_env) {
 
 int init_system(void) {
     char cmd[1024];
-
     if (!dir_exists(BUILD_DIR) || !dir_exists(BACKUP_DIR)) {
         xsnprintf(cmd, sizeof(cmd), "%smkdir -p '%s' '%s'",
                   priv_prefix(), BUILD_DIR, BACKUP_DIR);
@@ -616,16 +595,9 @@ int init_system(void) {
             return 0;
         }
     }
-
-    /* Repair ownership every run, not just on first creation: a directory left
-       behind as root:root made the world file silently unwritable. */
-    /* Under sudo the tree must belong to the build user, not to root, or
-       makepkg cannot write to it after we drop privileges. */
     if (geteuid() == 0 || access(EMERGE_DIR, W_OK) != 0) {
         const char *user = build_user();
         if (user && valid_pkgname(user) == 0) {
-            /* usernames may contain characters valid_pkgname rejects; only
-               allow a conservative set through to the shell. */
             for (const char *p = user; *p; p++) {
                 unsigned char c = (unsigned char)*p;
                 if (!(isalnum(c) || strchr("._-", c))) { user = NULL; break; }
@@ -637,10 +609,6 @@ int init_system(void) {
             run_cmd_quiet(cmd);
         }
     }
-
-    /* Same symlink discipline as run_as_user(): the world file lives in the
-       user-owned EMERGE_DIR, and a pre-planted symlink would make this
-       privileged create/append land elsewhere. */
     if (!file_exists(WORLD_FILE)) {
         FILE *f = fopen_nofollow(WORLD_FILE, "a");
         if (!f) {
@@ -649,7 +617,6 @@ int init_system(void) {
         }
         fclose(f);
     }
-
     if (geteuid() == 0) {
         const char *user = build_user();
         if (user) {
@@ -657,12 +624,10 @@ int init_system(void) {
             run_cmd_quiet(cmd);
         }
     }
-
     if (access(WORLD_FILE, W_OK) != 0) {
         fprintf(stderr, COLOR_RED "[-] World file %s is not writable.\n" COLOR_RESET, WORLD_FILE);
         return 0;
     }
-
     return 1;
 }
 
@@ -679,13 +644,10 @@ long get_cpu_cores(void) {
 void set_build_env(void) {
     char makeflags[64];
     char kflags[256];
+    char pipe_part[16];
     xsnprintf(makeflags, sizeof(makeflags), "-j%ld", get_jobs());
-    xsnprintf(kflags, sizeof(kflags), "-march=%s -O3 -pipe", get_target_arch());
-
-    /* Kernel PKGBUILDs read KCFLAGS/KCPPFLAGS from the environment, so these
-       still matter. CFLAGS/CXXFLAGS/MAKEFLAGS do NOT survive makepkg -- it
-       sources /etc/makepkg.conf and overwrites them. Those go through
-       write_makepkg_conf() and makepkg --config instead. */
+    xsnprintf(pipe_part, sizeof(pipe_part), "%s", get_use_pipe() ? " -pipe" : "");
+    xsnprintf(kflags, sizeof(kflags), "-march=%s -O%s%s", get_target_arch(), get_opt_level(), pipe_part);
     setenv("KCFLAGS", kflags, 1);
     setenv("KCPPFLAGS", kflags, 1);
     setenv("MAKEFLAGS", makeflags, 1);
@@ -695,32 +657,37 @@ int write_makepkg_conf(char *path_out, size_t n) {
     char cflags[256];
     char cxxflags[256];
     char rustflags[256];
-
-    xsnprintf(cflags, sizeof(cflags), "-march=%s -O3 -pipe", get_target_arch());
-    xsnprintf(cxxflags, sizeof(cxxflags), "-march=%s -O3 -pipe", get_target_arch());
-    xsnprintf(rustflags, sizeof(rustflags), "-C opt-level=3 -C target-cpu=%s", get_target_arch());
-
+    char pipe_part[16];
+    char opt[16];
+    xsnprintf(pipe_part, sizeof(pipe_part), "%s", get_use_pipe() ? " -pipe" : "");
+    xsnprintf(opt, sizeof(opt), "%s", get_opt_level());
+    xsnprintf(cflags, sizeof(cflags), "-march=%s -O%s%s", get_target_arch(), opt, pipe_part);
+    xsnprintf(cxxflags, sizeof(cxxflags), "-march=%s -O%s%s", get_target_arch(), opt, pipe_part);
+    /* Map C opt level to Rust opt level: 0->0,1->1,2->2,3->3,s/z->s, fast->3, g->1 */
+    const char *rust_opt = "3";
+    if (strcmp(opt, "0") == 0) rust_opt = "0";
+    else if (strcmp(opt, "1") == 0) rust_opt = "1";
+    else if (strcmp(opt, "2") == 0) rust_opt = "2";
+    else if (strcmp(opt, "s") == 0 || strcmp(opt, "z") == 0) rust_opt = "s";
+    else if (strcmp(opt, "g") == 0) rust_opt = "1";
+    else rust_opt = "3";
+    xsnprintf(rustflags, sizeof(rustflags), "-C opt-level=%s -C target-cpu=%s", rust_opt, get_target_arch());
     xsnprintf(path_out, n, "%s/makepkg.archtoo.conf", EMERGE_DIR);
-
-    /* Root writes into the user-owned EMERGE_DIR: never follow a pre-planted
-       symlink (see run_as_user()). */
     FILE *f = fopen_nofollow(path_out, "w");
     if (!f) {
         fprintf(stderr, COLOR_RED "[-] Cannot write %s\n" COLOR_RESET, path_out);
         return 0;
     }
-
     fprintf(f,
             "# Generated by archtoo -- do not edit, it is rewritten every build.\n"
-            "# target=%s\n"
+            "# target=%s opt=%s pipe=%d\n"
             "source /etc/makepkg.conf\n"
             "CFLAGS=\"%s\"\n"
             "CXXFLAGS=\"%s\"\n"
             "LDFLAGS=\"${LDFLAGS}\"\n"
             "RUSTFLAGS=\"%s\"\n"
             "MAKEFLAGS=\"-j%ld\"\n",
-            get_target_arch(), cflags, cxxflags, rustflags, get_jobs());
-
+            get_target_arch(), opt, get_use_pipe(), cflags, cxxflags, rustflags, get_jobs());
     fclose(f);
     fix_owner(path_out);
     return 1;
@@ -728,16 +695,13 @@ int write_makepkg_conf(char *path_out, size_t n) {
 
 int ask_yes_no(const char *question, int default_yes) {
     char reply[64];
-
     if (g_noconfirm || !g_emerge_confirm || !isatty(STDIN_FILENO)) {
         printf("%s [%s]: %s (auto)\n", question, default_yes ? "Y/n" : "y/N",
                default_yes ? "yes" : "no");
         return default_yes;
     }
-
     printf("%s [%s]: ", question, default_yes ? "Y/n" : "y/N");
     fflush(stdout);
-
     if (g_prompt_timeout > 0) {
         struct pollfd pfd = { .fd = STDIN_FILENO, .events = POLLIN };
         int timeout_ms = (g_prompt_timeout > 2147483) ? 2147483000
@@ -751,20 +715,14 @@ int ask_yes_no(const char *question, int default_yes) {
         if (ready < 0 && errno != EINTR)
             return default_yes;
     }
-
     if (!fgets(reply, sizeof(reply), stdin))
         return default_yes;
-
-    /* Drain the rest of an over-long line so it does not answer the next
-       prompt for us. */
     if (!strchr(reply, '\n')) {
         int c;
         while ((c = getchar()) != '\n' && c != EOF)
             ;
     }
-
     if (reply[0] == '\n' || reply[0] == '\r' || reply[0] == '\0')
         return default_yes;
-
     return (reply[0] == 'y' || reply[0] == 'Y');
 }

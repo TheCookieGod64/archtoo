@@ -113,6 +113,16 @@ const char *get_target_arch(void);
 int valid_target_arch(const char *s);
 void print_known_targets(void);
 
+/* Custom optimization level: 3 by default (-O3), but overridable via --opt-level */
+void set_opt_level(const char *level);
+const char *get_opt_level(void);
+int valid_opt_level(const char *s);
+void print_known_opt_levels(void);
+
+/* -pipe flag: enabled by default, disable with --no-pipe */
+void set_use_pipe(int v);
+int get_use_pipe(void);
+
 /* Reuse an existing build tree and continue an interrupted compile. */
 void set_resume(int v);
 int  get_resume(void);

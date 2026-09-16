@@ -51,6 +51,12 @@ static void print_usage(void) {
     printf("                         e.g. skylake, znver3, x86-64-v3, native\n");
     printf("  --target=ARCH          Same as --target ARCH\n");
     printf("  --march=ARCH           Alias for --target=ARCH\n");
+    printf("  --opt-level LEVEL      Optimization: 0,1,2,3,s,fast,g,z (default: 3)\n");
+    printf("                         e.g. -O2, 2, s, fast\n");
+    printf("  --opt=LEVEL            Alias for --opt-level\n");
+    printf("  -O0,-O1,-O2,-O3,-Os,-Ofast,-Og,-Oz  Short forms\n");
+    printf("  --pipe                 Enable -pipe (default)\n");
+    printf("  --no-pipe              Disable -pipe\n");
     printf("  -r, --resume           Reuse the existing build tree and continue\n");
     printf("                         an interrupted compile\n");
     printf("  --no-keys              Do not import missing PGP signing keys\n");
@@ -64,9 +70,6 @@ static void print_usage(void) {
 int archtoo_cli_main(int argc, char *argv[]) {
     int argi = 1;
 
-    /* Gentoo-style: "sudo emerge <pkg>" is supported. makepkg still cannot
-       run as root, so the compile is handed back to SUDO_USER. A bare root
-       login has no unprivileged user to fall back to. */
     if (geteuid() == 0 && !getenv("SUDO_USER")) {
         fprintf(stderr, COLOR_RED
                 "[-] Running as a root login is not supported.\n"
@@ -76,41 +79,35 @@ int archtoo_cli_main(int argc, char *argv[]) {
         return 1;
     }
 
-    /* Config supplies defaults; command-line flags below override it.
-       Load early so --help/--version and no-arg invocation can show the
-       active target from config. */
     load_user_config();
 
-    /* Version and usage need no privileges and no /usr/local/emerge, so they
-       are handled before init_system() shells out to sudo. */
     if (argc < 2) {
-        if (strcmp(get_target_arch(), "native") != 0) {
-            printf(COLOR_CYAN "Current target from config: %s\n" COLOR_RESET, get_target_arch());
+        if (strcmp(get_target_arch(), "native") != 0 || strcmp(get_opt_level(), "3") != 0 || !get_use_pipe()) {
+            printf(COLOR_CYAN "Current config: target=%s opt=-O%s pipe=%s\n" COLOR_RESET,
+                   get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no");
         }
         print_usage();
         return 1;
     }
 
     if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0) {
-        printf("%s v%s (target=%s)\n", ARCHTOO_NAME, ARCHTOO_VERSION, get_target_arch());
+        printf("%s v%s (target=%s opt=-O%s pipe=%s)\n", ARCHTOO_NAME, ARCHTOO_VERSION,
+               get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no");
         printf("Copyright (C) 2026 TheCookieGod64\n");
         printf("License GPLv3+: GNU GPL version 3 or later "
                "<https://gnu.org/licenses/gpl.html>\n");
-        printf("This is free software: you are free to change and redistribute it.\n");
-        printf("There is NO WARRANTY, to the extent permitted by law.\n");
-        printf("See LICENSE.CKL for additional terms and the CKL-2.0 tradition.\n");
         return 0;
     }
 
     if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
         print_usage();
-        if (strcmp(get_target_arch(), "native") != 0) {
-            printf(COLOR_CYAN "\nActive target (from config): %s\n" COLOR_RESET, get_target_arch());
+        if (strcmp(get_target_arch(), "native") != 0 || strcmp(get_opt_level(), "3") != 0) {
+            printf(COLOR_CYAN "\nActive config: target=%s opt=-O%s pipe=%s\n" COLOR_RESET,
+                   get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no");
         }
         return 0;
     }
 
-    /* Collect global flags from anywhere in the argument list. */
     int filtered_argc = 0;
     char *filtered[256];
     for (int i = 1; i < argc && filtered_argc < 255; i++) {
@@ -118,12 +115,10 @@ int archtoo_cli_main(int argc, char *argv[]) {
             set_noconfirm(1);
             continue;
         }
-
         if (strcmp(argv[i], "--command-guide") == 0) {
             guide_request_explicit();
             continue;
         }
-
         if (strncmp(argv[i], "--command-guide=", 16) == 0) {
             guide_policy_t policy;
             if (!guide_policy_parse(argv[i] + 16, &policy)) {
@@ -135,12 +130,10 @@ int archtoo_cli_main(int argc, char *argv[]) {
             guide_set_policy(policy);
             continue;
         }
-
         if (strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--interactive") == 0) {
             set_interactive(1);
             continue;
         }
-
         if (strcmp(argv[i], "--prompt-timeout") == 0) {
             if (i + 1 >= argc) {
                 fprintf(stderr, COLOR_RED "[-] --prompt-timeout needs seconds.\n" COLOR_RESET);
@@ -155,32 +148,34 @@ int archtoo_cli_main(int argc, char *argv[]) {
             set_prompt_timeout(seconds);
             continue;
         }
-
         if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--resume") == 0) {
             set_resume(1);
             continue;
         }
-
         if (strcmp(argv[i], "--no-keys") == 0) {
             set_import_keys(0);
             continue;
         }
-
         if (strcmp(argv[i], "--no-inhibit") == 0) {
             set_inhibit(0);
             continue;
         }
-
         if (strcmp(argv[i], "--no-sync") == 0) {
             set_sync(0);
             continue;
         }
-
         if (strcmp(argv[i], "--no-aur-sync") == 0) {
             set_aur_sync(0);
             continue;
         }
-
+        if (strcmp(argv[i], "--pipe") == 0) {
+            set_use_pipe(1);
+            continue;
+        }
+        if (strcmp(argv[i], "--no-pipe") == 0) {
+            set_use_pipe(0);
+            continue;
+        }
         if (strcmp(argv[i], "-j") == 0 || strcmp(argv[i], "--jobs") == 0) {
             if (i + 1 >= argc) {
                 fprintf(stderr, COLOR_RED "[-] %s needs a number.\n" COLOR_RESET, argv[i]);
@@ -196,10 +191,6 @@ int archtoo_cli_main(int argc, char *argv[]) {
             set_jobs(n);
             continue;
         }
-
-        /* -j4 / --jobs=4 -- the joined forms must pass exactly the same
-           validation as "-j 4": -j999999999 must not sail through to
-           MAKEFLAGS and hand the shell a fork-bomb-shaped job count. */
         if (strncmp(argv[i], "-j", 2) == 0 && isdigit((unsigned char)argv[i][2])) {
             char *end = NULL;
             long n = strtol(argv[i] + 2, &end, 10);
@@ -221,11 +212,10 @@ int archtoo_cli_main(int argc, char *argv[]) {
             set_jobs(n);
             continue;
         }
-
         if (strcmp(argv[i], "--target") == 0 || strcmp(argv[i], "--march") == 0 ||
             strcmp(argv[i], "--cpu") == 0) {
             if (i + 1 >= argc) {
-                fprintf(stderr, COLOR_RED "[-] %s needs an architecture name (e.g. skylake, znver3, native).\n" COLOR_RESET, argv[i]);
+                fprintf(stderr, COLOR_RED "[-] %s needs an architecture name.\n" COLOR_RESET, argv[i]);
                 return 1;
             }
             const char *arch = argv[++i];
@@ -234,13 +224,12 @@ int archtoo_cli_main(int argc, char *argv[]) {
                 return 0;
             }
             if (!valid_target_arch(arch)) {
-                fprintf(stderr, COLOR_RED "[-] Invalid target architecture '%s'. Use --target help for list.\n" COLOR_RESET, arch);
+                fprintf(stderr, COLOR_RED "[-] Invalid target '%s'. Use --target help.\n" COLOR_RESET, arch);
                 return 1;
             }
             set_target_arch(arch);
             continue;
         }
-
         if (strncmp(argv[i], "--target=", 9) == 0) {
             const char *arch = argv[i] + 9;
             if (!*arch) {
@@ -252,13 +241,12 @@ int archtoo_cli_main(int argc, char *argv[]) {
                 return 0;
             }
             if (!valid_target_arch(arch)) {
-                fprintf(stderr, COLOR_RED "[-] Invalid target architecture '%s'. Use --target help for list.\n" COLOR_RESET, arch);
+                fprintf(stderr, COLOR_RED "[-] Invalid target '%s'. Use --target help.\n" COLOR_RESET, arch);
                 return 1;
             }
             set_target_arch(arch);
             continue;
         }
-
         if (strncmp(argv[i], "--march=", 8) == 0) {
             const char *arch = argv[i] + 8;
             if (!*arch) {
@@ -270,13 +258,12 @@ int archtoo_cli_main(int argc, char *argv[]) {
                 return 0;
             }
             if (!valid_target_arch(arch)) {
-                fprintf(stderr, COLOR_RED "[-] Invalid march value '%s'.\n" COLOR_RESET, arch);
+                fprintf(stderr, COLOR_RED "[-] Invalid march '%s'.\n" COLOR_RESET, arch);
                 return 1;
             }
             set_target_arch(arch);
             continue;
         }
-
         if (strncmp(argv[i], "--cpu=", 6) == 0) {
             const char *arch = argv[i] + 6;
             if (!*arch) {
@@ -284,11 +271,86 @@ int archtoo_cli_main(int argc, char *argv[]) {
                 return 1;
             }
             if (!valid_target_arch(arch)) {
-                fprintf(stderr, COLOR_RED "[-] Invalid cpu value '%s'.\n" COLOR_RESET, arch);
+                fprintf(stderr, COLOR_RED "[-] Invalid cpu '%s'.\n" COLOR_RESET, arch);
                 return 1;
             }
             set_target_arch(arch);
             continue;
+        }
+        /* Optimization level flags */
+        if (strcmp(argv[i], "--opt-level") == 0 || strcmp(argv[i], "--opt") == 0 ||
+            strcmp(argv[i], "--optimization") == 0 || strcmp(argv[i], "-O") == 0) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, COLOR_RED "[-] %s needs a level (0,1,2,3,s,fast,g,z).\n" COLOR_RESET, argv[i]);
+                return 1;
+            }
+            const char *lvl = argv[++i];
+            if (strcmp(lvl, "help") == 0 || strcmp(lvl, "list") == 0) {
+                print_known_opt_levels();
+                return 0;
+            }
+            if (!valid_opt_level(lvl)) {
+                fprintf(stderr, COLOR_RED "[-] Invalid opt level '%s'. Use --opt-level help.\n" COLOR_RESET, lvl);
+                return 1;
+            }
+            set_opt_level(lvl);
+            continue;
+        }
+        if (strncmp(argv[i], "--opt-level=", 12) == 0) {
+            const char *lvl = argv[i] + 12;
+            if (!*lvl) {
+                fprintf(stderr, COLOR_RED "[-] --opt-level= needs a value.\n" COLOR_RESET);
+                return 1;
+            }
+            if (strcmp(lvl, "help") == 0 || strcmp(lvl, "list") == 0) {
+                print_known_opt_levels();
+                return 0;
+            }
+            if (!valid_opt_level(lvl)) {
+                fprintf(stderr, COLOR_RED "[-] Invalid opt level '%s'.\n" COLOR_RESET, lvl);
+                return 1;
+            }
+            set_opt_level(lvl);
+            continue;
+        }
+        if (strncmp(argv[i], "--opt=", 6) == 0) {
+            const char *lvl = argv[i] + 6;
+            if (!valid_opt_level(lvl)) {
+                fprintf(stderr, COLOR_RED "[-] Invalid opt '%s'.\n" COLOR_RESET, lvl);
+                return 1;
+            }
+            set_opt_level(lvl);
+            continue;
+        }
+        if (strncmp(argv[i], "--optimization=", 15) == 0) {
+            const char *lvl = argv[i] + 15;
+            if (!valid_opt_level(lvl)) {
+                fprintf(stderr, COLOR_RED "[-] Invalid optimization '%s'.\n" COLOR_RESET, lvl);
+                return 1;
+            }
+            set_opt_level(lvl);
+            continue;
+        }
+        /* Short -O* forms: -O0, -O1, -O2, -O3, -Os, -Ofast, -Og, -Oz */
+        if (strcmp(argv[i], "-O0") == 0 || strcmp(argv[i], "-O1") == 0 ||
+            strcmp(argv[i], "-O2") == 0 || strcmp(argv[i], "-O3") == 0 ||
+            strcmp(argv[i], "-Os") == 0 || strcmp(argv[i], "-Oz") == 0 ||
+            strcmp(argv[i], "-Og") == 0) {
+            set_opt_level(argv[i]);
+            continue;
+        }
+        if (strcmp(argv[i], "-Ofast") == 0) {
+            set_opt_level("fast");
+            continue;
+        }
+        if (strncmp(argv[i], "-O", 2) == 0 && strlen(argv[i]) <= 7) {
+            /* Catch -O=2, -O=3 etc, or bare -O2 without dash? Already handled */
+            const char *lvl = argv[i] + 2;
+            if (*lvl == '=') lvl++;
+            if (valid_opt_level(lvl)) {
+                set_opt_level(lvl);
+                continue;
+            }
         }
 
         filtered[filtered_argc++] = argv[i];
@@ -297,12 +359,11 @@ int archtoo_cli_main(int argc, char *argv[]) {
 
     guide_maybe_show();
 
-    /* Support -v/--version and -h/--help even when combined with global flags like --target */
     if (filtered_argc == 1) {
         if (strcmp(filtered[0], "-v") == 0 || strcmp(filtered[0], "--version") == 0) {
-            printf("%s v%s (target=%s)\n", ARCHTOO_NAME, ARCHTOO_VERSION, get_target_arch());
+            printf("%s v%s (target=%s opt=-O%s pipe=%s)\n", ARCHTOO_NAME, ARCHTOO_VERSION,
+                   get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no");
             printf("Copyright (C) 2026 TheCookieGod64\n");
-            printf("License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>\n");
             return 0;
         }
         if (strcmp(filtered[0], "-h") == 0 || strcmp(filtered[0], "--help") == 0) {
@@ -312,17 +373,15 @@ int archtoo_cli_main(int argc, char *argv[]) {
     }
 
     if (filtered_argc == 0) {
-        if (strcmp(get_target_arch(), "native") != 0) {
-            printf(COLOR_CYAN "Current target: %s\n" COLOR_RESET, get_target_arch());
-            printf("CFLAGS: -march=%s -O3 -pipe\n", get_target_arch());
-            printf("RUSTFLAGS: -C opt-level=3 -C target-cpu=%s\n", get_target_arch());
+        if (strcmp(get_target_arch(), "native") != 0 || strcmp(get_opt_level(), "3") != 0 || !get_use_pipe()) {
+            printf(COLOR_CYAN "Current: target=%s opt=-O%s pipe=%s jobs=%ld\n" COLOR_RESET,
+                   get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no", get_jobs());
         }
         return 0;
     }
 
     argi = 0;
 
-    /* Read-only v2 operations deliberately run without sudo. */
     if (strcmp(filtered[argi], "-S") == 0) {
         if (filtered_argc != 2) {
             fprintf(stderr, COLOR_RED "[-] Search requires exactly one query.\n" COLOR_RESET);
@@ -358,15 +417,12 @@ int archtoo_cli_main(int argc, char *argv[]) {
         return cmd_dependency_plan_v2(filtered[1]) ? 0 : 1;
     } else if (strcmp(filtered[argi], "--review") == 0) {
         if (filtered_argc != 2) {
-            fprintf(stderr, COLOR_RED "[-] --review requires a directory.\n"
-                    COLOR_RESET);
+            fprintf(stderr, COLOR_RED "[-] --review requires a directory.\n" COLOR_RESET);
             return 1;
         }
         return cmd_review_v2(filtered[1]) ? 0 : 1;
     }
 
-    /* Authenticate once and re-exec as root. Build steps are still handed
-       back to SUDO_USER, while pacman never needs another password prompt. */
     if (!acquire_sudo(argc, argv))
         return 1;
 
@@ -401,12 +457,10 @@ int archtoo_cli_main(int argc, char *argv[]) {
         }
         if (!init_system())
             return 1;
-
         int failed = 0;
         for (int i = 1; i < filtered_argc; i++)
             if (!cmd_deselect(filtered[i]))
                 failed++;
-
         return failed ? 1 : 0;
     }
 
@@ -417,12 +471,10 @@ int archtoo_cli_main(int argc, char *argv[]) {
         }
         if (!init_system())
             return 1;
-
         int failed = 0;
         for (int i = 1; i < filtered_argc; i++)
             if (!cmd_unmerge(filtered[i]))
                 failed++;
-
         return failed ? 1 : 0;
     }
 
@@ -432,8 +484,6 @@ int archtoo_cli_main(int argc, char *argv[]) {
         return 1;
     }
 
-    /* Validate every name up front so a typo in the third package does not
-       surface only after the first two have been compiled. */
     for (int i = 0; i < filtered_argc; i++) {
         if (!valid_pkgname(filtered[i])) {
             fprintf(stderr, COLOR_RED "[-] Invalid package name: '%s'\n" COLOR_RESET, filtered[i]);

@@ -4,8 +4,9 @@ Archtoo is a lightweight, Gentoo-style package compilation engine written in C f
 
 ## Features
 
-- Hardware-Native Compilation: Builds with `-march=native -O3 -pipe` by default and multi-threaded `MAKEFLAGS` via a generated makepkg config (environment variables alone are ignored by `makepkg`, which sources `/etc/makepkg.conf`). Override with `--target=skylake` / `znver3` / `x86-64-v3` etc.
+- Hardware-Native Compilation: Builds with `-march=native -O3 -pipe` by default and multi-threaded `MAKEFLAGS` via a generated makepkg config (environment variables alone are ignored by `makepkg`, which sources `/etc/makepkg.conf`). Override with `--target=skylake` / `znver3` / `x86-64-v3` etc. and `--opt-level=2`.
 - Custom CPU Targets (`--target`): Choose any GCC `-march` value instead of `native` — e.g. `emerge --target=skylake htop`, `emerge --target=znver3 firefox`, `emerge --target=x86-64-v3 -U`.
+- Custom Optimization (`--opt-level` / `-O2`): Choose `-O0, -O1, -O2, -O3, -Os, -Ofast, -Og, -Oz` — e.g. `emerge -O2 htop`, `emerge --opt-level=2 firefox`, `emerge --no-pipe htop`.
 - Dual Source Resolution: Clones official Arch Linux repositories via `pkgctl` with automatic fallback to the Arch User Repository (AUR).
 - Pacman Protection: Locks built packages in `/etc/pacman.conf` under `IgnorePkg` to prevent `pacman -Syu` from overwriting custom binaries.
 - World Set Management: Tracks all user-compiled packages in `/usr/local/emerge/world`.
@@ -149,10 +150,9 @@ emerge --clean               # drop download leftovers, then pacman -Sc
 emerge -v
 ```
 
-### Build Jobs, Target CPU, and Resuming
+### Build Jobs, Target CPU, Optimization, and Resuming
 
-Limit parallelism on a memory-tight machine, pick a specific CPU architecture, and continue an interrupted
-build instead of starting over:
+Limit parallelism, pick CPU and optimization level, and continue interrupted builds:
 
 ```bash
 emerge --jobs 2 firefox        # -j2 instead of one job per core
@@ -162,15 +162,25 @@ emerge --target=skylake htop   # -march=skylake instead of native
 emerge --target=znver3 firefox # AMD Zen 3
 emerge --target=x86-64-v3 -U   # portable baseline for world rebuild
 emerge --target help           # list common march values
+emerge -O2 htop                # -O2 instead of -O3 (balanced, less RAM)
+emerge --opt-level=2 htop      # same as -O2
+emerge --opt-level=s htop      # -Os size optimized
+emerge --opt-level=fast htop   # -Ofast max speed
+emerge --no-pipe htop          # disable -pipe
+emerge --target=skylake -O2 --no-pipe htop  # combine all
+emerge --opt-level help        # list opt levels
 ```
 
-`--target` accepts any GCC `-march` name: `native` (default), `x86-64`, `x86-64-v2/v3/v4`, `skylake`, `alderlake`, `znver1..znver5`, `cannonlake`, `tigerlake`, etc. It sets:
+`--target` accepts any GCC `-march` name: `native` (default), `x86-64`, `x86-64-v2/v3/v4`, `skylake`, `alderlake`, `znver1..znver5`, etc. 
+`--opt-level` accepts: `0,1,2,3,s,z,fast,g` (maps to `-O0, -O1, -O2, -O3, -Os, -Oz, -Ofast, -Og`). Default `3`.
 
-- `CFLAGS` / `CXXFLAGS` → `-march=<target> -O3 -pipe`
+It sets:
+
+- `CFLAGS` / `CXXFLAGS` → `-march=<target> -O<level> [-pipe]`
 - `KCFLAGS` / `KCPPFLAGS` for kernel PKGBUILDs
-- `RUSTFLAGS` → `-C opt-level=3 -C target-cpu=<target>`
+- `RUSTFLAGS` → `-C opt-level=<mapped> -C target-cpu=<target>`
 
-The choice is written into `/usr/local/emerge/makepkg.archtoo.conf` as `# target=<name>` for debugging. Aliases `--march` and `--cpu` work too.
+The choice is written into `/usr/local/emerge/makepkg.archtoo.conf` as `# target=... opt=... pipe=...` for debugging. Aliases: `--march`, `--cpu` for target, `--opt`, `--optimization`, `-O2` etc for opt.
 
 `--resume` keeps the existing build tree and tells makepkg not to re-extract
 the sources, so object files from the previous attempt are reused. Large
@@ -221,13 +231,20 @@ prompt_timeout=300
 # Also accepts keys: target, march, cpu as aliases.
 target_arch=skylake
 
+# Custom optimization: 0,1,2,3,s,fast,g,z (default 3 = -O3)
+# Aliases: opt, optimization, o
+opt_level=2
+
+# Use -pipe? true/false (default true)
+pipe=true
+
 # Welcome guide policy: first-run, always, never
 welcome_policy=first-run
 ```
 
-You can also use `target=`, `march=`, or `cpu=` as aliases for `target_arch`.
+You can also use `target=`, `march=`, or `cpu=` as aliases for `target_arch`, and `opt=`, `optimization=`, `o=` for `opt_level`.
 
-CLI flags override the config file (`--target` beats config). `--noconfirm` remains the strongest mode:
+CLI flags override the config file (`--target` and `-O2` beat config). `--noconfirm` remains the strongest mode:
 it skips every Archtoo prompt as well as all pacman confirmations.
 
 Archtoo must be run as your normal user, not as root — `makepkg` refuses to

@@ -52,6 +52,9 @@ void config_defaults(archtoo_config_t *config) {
     snprintf(config->aur_rpc_url, sizeof(config->aur_rpc_url),
              "https://aur.archlinux.org/rpc/v5");
     snprintf(config->target_arch, sizeof(config->target_arch), "native");
+    snprintf(config->opt_level, sizeof(config->opt_level), "3");
+    config->use_pipe = 1;
+    config->has_pipe_setting = 0;
 }
 
 static int config_path(char *path, size_t n) {
@@ -111,6 +114,23 @@ int config_load(archtoo_config_t *config, char *error, size_t error_size) {
             if (!valid_target_arch(value)) goto invalid;
             if (strlen(value) >= sizeof(config->target_arch)) goto invalid;
             snprintf(config->target_arch, sizeof(config->target_arch), "%s", value);
+        } else if (strcmp(key,"opt_level")==0 || strcmp(key,"opt")==0 ||
+                   strcmp(key,"optimization")==0 || strcmp(key,"o")==0) {
+            if (!valid_opt_level(value)) goto invalid;
+            if (strlen(value) >= sizeof(config->opt_level)) {
+                /* Allow -O2 form, normalize later */
+                if (strlen(value) > 16) goto invalid;
+            }
+            /* Normalize in config too */
+            const char *p = value;
+            if (*p == '-') p++;
+            if (*p == 'O' || *p == 'o') p++;
+            snprintf(config->opt_level, sizeof(config->opt_level), "%s", p);
+        } else if (strcmp(key,"pipe")==0 || strcmp(key,"use_pipe")==0) {
+            int v;
+            if (!parse_switch(value, &v)) goto invalid;
+            config->use_pipe = v;
+            config->has_pipe_setting = 1;
         } else {
             error_format(error,error_size,"unknown config key on line %lu: %s",line_number,key);
             fclose(file); return 0;
@@ -131,10 +151,14 @@ void config_apply(const archtoo_config_t *config) {
     set_prompt_timeout(config->prompt_timeout);
     set_emerge_confirm(config->emerge_confirm);
     guide_set_policy(config->welcome_policy);
-    if (config->target_arch[0] && strcmp(config->target_arch, "native") != 0) {
+    if (config->target_arch[0]) {
         set_target_arch(config->target_arch);
-    } else if (config->target_arch[0]) {
-        set_target_arch(config->target_arch);
+    }
+    if (config->opt_level[0]) {
+        set_opt_level(config->opt_level);
+    }
+    if (config->has_pipe_setting) {
+        set_use_pipe(config->use_pipe);
     }
 }
 

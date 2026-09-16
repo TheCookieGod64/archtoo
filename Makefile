@@ -1,5 +1,5 @@
 # Keep in sync with headers/version.h
-VERSION     = 2.1.0
+VERSION     = 2.2.0
 
 CC          ?= gcc
 STD         = -std=gnu11

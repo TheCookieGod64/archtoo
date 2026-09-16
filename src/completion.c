@@ -13,8 +13,10 @@ int cmd_completion_v2(void) {
     static const char *flags[] = {
         "-S", "-I", "-Q", "-A", "-G", "-B", "-C", "-U", "-D", "-v", "-h",
         "-i", "-j", "-r",
+        "-O0", "-O1", "-O2", "-O3", "-Os", "-Ofast", "-Og", "-Oz",
         "--help", "--version", "--noconfirm", "--interactive",
         "--prompt-timeout", "--jobs", "--target", "--march", "--cpu",
+        "--opt-level", "--opt", "--optimization", "--pipe", "--no-pipe",
         "--resume", "--no-keys", "--no-inhibit",
         "--no-sync", "--no-aur-sync", "--command-guide", "--orphans",
         "--clean", "--stats", "--news", "--complete", "--devel",

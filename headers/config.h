@@ -42,6 +42,9 @@ typedef struct {
     guide_policy_t welcome_policy;
     char aur_rpc_url[256];
     char target_arch[128];
+    char opt_level[16];
+    int use_pipe;
+    int has_pipe_setting;
 } archtoo_config_t;
 
 void config_defaults(archtoo_config_t *config);

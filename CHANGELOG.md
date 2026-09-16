@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.2.0
+
+- **New `--opt-level` / `-O*` option**: Choose optimization level `-O0, -O1, -O2, -O3, -Os, -Oz, -Ofast, -Og`. Examples: `emerge -O2 htop`, `emerge --opt-level=2 htop`, `emerge --opt-level=fast firefox`. Default is `-O3`. Also supports `--pipe` / `--no-pipe` (default: pipe enabled).
+- `CFLAGS` / `CXXFLAGS` now `-march=<target> -O<level> [-pipe]`, `KCFLAGS` / `KCPPFLAGS` same, `RUSTFLAGS` maps C level to Rust `opt-level` plus `target-cpu`. Written into `makepkg.archtoo.conf` with `# target=... opt=... pipe=...` comment.
+- **Config file support extended**: `~/.config/archtoo/config` now accepts `opt_level=2`, `optimization=2`, `opt=2`, `o=2`, and `pipe=true/false`. CLI overrides config.
+- Completion and help updated for new flags.
+
 ## v2.1.0
 
 - **New `--target` / `--march` / `--cpu` option**: Override `-march` instead of always using `native`. Examples: `emerge --target=skylake htop`, `emerge --target=znver3 firefox`, `emerge --target=x86-64-v3 -U`. Validated to `[A-Za-z0-9._-]` (max 64 chars), rejects shell metacharacters. Shows list via `--target help`.

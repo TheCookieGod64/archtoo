@@ -361,7 +361,9 @@ int compile_package(const char *pkg) {
                "fetch and extract it again.\n" COLOR_RESET);
     {
         char cflags_disp[256];
-        xsnprintf(cflags_disp, sizeof(cflags_disp), "-march=%s -O3 -pipe", get_target_arch());
+        char pipe_str[16];
+        xsnprintf(pipe_str, sizeof(pipe_str), "%s", get_use_pipe() ? " -pipe" : "");
+        xsnprintf(cflags_disp, sizeof(cflags_disp), "-march=%s -O%s%s", get_target_arch(), get_opt_level(), pipe_str);
         printf(COLOR_BLUE ">>> Compiling with makepkg (%s, -j%ld)%s...\n" COLOR_RESET,
                cflags_disp, get_jobs(), reuse_sources ? " [reusing sources]" : "");
     }
@@ -416,7 +418,9 @@ int compile_package(const char *pkg) {
        because sudo does not carry it across. */
     char env_block[1024];
     char kflags_env[256];
-    xsnprintf(kflags_env, sizeof(kflags_env), "-march=%s -O3 -pipe", get_target_arch());
+    char pipe_tmp[16];
+    xsnprintf(pipe_tmp, sizeof(pipe_tmp), "%s", get_use_pipe() ? " -pipe" : "");
+    xsnprintf(kflags_env, sizeof(kflags_env), "-march=%s -O%s%s", get_target_arch(), get_opt_level(), pipe_tmp);
     xsnprintf(env_block, sizeof(env_block),
              "export KCFLAGS='%s'\n"
              "export KCPPFLAGS='%s'\n"
