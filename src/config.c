@@ -55,6 +55,10 @@ void config_defaults(archtoo_config_t *config) {
     snprintf(config->opt_level, sizeof(config->opt_level), "3");
     config->use_pipe = 1;
     config->has_pipe_setting = 0;
+    config->gentoo_chroot = 0;
+    config->portage_imitation = 0;
+    snprintf(config->gentoo_chroot_path, sizeof(config->gentoo_chroot_path),
+             "%s/gentoo-chroot", EMERGE_DIR);
 }
 
 static int config_path(char *path, size_t n) {
@@ -118,10 +122,8 @@ int config_load(archtoo_config_t *config, char *error, size_t error_size) {
                    strcmp(key,"optimization")==0 || strcmp(key,"o")==0) {
             if (!valid_opt_level(value)) goto invalid;
             if (strlen(value) >= sizeof(config->opt_level)) {
-                /* Allow -O2 form, normalize later */
                 if (strlen(value) > 16) goto invalid;
             }
-            /* Normalize in config too */
             const char *p = value;
             if (*p == '-') p++;
             if (*p == 'O' || *p == 'o') p++;
@@ -131,6 +133,16 @@ int config_load(archtoo_config_t *config, char *error, size_t error_size) {
             if (!parse_switch(value, &v)) goto invalid;
             config->use_pipe = v;
             config->has_pipe_setting = 1;
+        } else if (strcmp(key,"gentoo_chroot")==0 || strcmp(key,"portage_chroot")==0 ||
+                   strcmp(key,"imitation")==0 || strcmp(key,"portage_imitation")==0 ||
+                   strcmp(key,"gentoo_imitation")==0) {
+            int v;
+            if (!parse_switch(value, &v)) goto invalid;
+            config->gentoo_chroot = v;
+            config->portage_imitation = v;
+        } else if (strcmp(key,"gentoo_chroot_path")==0 || strcmp(key,"chroot_path")==0) {
+            if (!valid_gentoo_chroot_path(value)) goto invalid;
+            snprintf(config->gentoo_chroot_path, sizeof(config->gentoo_chroot_path), "%s", value);
         } else {
             error_format(error,error_size,"unknown config key on line %lu: %s",line_number,key);
             fclose(file); return 0;
@@ -159,6 +171,13 @@ void config_apply(const archtoo_config_t *config) {
     }
     if (config->has_pipe_setting) {
         set_use_pipe(config->use_pipe);
+    }
+    if (config->gentoo_chroot) {
+        set_gentoo_chroot(config->gentoo_chroot);
+        set_portage_imitation(config->portage_imitation);
+    }
+    if (config->gentoo_chroot_path[0]) {
+        set_gentoo_chroot_path(config->gentoo_chroot_path);
     }
 }
 

@@ -33,6 +33,10 @@
 #define DEFAULT_CXXFLAGS "-march=native -O3 -pipe"
 #define DEFAULT_KCFLAGS  "-march=native -O3 -pipe"
 
+#ifndef GENTOO_CHROOT_DIR
+#define GENTOO_CHROOT_DIR EMERGE_DIR "/gentoo-chroot"
+#endif
+
 #include "guide.h"
 
 typedef struct {
@@ -45,6 +49,9 @@ typedef struct {
     char opt_level[16];
     int use_pipe;
     int has_pipe_setting;
+    int gentoo_chroot;
+    int portage_imitation;
+    char gentoo_chroot_path[512];
 } archtoo_config_t;
 
 void config_defaults(archtoo_config_t *config);

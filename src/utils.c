@@ -726,3 +726,37 @@ int ask_yes_no(const char *question, int default_yes) {
         return default_yes;
     return (reply[0] == 'y' || reply[0] == 'Y');
 }
+
+/* --- Gentoo chroot imitation mode --- */
+static int  g_gentoo_chroot = 0;
+static int  g_portage_imitation = 0;
+static char g_gentoo_chroot_path[512] = "/usr/local/emerge/gentoo-chroot";
+
+int valid_gentoo_chroot_path(const char *s) {
+    if (!s || !*s) return 0;
+    size_t len = strlen(s);
+    if (len == 0 || len > 500) return 0;
+    if (s[0] != '/') return 0;
+    for (const char *p = s; *p; p++) {
+        unsigned char c = (unsigned char)*p;
+        if (!(isalnum(c) || c == '/' || c == '-' || c == '_' || c == '.' ))
+            return 0;
+        if (strstr(p, "..")) return 0;
+    }
+    return 1;
+}
+
+void set_gentoo_chroot(int v) { g_gentoo_chroot = v ? 1 : 0; }
+int get_gentoo_chroot(void) { return g_gentoo_chroot; }
+
+void set_portage_imitation(int v) { g_portage_imitation = v ? 1 : 0; }
+int get_portage_imitation(void) { return g_portage_imitation || g_gentoo_chroot; }
+
+void set_gentoo_chroot_path(const char *path) {
+    if (!path || !valid_gentoo_chroot_path(path)) return;
+    xsnprintf(g_gentoo_chroot_path, sizeof(g_gentoo_chroot_path), "%s", path);
+}
+
+const char *get_gentoo_chroot_path(void) {
+    return g_gentoo_chroot_path;
+}

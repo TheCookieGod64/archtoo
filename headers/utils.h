@@ -123,6 +123,15 @@ void print_known_opt_levels(void);
 void set_use_pipe(int v);
 int get_use_pipe(void);
 
+/* Gentoo chroot imitation mode: super hard imitation like real Portage */
+void set_gentoo_chroot(int v);
+int get_gentoo_chroot(void);
+void set_portage_imitation(int v);
+int get_portage_imitation(void);
+void set_gentoo_chroot_path(const char *path);
+const char *get_gentoo_chroot_path(void);
+int valid_gentoo_chroot_path(const char *s);
+
 /* Reuse an existing build tree and continue an interrupted compile. */
 void set_resume(int v);
 int  get_resume(void);

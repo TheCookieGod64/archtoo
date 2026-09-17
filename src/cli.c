@@ -15,6 +15,7 @@
 #include "../headers/world.h"
 #include "../headers/unmerge.h"
 #include "../headers/build.h"
+#include "../headers/gentoo_chroot.h"
 #include "../headers/guide.h"
 #include "../headers/operations.h"
 
@@ -57,6 +58,10 @@ static void print_usage(void) {
     printf("  -O0,-O1,-O2,-O3,-Os,-Ofast,-Og,-Oz  Short forms\n");
     printf("  --pipe                 Enable -pipe (default)\n");
     printf("  --no-pipe              Disable -pipe\n");
+    printf("  --gentoo-chroot        Enable SUPER HARD Portage imitation via Gentoo chroot\n");
+    printf("  --imitation            Alias for --gentoo-chroot\n");
+    printf("  --no-gentoo-chroot     Disable chroot imitation\n");
+    printf("  --chroot-path PATH     Custom chroot path (default: /usr/local/emerge/gentoo-chroot)\n");
     printf("  -r, --resume           Reuse the existing build tree and continue\n");
     printf("                         an interrupted compile\n");
     printf("  --no-keys              Do not import missing PGP signing keys\n");
@@ -82,17 +87,19 @@ int archtoo_cli_main(int argc, char *argv[]) {
     load_user_config();
 
     if (argc < 2) {
-        if (strcmp(get_target_arch(), "native") != 0 || strcmp(get_opt_level(), "3") != 0 || !get_use_pipe()) {
-            printf(COLOR_CYAN "Current config: target=%s opt=-O%s pipe=%s\n" COLOR_RESET,
-                   get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no");
+        if (strcmp(get_target_arch(), "native") != 0 || strcmp(get_opt_level(), "3") != 0 || !get_use_pipe() || get_gentoo_chroot()) {
+            printf(COLOR_CYAN "Current config: target=%s opt=-O%s pipe=%s chroot=%s path=%s\n" COLOR_RESET,
+                   get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no",
+                   get_gentoo_chroot() ? "on" : "off", get_gentoo_chroot_path());
         }
         print_usage();
         return 1;
     }
 
     if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0) {
-        printf("%s v%s (target=%s opt=-O%s pipe=%s)\n", ARCHTOO_NAME, ARCHTOO_VERSION,
-               get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no");
+        printf("%s v%s (target=%s opt=-O%s pipe=%s chroot=%s)\n", ARCHTOO_NAME, ARCHTOO_VERSION,
+               get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no",
+               get_gentoo_chroot() ? "on" : "off");
         printf("Copyright (C) 2026 TheCookieGod64\n");
         printf("License GPLv3+: GNU GPL version 3 or later "
                "<https://gnu.org/licenses/gpl.html>\n");
@@ -344,13 +351,45 @@ int archtoo_cli_main(int argc, char *argv[]) {
             continue;
         }
         if (strncmp(argv[i], "-O", 2) == 0 && strlen(argv[i]) <= 7) {
-            /* Catch -O=2, -O=3 etc, or bare -O2 without dash? Already handled */
             const char *lvl = argv[i] + 2;
             if (*lvl == '=') lvl++;
             if (valid_opt_level(lvl)) {
                 set_opt_level(lvl);
                 continue;
             }
+        }
+        if (strcmp(argv[i], "--gentoo-chroot") == 0 || strcmp(argv[i], "--imitation") == 0 ||
+            strcmp(argv[i], "--portage-imitation") == 0 || strcmp(argv[i], "--gentoo-imitation") == 0) {
+            set_gentoo_chroot(1);
+            set_portage_imitation(1);
+            continue;
+        }
+        if (strcmp(argv[i], "--no-gentoo-chroot") == 0 || strcmp(argv[i], "--no-imitation") == 0) {
+            set_gentoo_chroot(0);
+            set_portage_imitation(0);
+            continue;
+        }
+        if (strncmp(argv[i], "--chroot-path=", 14) == 0) {
+            const char *p = argv[i] + 14;
+            if (!valid_gentoo_chroot_path(p)) {
+                fprintf(stderr, COLOR_RED "[-] Invalid chroot path '%s'\n" COLOR_RESET, p);
+                return 1;
+            }
+            set_gentoo_chroot_path(p);
+            continue;
+        }
+        if (strcmp(argv[i], "--chroot-path") == 0) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, COLOR_RED "[-] --chroot-path needs a path\n" COLOR_RESET);
+                return 1;
+            }
+            const char *p = argv[++i];
+            if (!valid_gentoo_chroot_path(p)) {
+                fprintf(stderr, COLOR_RED "[-] Invalid chroot path '%s'\n" COLOR_RESET, p);
+                return 1;
+            }
+            set_gentoo_chroot_path(p);
+            continue;
         }
 
         filtered[filtered_argc++] = argv[i];
@@ -361,8 +400,9 @@ int archtoo_cli_main(int argc, char *argv[]) {
 
     if (filtered_argc == 1) {
         if (strcmp(filtered[0], "-v") == 0 || strcmp(filtered[0], "--version") == 0) {
-            printf("%s v%s (target=%s opt=-O%s pipe=%s)\n", ARCHTOO_NAME, ARCHTOO_VERSION,
-                   get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no");
+            printf("%s v%s (target=%s opt=-O%s pipe=%s chroot=%s)\n", ARCHTOO_NAME, ARCHTOO_VERSION,
+                   get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no",
+                   get_gentoo_chroot() ? "on" : "off");
             printf("Copyright (C) 2026 TheCookieGod64\n");
             return 0;
         }
@@ -373,9 +413,10 @@ int archtoo_cli_main(int argc, char *argv[]) {
     }
 
     if (filtered_argc == 0) {
-        if (strcmp(get_target_arch(), "native") != 0 || strcmp(get_opt_level(), "3") != 0 || !get_use_pipe()) {
-            printf(COLOR_CYAN "Current: target=%s opt=-O%s pipe=%s jobs=%ld\n" COLOR_RESET,
-                   get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no", get_jobs());
+        if (strcmp(get_target_arch(), "native") != 0 || strcmp(get_opt_level(), "3") != 0 || !get_use_pipe() || get_gentoo_chroot()) {
+            printf(COLOR_CYAN "Current: target=%s opt=-O%s pipe=%s chroot=%s jobs=%ld path=%s\n" COLOR_RESET,
+                   get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no",
+                   get_gentoo_chroot() ? "on" : "off", get_jobs(), get_gentoo_chroot_path());
         }
         return 0;
     }
@@ -429,8 +470,13 @@ int archtoo_cli_main(int argc, char *argv[]) {
     if (strcmp(filtered[argi], "-I") == 0) {
         if (filtered_argc < 2 || !init_system()) return 1;
         int failed = 0;
-        for (int i = 1; i < filtered_argc; i++)
-            if (!cmd_build(filtered[i])) failed++;
+        if (get_gentoo_chroot()) {
+            for (int i = 1; i < filtered_argc; i++)
+                if (!cmd_gentoo_imitation_build(filtered[i])) failed++;
+        } else {
+            for (int i = 1; i < filtered_argc; i++)
+                if (!cmd_build(filtered[i])) failed++;
+        }
         return failed ? 1 : 0;
     } else if (strcmp(filtered[argi], "-G") == 0) {
         if (filtered_argc < 2) return 1;
@@ -493,6 +539,23 @@ int archtoo_cli_main(int argc, char *argv[]) {
 
     if (!init_system())
         return 1;
+
+    /* SUPER HARD IMITATION MODE: if enabled, use Gentoo chroot + real Portage */
+    if (get_gentoo_chroot()) {
+        int failed = 0;
+        for (int i = 0; i < filtered_argc; i++) {
+            if (filtered_argc > 1)
+                printf(COLOR_PURPLE "\n>>> [%d/%d] %s (Gentoo chroot imitation)\n" COLOR_RESET,
+                       i + 1, filtered_argc, filtered[i]);
+            if (!cmd_gentoo_imitation_build(filtered[i]))
+                failed++;
+        }
+        if (failed) {
+            fprintf(stderr, COLOR_RED "\n[-] %d package(s) failed in Gentoo chroot mode.\n" COLOR_RESET, failed);
+            return 1;
+        }
+        return 0;
+    }
 
     int failed = 0;
     for (int i = 0; i < filtered_argc; i++) {

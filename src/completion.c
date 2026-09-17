@@ -17,6 +17,8 @@ int cmd_completion_v2(void) {
         "--help", "--version", "--noconfirm", "--interactive",
         "--prompt-timeout", "--jobs", "--target", "--march", "--cpu",
         "--opt-level", "--opt", "--optimization", "--pipe", "--no-pipe",
+        "--gentoo-chroot", "--imitation", "--portage-imitation", "--gentoo-imitation",
+        "--no-gentoo-chroot", "--no-imitation", "--chroot-path",
         "--resume", "--no-keys", "--no-inhibit",
         "--no-sync", "--no-aur-sync", "--command-guide", "--orphans",
         "--clean", "--stats", "--news", "--complete", "--devel",
