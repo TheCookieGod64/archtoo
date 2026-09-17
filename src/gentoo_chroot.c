@@ -69,26 +69,69 @@ int gentoo_chroot_init(const char *path) {
         return 0;
     }
 
-    /* Download latest stage3 URL */
+    /* Download latest stage3 URL - the txt file is PGP signed, so we must filter BEGIN lines */
     printf(COLOR_BLUE ">>> Fetching latest Gentoo stage3 URL...\n" COLOR_RESET);
     char *latest_file = NULL;
-    /* Get latest stage3 filename from official txt */
-    const char *fetch_latest = "curl -fsSL https://distfiles.gentoo.org/releases/amd64/autobuilds/latest-stage3-amd64-openrc.txt 2>/dev/null | grep -v '^#' | head -n1 | cut -d' ' -f1";
+    /* The file is PGP signed: contains -----BEGIN PGP SIGNED MESSAGE----- etc.
+       We grep for tar.xz line containing stage3-amd64-openrc, exclude # and BEGIN */
+    const char *fetch_latest =
+        "curl -fsSL https://distfiles.gentoo.org/releases/amd64/autobuilds/latest-stage3-amd64-openrc.txt 2>/dev/null "
+        "| grep -E 'stage3-amd64-openrc.*\\.tar\\.xz' "
+        "| grep -v '^#' | grep -v 'BEGIN' "
+        "| head -n1 | awk '{print $1}'";
     int rc = run_cmd_capture(fetch_latest, &latest_file);
     char stage3_url[1024] = {0};
+    int use_fallback = 1;
     if (rc == 0 && latest_file && *latest_file) {
-        /* Trim newline */
-        char *nl = strchr(latest_file, '\n');
-        if (nl) *nl = '\0';
-        /* latest_file is like 20240101T123456Z/stage3-amd64-openrc-20240101T123456Z.tar.xz */
-        xsnprintf(stage3_url, sizeof(stage3_url), "https://distfiles.gentoo.org/releases/amd64/autobuilds/%s", latest_file);
-        printf(COLOR_GREEN "[+] Latest stage3: %s\n" COLOR_RESET, stage3_url);
-    } else {
-        /* Fallback to a known recent stage3 if network fails or curl missing */
-        printf(COLOR_YELLOW "[!] Could not fetch latest stage3 list, using fallback URL\n" COLOR_RESET);
-        xsnprintf(stage3_url, sizeof(stage3_url), "https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-openrc/stage3-amd64-openrc-latest.tar.xz");
+        /* Trim whitespace/newlines */
+        char *p = latest_file;
+        while (*p && (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t')) p++;
+        size_t len = strlen(p);
+        while (len > 0 && (p[len-1] == '\n' || p[len-1] == '\r' || p[len-1] == ' ' || p[len-1] == '\t')) { p[len-1]='\0'; len--; }
+        /* Reject if it still contains BEGIN or does not contain .tar */
+        if (strstr(p, "BEGIN") == NULL && strstr(p, ".tar") != NULL && strlen(p) > 10) {
+            if (strncmp(p, "https://", 8) == 0) {
+                xsnprintf(stage3_url, sizeof(stage3_url), "%s", p);
+            } else {
+                xsnprintf(stage3_url, sizeof(stage3_url), "https://distfiles.gentoo.org/releases/amd64/autobuilds/%s", p);
+            }
+            printf(COLOR_GREEN "[+] Latest stage3: %s\n" COLOR_RESET, stage3_url);
+            use_fallback = 0;
+        } else {
+            printf(COLOR_YELLOW "[!] Parsed file looked invalid: '%s'\n" COLOR_RESET, p);
+        }
     }
     free(latest_file);
+    latest_file = NULL;
+
+    if (use_fallback) {
+        printf(COLOR_YELLOW "[!] Could not fetch latest stage3 list, using fallback URLs\n" COLOR_RESET);
+        xsnprintf(stage3_url, sizeof(stage3_url),
+                  "https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-openrc/stage3-amd64-openrc-latest.tar.xz");
+        char check_cmd[1200];
+        xsnprintf(check_cmd, sizeof(check_cmd),
+                  "curl -fsI '%s' >/dev/null 2>&1 && echo ok || echo fail", stage3_url);
+        char *check_out = NULL;
+        int check_rc = run_cmd_capture(check_cmd, &check_out);
+        int is_ok = (check_rc == 0 && check_out && strstr(check_out, "ok"));
+        free(check_out);
+        if (!is_ok) {
+            printf(COLOR_YELLOW "[!] Fallback %s not reachable, trying alternative mirror\n" COLOR_RESET, stage3_url);
+            const char *alt_fetch =
+                "curl -fsSL https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-openrc/ 2>/dev/null "
+                "| grep -oE 'stage3-amd64-openrc-[0-9TZ]+\\.tar\\.xz' | head -n1";
+            char *alt_file = NULL;
+            if (run_cmd_capture(alt_fetch, &alt_file) == 0 && alt_file && *alt_file) {
+                char *nl = strchr(alt_file, '\n'); if (nl) *nl='\0';
+                if (strstr(alt_file, ".tar.xz")) {
+                    xsnprintf(stage3_url, sizeof(stage3_url),
+                              "https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-openrc/%s", alt_file);
+                    printf(COLOR_GREEN "[+] Alternative stage3: %s\n" COLOR_RESET, stage3_url);
+                }
+            }
+            free(alt_file);
+        }
+    }
 
     /* Download stage3 */
     char tarball[512];
