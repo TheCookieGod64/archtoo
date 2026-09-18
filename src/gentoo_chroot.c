@@ -59,7 +59,7 @@ int gentoo_chroot_init(const char *path) {
         return 1;
     }
 
-    printf(COLOR_CYAN ">>> Initializing Gentoo chroot at %s (persistent, ~300MB stage3)...\n" COLOR_RESET, path);
+    printf(COLOR_CYAN ">>> Initializing chroot at %s...\n" COLOR_RESET, path);
 
     char cmd[4096];
 
@@ -220,7 +220,7 @@ int gentoo_chroot_init(const char *path) {
 
 int gentoo_chroot_mount(const char *path) {
     if (!path) return 0;
-    printf(COLOR_BLUE ">>> Mounting Gentoo chroot (proc, sys, dev, run, builds, backups)...\n" COLOR_RESET);
+    printf(COLOR_BLUE ">>> Mounting chroot...\n" COLOR_RESET);
     char cmd[4096];
     xsnprintf(g_chroot_path_store, sizeof(g_chroot_path_store), "%s", path);
 
@@ -259,7 +259,7 @@ int gentoo_chroot_unmount(const char *path) {
         if (g_chroot_path_store[0]) path = g_chroot_path_store;
         else return 0;
     }
-    printf(COLOR_BLUE ">>> Unmounting Gentoo chroot as if nothing happened...\n" COLOR_RESET);
+    printf(COLOR_BLUE ">>> Unmounting...\n" COLOR_RESET);
     char cmd[4096];
     xsnprintf(cmd, sizeof(cmd),
         "%s"
@@ -287,15 +287,14 @@ int gentoo_chroot_unmount(const char *path) {
         "grep '%s' /proc/mounts | cut -d' ' -f2 | sort -r | xargs -r umount -l 2>/dev/null; true",
         priv_prefix(), path);
     run_cmd(cmd);
-    printf(COLOR_GREEN "[+] Chroot unmounted, closed as if nothing happened\n" COLOR_RESET);
+    printf(COLOR_GREEN "[+] Unmounted\n" COLOR_RESET);
     return 1;
 }
 
 int gentoo_chroot_run_portage(const char *chroot_path, const char *pkg, int jobs) {
     if (!chroot_path || !pkg) return 1;
-    printf(COLOR_PURPLE "\n>>> SUPER HARD IMITATION LIKE REAL PORTAGE <<<\n" COLOR_RESET);
-    printf(COLOR_CYAN ">>> Chroot: %s | Package: %s | Jobs: %d\n" COLOR_RESET, chroot_path, pkg, jobs);
-    printf(COLOR_YELLOW ">>> Capturing STDOUT directly to host STDOUT...\n" COLOR_RESET);
+    printf(COLOR_GREEN ">>> Emerging (1 of 1) %s::gentoo\n" COLOR_RESET, pkg);
+    printf(COLOR_BLUE ">>> Jobs: %d  Chroot: %s\n" COLOR_RESET, jobs, chroot_path);
 
     arm_chroot_signals();
     g_chroot_interrupted = 0;
@@ -357,8 +356,7 @@ int cmd_gentoo_imitation_build(const char *pkg) {
         chroot_path = GENTOO_CHROOT_DIR;
     }
 
-    printf(COLOR_CYAN ">>> Archtoo Portage Imitation Mode v2.3.2\n" COLOR_RESET);
-    printf(COLOR_BLUE ">>> Normal archtoo -> Imitation archtoo -> Gentoo chroot -> Real Portage\n" COLOR_RESET);
+    printf(COLOR_GREEN ">>> Emerging %s\n" COLOR_RESET, pkg);
 
     if (!gentoo_chroot_init(chroot_path)) {
         fprintf(stderr, COLOR_RED "[-] Failed to init Gentoo chroot\n" COLOR_RESET);
@@ -373,7 +371,7 @@ int cmd_gentoo_imitation_build(const char *pkg) {
     int portage_rc = gentoo_chroot_run_portage(chroot_path, pkg, (int)get_jobs());
 
     if (portage_rc == 0) {
-        printf(COLOR_BLUE ">>> Mounting binary backup into chroot and copying artifacts...\n" COLOR_RESET);
+        printf(COLOR_BLUE ">>> Copying artifacts...\n" COLOR_RESET);
         char cmd[2048];
         xsnprintf(cmd, sizeof(cmd),
             "%s"
@@ -403,7 +401,6 @@ int cmd_gentoo_imitation_build(const char *pkg) {
         return 0;
     }
 
-    printf(COLOR_GREEN "\n>>> DONE! Portage imitation finished, chroot closed as if nothing happened.\n" COLOR_RESET);
-    printf(COLOR_CYAN ">>> Package %s was built via REAL Portage inside Gentoo chroot at %s\n" COLOR_RESET, pkg, chroot_path);
+    printf(COLOR_GREEN "\n>>> Completed %s\n" COLOR_RESET, pkg);
     return 1;
 }
