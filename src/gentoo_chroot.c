@@ -61,34 +61,27 @@ int gentoo_chroot_init(const char *path) {
 
     printf(COLOR_CYAN ">>> Initializing Gentoo chroot at %s (persistent, ~300MB stage3)...\n" COLOR_RESET, path);
 
-    char cmd[2048];
-    /* Create dir */
+    char cmd[4096];
+
     xsnprintf(cmd, sizeof(cmd), "%smkdir -p '%s'", priv_prefix(), path);
     if (run_cmd(cmd) != 0) {
         fprintf(stderr, COLOR_RED "[-] Cannot create chroot dir %s\n" COLOR_RESET, path);
         return 0;
     }
 
-    /* Download latest stage3 URL - the txt file is PGP signed, so we must filter BEGIN lines */
     printf(COLOR_BLUE ">>> Fetching latest Gentoo stage3 URL...\n" COLOR_RESET);
     char *latest_file = NULL;
-    /* The file is PGP signed: contains -----BEGIN PGP SIGNED MESSAGE----- etc.
-       We grep for tar.xz line containing stage3-amd64-openrc, exclude # and BEGIN */
     const char *fetch_latest =
         "curl -fsSL https://distfiles.gentoo.org/releases/amd64/autobuilds/latest-stage3-amd64-openrc.txt 2>/dev/null "
-        "| grep -E 'stage3-amd64-openrc.*\\.tar\\.xz' "
-        "| grep -v '^#' | grep -v 'BEGIN' "
-        "| head -n1 | awk '{print $1}'";
+        "| grep -E 'stage3-amd64-openrc.*\\.tar\\.xz' | grep -v '^#' | grep -v 'BEGIN' | head -n1 | awk '{print $1}'";
     int rc = run_cmd_capture(fetch_latest, &latest_file);
     char stage3_url[1024] = {0};
     int use_fallback = 1;
     if (rc == 0 && latest_file && *latest_file) {
-        /* Trim whitespace/newlines */
         char *p = latest_file;
         while (*p && (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t')) p++;
         size_t len = strlen(p);
         while (len > 0 && (p[len-1] == '\n' || p[len-1] == '\r' || p[len-1] == ' ' || p[len-1] == '\t')) { p[len-1]='\0'; len--; }
-        /* Reject if it still contains BEGIN or does not contain .tar */
         if (strstr(p, "BEGIN") == NULL && strstr(p, ".tar") != NULL && strlen(p) > 10) {
             if (strncmp(p, "https://", 8) == 0) {
                 xsnprintf(stage3_url, sizeof(stage3_url), "%s", p);
@@ -97,26 +90,23 @@ int gentoo_chroot_init(const char *path) {
             }
             printf(COLOR_GREEN "[+] Latest stage3: %s\n" COLOR_RESET, stage3_url);
             use_fallback = 0;
-        } else {
-            printf(COLOR_YELLOW "[!] Parsed file looked invalid: '%s'\n" COLOR_RESET, p);
         }
     }
     free(latest_file);
     latest_file = NULL;
 
     if (use_fallback) {
-        printf(COLOR_YELLOW "[!] Could not fetch latest stage3 list, using fallback URLs\n" COLOR_RESET);
+        printf(COLOR_YELLOW "[!] Could not fetch latest list, using fallback\n" COLOR_RESET);
         xsnprintf(stage3_url, sizeof(stage3_url),
                   "https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-openrc/stage3-amd64-openrc-latest.tar.xz");
         char check_cmd[1200];
-        xsnprintf(check_cmd, sizeof(check_cmd),
-                  "curl -fsI '%s' >/dev/null 2>&1 && echo ok || echo fail", stage3_url);
+        xsnprintf(check_cmd, sizeof(check_cmd), "curl -fsI '%s' >/dev/null 2>&1 && echo ok || echo fail", stage3_url);
         char *check_out = NULL;
         int check_rc = run_cmd_capture(check_cmd, &check_out);
         int is_ok = (check_rc == 0 && check_out && strstr(check_out, "ok"));
         free(check_out);
         if (!is_ok) {
-            printf(COLOR_YELLOW "[!] Fallback %s not reachable, trying alternative mirror\n" COLOR_RESET, stage3_url);
+            printf(COLOR_YELLOW "[!] Fallback not reachable, trying alt\n" COLOR_RESET);
             const char *alt_fetch =
                 "curl -fsSL https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-openrc/ 2>/dev/null "
                 "| grep -oE 'stage3-amd64-openrc-[0-9TZ]+\\.tar\\.xz' | head -n1";
@@ -133,7 +123,6 @@ int gentoo_chroot_init(const char *path) {
         }
     }
 
-    /* Download stage3 */
     char tarball[512];
     xsnprintf(tarball, sizeof(tarball), "/tmp/gentoo-stage3-%ld.tar.xz", (long)getpid());
     printf(COLOR_BLUE ">>> Downloading stage3 (this may take a while)...\n" COLOR_RESET);
@@ -144,11 +133,9 @@ int gentoo_chroot_init(const char *path) {
         return 0;
     }
 
-    /* Extract */
     printf(COLOR_BLUE ">>> Extracting stage3 to %s...\n" COLOR_RESET, path);
     xsnprintf(cmd, sizeof(cmd), "%star -xpf '%s' -C '%s' --xattrs-include='*.*' --numeric-owner 2>&1 | head -n 20", priv_prefix(), tarball, path);
     rc = run_cmd(cmd);
-    /* Cleanup tarball */
     xsnprintf(cmd, sizeof(cmd), "rm -f '%s'", tarball);
     run_cmd_quiet(cmd);
 
@@ -157,15 +144,69 @@ int gentoo_chroot_init(const char *path) {
         return 0;
     }
 
-    /* Setup resolv.conf and minimal dirs */
     printf(COLOR_BLUE ">>> Setting up chroot basics...\n" COLOR_RESET);
     xsnprintf(cmd, sizeof(cmd),
-             "%smkdir -p '%s/proc' '%s/sys' '%s/dev' '%s/tmp' '%s/run' '%s/%s' '%s/%s' && "
+             "%smkdir -p '%s/proc' '%s/sys' '%s/dev' '%s/tmp' '%s/run' '%s/%s' '%s/%s' '%s/var/db/repos/gentoo' && "
              "%scp -L /etc/resolv.conf '%s/etc/resolv.conf' 2>/dev/null; "
              "%schown -R '%s' '%s' 2>/dev/null; true",
-             priv_prefix(), path, path, path, path, path, path, BUILD_DIR, path, BACKUP_DIR,
+             priv_prefix(), path, path, path, path, path, path, BUILD_DIR, path, BACKUP_DIR, path,
              priv_prefix(), path,
              priv_prefix(), build_user() ? build_user() : "root", path);
+    run_cmd(cmd);
+
+    printf(COLOR_BLUE ">>> Fixing Portage profile and repos...\n" COLOR_RESET);
+    xsnprintf(cmd, sizeof(cmd),
+        "%s"
+        "chroot '%s' /bin/bash -c '"
+        "eselect profile list 2>/dev/null | head -n5; "
+        "if [ ! -e /etc/portage/make.profile ] || [ ! -L /etc/portage/make.profile ]; then "
+        "  echo \">>> Fixing make.profile symlink...\"; "
+        "  rm -rf /etc/portage/make.profile; "
+        "  if [ -d /var/db/repos/gentoo/profiles/default/linux/amd64/23.0 ]; then "
+        "    ln -sf /var/db/repos/gentoo/profiles/default/linux/amd64/23.0 /etc/portage/make.profile; "
+        "  elif [ -d /var/db/repos/gentoo/profiles/default/linux/amd64/23.0/no-multilib ]; then "
+        "    ln -sf /var/db/repos/gentoo/profiles/default/linux/amd64/23.0/no-multilib /etc/portage/make.profile; "
+        "  else "
+        "    prof=$(ls -d /var/db/repos/gentoo/profiles/default/linux/amd64/* 2>/dev/null | head -n1); "
+        "    if [ -n \"$prof\" ]; then ln -sf $prof /etc/portage/make.profile; fi; "
+        "  fi; "
+        "fi; "
+        "ls -l /etc/portage/make.profile 2>/dev/null; true' 2>&1 | head -n 20",
+        priv_prefix(), path);
+    run_cmd(cmd);
+
+    printf(COLOR_BLUE ">>> Syncing Gentoo repos inside chroot (emerge-webrsync fallback)...\n" COLOR_RESET);
+    xsnprintf(cmd, sizeof(cmd),
+        "%s"
+        "mount -t proc proc '%s/proc' 2>/dev/null; "
+        "mount --rbind /sys '%s/sys' 2>/dev/null; mount --make-rslave '%s/sys' 2>/dev/null; "
+        "mount --rbind /dev '%s/dev' 2>/dev/null; mount --make-rslave '%s/dev' 2>/dev/null; "
+        "chroot '%s' /bin/bash -c '"
+        "source /etc/profile; "
+        "mkdir -p /var/db/repos/gentoo; "
+        "if [ ! -d /var/db/repos/gentoo/profiles ]; then "
+        "  echo \">>> Running emerge-webrsync (first sync)...\"; "
+        "  emerge-webrsync 2>&1 | tail -n 30; "
+        "else "
+        "  echo \">>> Repo exists, running emerge --sync...\"; "
+        "  emerge --sync 2>&1 | tail -n 30; "
+        "fi; "
+        "eselect profile list 2>/dev/null | head -n 20; "
+        "if [ ! -L /etc/portage/make.profile ]; then "
+        "  eselect profile set 1 2>/dev/null || eselect profile set default/linux/amd64/23.0 2>/dev/null || true; "
+        "fi; "
+        "'; "
+        "umount -l '%s/proc' 2>/dev/null; "
+        "umount -l '%s/sys' 2>/dev/null; "
+        "umount -l '%s/dev' 2>/dev/null; true",
+        priv_prefix(),
+        path,
+        path, path,
+        path, path,
+        path,
+        path,
+        path,
+        path);
     run_cmd(cmd);
 
     if (!gentoo_chroot_exists(path)) {
@@ -173,6 +214,7 @@ int gentoo_chroot_init(const char *path) {
     }
 
     printf(COLOR_GREEN "[+] Gentoo chroot initialized at %s\n" COLOR_RESET, path);
+    printf(COLOR_YELLOW "[!] If repo still fails, run manually: sudo chroot %s emerge --sync\n" COLOR_RESET, path);
     return 1;
 }
 
@@ -180,10 +222,8 @@ int gentoo_chroot_mount(const char *path) {
     if (!path) return 0;
     printf(COLOR_BLUE ">>> Mounting Gentoo chroot (proc, sys, dev, run, builds, backups)...\n" COLOR_RESET);
     char cmd[4096];
-    /* Store path for signal handler */
     xsnprintf(g_chroot_path_store, sizeof(g_chroot_path_store), "%s", path);
 
-    /* Usual flow: files that change are mounted and then unmounted (you have sudo from beginning) */
     xsnprintf(cmd, sizeof(cmd),
         "%s"
         "mount -t proc proc '%s/proc' 2>/dev/null; "
@@ -194,8 +234,7 @@ int gentoo_chroot_mount(const char *path) {
         "mkdir -p '%s/%s' '%s/%s' '%s/%s' 2>/dev/null; "
         "mount --bind '%s' '%s/%s' 2>/dev/null; "
         "mount --bind '%s' '%s/%s' 2>/dev/null; "
-        "mkdir -p '%s/%s' && touch '%s/%s' && mount --bind '%s' '%s/%s' 2>/dev/null; "
-        "true",
+        "mkdir -p '%s/%s' && touch '%s/%s' && mount --bind '%s' '%s/%s' 2>/dev/null; true",
         priv_prefix(),
         path,
         path, path,
@@ -231,8 +270,7 @@ int gentoo_chroot_unmount(const char *path) {
         "umount -l '%s/run' 2>/dev/null; "
         "umount -l '%s/dev' 2>/dev/null; "
         "umount -l '%s/sys' 2>/dev/null; "
-        "umount -l '%s/proc' 2>/dev/null; "
-        "true",
+        "umount -l '%s/proc' 2>/dev/null; true",
         priv_prefix(),
         path, WORLD_FILE,
         path, BACKUP_DIR,
@@ -244,7 +282,6 @@ int gentoo_chroot_unmount(const char *path) {
         path
     );
     run_cmd(cmd);
-    /* Double check with generic unmount of any leftover mounts under chroot */
     xsnprintf(cmd, sizeof(cmd),
         "%s"
         "grep '%s' /proc/mounts | cut -d' ' -f2 | sort -r | xargs -r umount -l 2>/dev/null; true",
@@ -263,21 +300,35 @@ int gentoo_chroot_run_portage(const char *chroot_path, const char *pkg, int jobs
     arm_chroot_signals();
     g_chroot_interrupted = 0;
 
-    char cmd[2048];
-    /* Inside chroot, run real Portage emerge. Forward output directly.
-       We use chroot and run emerge with --jobs and --ask n to be non-interactive.
-       Portage output looks like:
-       >>> Emerging (1 of 1) category/pkg-version...
-       >>> Installing...
-    */
+    char cmd[4096];
+    char repair_cmd[4096];
+    xsnprintf(repair_cmd, sizeof(repair_cmd),
+        "%s"
+        "if [ ! -d '%s/var/db/repos/gentoo/profiles' ]; then "
+        "  echo '>>> Repo missing, syncing...'; "
+        "  mount -t proc proc '%s/proc' 2>/dev/null; "
+        "  mount --rbind /sys '%s/sys' 2>/dev/null; mount --make-rslave '%s/sys' 2>/dev/null; "
+        "  mount --rbind /dev '%s/dev' 2>/dev/null; mount --make-rslave '%s/dev' 2>/dev/null; "
+        "  chroot '%s' /bin/bash -c 'source /etc/profile; emerge-webrsync 2>&1 | tail -n 20'; "
+        "  umount -l '%s/proc' 2>/dev/null; umount -l '%s/sys' 2>/dev/null; umount -l '%s/dev' 2>/dev/null; "
+        "fi; true",
+        priv_prefix(),
+        chroot_path,
+        chroot_path,
+        chroot_path, chroot_path,
+        chroot_path, chroot_path,
+        chroot_path,
+        chroot_path, chroot_path, chroot_path);
+    run_cmd(repair_cmd);
+
     xsnprintf(cmd, sizeof(cmd),
         "chroot '%s' /bin/bash -c \""
         "source /etc/profile; "
+        "if [ ! -L /etc/portage/make.profile ]; then eselect profile set 1 2>/dev/null || true; fi; "
         "emerge --ask n --jobs=%d --load-average=%d '%s' 2>&1"
         "\"",
         chroot_path, jobs, jobs, pkg);
 
-    /* run_cmd forwards to host stdout because we don't capture quiet */
     int rc = run_cmd(cmd);
 
     if (g_chroot_interrupted) {
@@ -306,42 +357,31 @@ int cmd_gentoo_imitation_build(const char *pkg) {
         chroot_path = GENTOO_CHROOT_DIR;
     }
 
-    printf(COLOR_CYAN ">>> Archtoo Portage Imitation Mode v2.3.0\n" COLOR_RESET);
+    printf(COLOR_CYAN ">>> Archtoo Portage Imitation Mode v2.3.2\n" COLOR_RESET);
     printf(COLOR_BLUE ">>> Normal archtoo -> Imitation archtoo -> Gentoo chroot -> Real Portage\n" COLOR_RESET);
 
-    /* Step 1: Init chroot if needed (persistent) */
     if (!gentoo_chroot_init(chroot_path)) {
         fprintf(stderr, COLOR_RED "[-] Failed to init Gentoo chroot\n" COLOR_RESET);
         return 0;
     }
 
-    /* Step 2: Mount files that change (usual flow) */
     if (!gentoo_chroot_mount(chroot_path)) {
         fprintf(stderr, COLOR_RED "[-] Failed to mount chroot\n" COLOR_RESET);
         return 0;
     }
 
-    /* Step 3: Run Portage and capture STDOUT directly */
     int portage_rc = gentoo_chroot_run_portage(chroot_path, pkg, (int)get_jobs());
 
-    /* Step 4: Handle binary/backup mount as you said:
-       When done or Ctrl+C, mount binary backup into chroot and put it there, then umount */
     if (portage_rc == 0) {
         printf(COLOR_BLUE ">>> Mounting binary backup into chroot and copying artifacts...\n" COLOR_RESET);
         char cmd[2048];
-        /* Example: Gentoo binpkgs are in /var/cache/binpkgs inside chroot.
-           We bind mount host backup dir and copy any new .xpak or .tar files,
-           or we mount binary backup and put host's built Arch package into chroot for fun.
-           This is the part you described: mount backup, put binary there, umount.
-        */
         xsnprintf(cmd, sizeof(cmd),
             "%s"
             "ls '%s/%s/' 2>/dev/null; "
             "echo '>>> Binary backup currently at %s/%s'; "
             "mkdir -p '%s/var/cache/binpkgs' 2>/dev/null; "
             "cp -a '%s/%s/'*.pkg.tar.* '%s/var/cache/binpkgs/' 2>/dev/null; "
-            "echo '>>> Copied Arch binaries into Gentoo chroot binpkgs (imitation)'; "
-            "true",
+            "echo '>>> Copied Arch binaries into Gentoo chroot binpkgs (imitation)'; true",
             priv_prefix(),
             BUILD_DIR, pkg,
             BUILD_DIR, pkg,
@@ -351,7 +391,6 @@ int cmd_gentoo_imitation_build(const char *pkg) {
         run_cmd(cmd);
     }
 
-    /* Step 5: Unmount and close chroot as if nothing happened */
     gentoo_chroot_unmount(chroot_path);
 
     if (portage_rc != 0) {
@@ -359,6 +398,7 @@ int cmd_gentoo_imitation_build(const char *pkg) {
             printf(COLOR_YELLOW "[!] Build interrupted, chroot cleaned up\n" COLOR_RESET);
         } else {
             fprintf(stderr, COLOR_RED "[-] Imitation build failed\n" COLOR_RESET);
+            fprintf(stderr, COLOR_YELLOW "    Tip: try manual fix: sudo chroot %s emerge --sync && sudo chroot %s eselect profile set 1\n" COLOR_RESET, chroot_path, chroot_path);
         }
         return 0;
     }
