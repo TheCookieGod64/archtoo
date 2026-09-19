@@ -1,0 +1,1 @@
+; news.inc - Pure NASM
