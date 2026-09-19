@@ -59,6 +59,8 @@ void config_defaults(archtoo_config_t *config) {
     config->portage_imitation = 0;
     snprintf(config->gentoo_chroot_path, sizeof(config->gentoo_chroot_path),
              "%s/gentoo-chroot", EMERGE_DIR);
+    config->use_binary = 0;
+    config->has_binary_setting = 0;
 }
 
 static int config_path(char *path, size_t n) {
@@ -143,6 +145,19 @@ int config_load(archtoo_config_t *config, char *error, size_t error_size) {
         } else if (strcmp(key,"gentoo_chroot_path")==0 || strcmp(key,"chroot_path")==0) {
             if (!valid_gentoo_chroot_path(value)) goto invalid;
             snprintf(config->gentoo_chroot_path, sizeof(config->gentoo_chroot_path), "%s", value);
+        } else if (strcmp(key,"binary")==0 || strcmp(key,"use_binary")==0 ||
+                   strcmp(key,"use_bin")==0 || strcmp(key,"bin")==0 ||
+                   strcmp(key,"prebuilt")==0 || strcmp(key,"use_prebuilt")==0 ||
+                   strcmp(key,"no_build")==0 || strcmp(key,"no-build")==0) {
+            int v;
+            if (!parse_switch(value, &v)) goto invalid;
+            /* no_build is inverted: true means use binary */
+            if (strcmp(key,"no_build")==0 || strcmp(key,"no-build")==0) {
+                config->use_binary = v;
+            } else {
+                config->use_binary = v;
+            }
+            config->has_binary_setting = 1;
         } else {
             error_format(error,error_size,"unknown config key on line %lu: %s",line_number,key);
             fclose(file); return 0;
@@ -178,6 +193,9 @@ void config_apply(const archtoo_config_t *config) {
     }
     if (config->gentoo_chroot_path[0]) {
         set_gentoo_chroot_path(config->gentoo_chroot_path);
+    }
+    if (config->has_binary_setting) {
+        set_use_binary(config->use_binary);
     }
 }
 

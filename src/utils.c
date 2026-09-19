@@ -727,6 +727,11 @@ int ask_yes_no(const char *question, int default_yes) {
     return (reply[0] == 'y' || reply[0] == 'Y');
 }
 
+/* --- Binary mode (against Gentoo principles but like yay) --- */
+static int g_use_binary = 0;
+void set_use_binary(int v) { g_use_binary = v ? 1 : 0; }
+int get_use_binary(void) { return g_use_binary; }
+
 /* --- Gentoo chroot imitation mode --- */
 static int  g_gentoo_chroot = 0;
 static int  g_portage_imitation = 0;

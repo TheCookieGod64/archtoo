@@ -1,5 +1,5 @@
 # Keep in sync with headers/version.h
-VERSION     = 2.3.3
+VERSION     = 2.4.0
 
 CC          ?= gcc
 STD         = -std=gnu11
@@ -49,7 +49,9 @@ SRCS        = $(SRC_DIR)/main.c \
               $(SRC_DIR)/kernel.c \
               $(SRC_DIR)/unmerge.c \
               $(SRC_DIR)/build.c \
-              $(SRC_DIR)/gentoo_chroot.c
+              $(SRC_DIR)/gentoo_chroot.c \
+              $(SRC_DIR)/sha256.c \
+              $(SRC_DIR)/binary.c
 
 OBJS        = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRCS))
 DEPS        = $(OBJS:.o=.d)

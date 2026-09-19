@@ -132,6 +132,10 @@ void set_gentoo_chroot_path(const char *path);
 const char *get_gentoo_chroot_path(void);
 int valid_gentoo_chroot_path(const char *s);
 
+/* Binary download mode: against Gentoo principles but like yay, only long flag */
+void set_use_binary(int v);
+int get_use_binary(void);
+
 /* Reuse an existing build tree and continue an interrupted compile. */
 void set_resume(int v);
 int  get_resume(void);

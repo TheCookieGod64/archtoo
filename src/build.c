@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include "../headers/build.h"
+#include "../headers/binary.h"
 #include "../headers/kernel.h"
 #include "../headers/world.h"
 #include "../headers/utils.h"
@@ -590,6 +591,17 @@ int cmd_build(const char *pkg) {
     if (!valid_pkgname(pkg)) {
         fprintf(stderr, COLOR_RED "[-] Invalid package name: '%s'\n" COLOR_RESET, pkg);
         return 0;
+    }
+
+    /* Binary mode: against Gentoo principles but like yay, only long flag */
+    if (get_use_binary()) {
+        if (cmd_binary_install(pkg)) {
+            return 1;
+        }
+        printf(COLOR_YELLOW "[!] Binary install failed for %s, falling back to source build\n" COLOR_RESET, pkg);
+        if (!ask_yes_no("Continue with source build?", 0)) {
+            return 0;
+        }
     }
 
     int cwd = open(".", O_RDONLY | O_CLOEXEC);

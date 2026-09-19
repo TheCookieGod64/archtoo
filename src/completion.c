@@ -19,6 +19,8 @@ int cmd_completion_v2(void) {
         "--opt-level", "--opt", "--optimization", "--pipe", "--no-pipe",
         "--gentoo-chroot", "--imitation", "--portage-imitation", "--gentoo-imitation",
         "--no-gentoo-chroot", "--no-imitation", "--chroot-path",
+        "--binary", "--use-binary", "--use-bin", "--bin", "--prebuilt", "--use-prebuilt",
+        "--no-build", "--no-compile", "--no-binary", "--no-use-binary", "--no-bin",
         "--resume", "--no-keys", "--no-inhibit",
         "--no-sync", "--no-aur-sync", "--command-guide", "--orphans",
         "--clean", "--stats", "--news", "--complete", "--devel",

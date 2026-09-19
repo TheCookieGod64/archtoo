@@ -52,6 +52,8 @@ typedef struct {
     int gentoo_chroot;
     int portage_imitation;
     char gentoo_chroot_path[512];
+    int use_binary;
+    int has_binary_setting;
 } archtoo_config_t;
 
 void config_defaults(archtoo_config_t *config);

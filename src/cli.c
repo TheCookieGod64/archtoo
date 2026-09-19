@@ -62,6 +62,10 @@ static void print_usage(void) {
     printf("  --imitation            Alias for --gentoo-chroot\n");
     printf("  --no-gentoo-chroot     Disable chroot imitation\n");
     printf("  --chroot-path PATH     Custom chroot path (default: /usr/local/emerge/gentoo-chroot)\n");
+    printf("  --binary               Download binary without compiling (against Gentoo principles, like yay)\n");
+    printf("                         Long flag only, no short form\n");
+    printf("  --use-binary           Alias for --binary\n");
+    printf("  --no-binary            Disable binary mode\n");
     printf("  -r, --resume           Reuse the existing build tree and continue\n");
     printf("                         an interrupted compile\n");
     printf("  --no-keys              Do not import missing PGP signing keys\n");
@@ -88,18 +92,18 @@ int archtoo_cli_main(int argc, char *argv[]) {
 
     if (argc < 2) {
         if (strcmp(get_target_arch(), "native") != 0 || strcmp(get_opt_level(), "3") != 0 || !get_use_pipe() || get_gentoo_chroot()) {
-            printf(COLOR_CYAN "Current config: target=%s opt=-O%s pipe=%s chroot=%s path=%s\n" COLOR_RESET,
+            printf(COLOR_CYAN "Current config: target=%s opt=-O%s pipe=%s chroot=%s binary=%s path=%s\n" COLOR_RESET,
                    get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no",
-                   get_gentoo_chroot() ? "on" : "off", get_gentoo_chroot_path());
+                   get_gentoo_chroot() ? "on" : "off", get_use_binary() ? "on" : "off", get_gentoo_chroot_path());
         }
         print_usage();
         return 1;
     }
 
     if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0) {
-        printf("%s v%s (target=%s opt=-O%s pipe=%s chroot=%s)\n", ARCHTOO_NAME, ARCHTOO_VERSION,
+        printf("%s v%s (target=%s opt=-O%s pipe=%s chroot=%s binary=%s)\n", ARCHTOO_NAME, ARCHTOO_VERSION,
                get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no",
-               get_gentoo_chroot() ? "on" : "off");
+               get_gentoo_chroot() ? "on" : "off", get_use_binary() ? "on" : "off");
         printf("Copyright (C) 2026 TheCookieGod64\n");
         printf("License GPLv3+: GNU GPL version 3 or later "
                "<https://gnu.org/licenses/gpl.html>\n");
@@ -391,6 +395,18 @@ int archtoo_cli_main(int argc, char *argv[]) {
             set_gentoo_chroot_path(p);
             continue;
         }
+        if (strcmp(argv[i], "--binary") == 0 || strcmp(argv[i], "--use-binary") == 0 ||
+            strcmp(argv[i], "--use-bin") == 0 || strcmp(argv[i], "--bin") == 0 ||
+            strcmp(argv[i], "--prebuilt") == 0 || strcmp(argv[i], "--use-prebuilt") == 0 ||
+            strcmp(argv[i], "--no-build") == 0 || strcmp(argv[i], "--no-compile") == 0) {
+            set_use_binary(1);
+            continue;
+        }
+        if (strcmp(argv[i], "--no-binary") == 0 || strcmp(argv[i], "--no-use-binary") == 0 ||
+            strcmp(argv[i], "--no-bin") == 0 || strcmp(argv[i], "--no-prebuilt") == 0) {
+            set_use_binary(0);
+            continue;
+        }
 
         filtered[filtered_argc++] = argv[i];
     }
@@ -400,9 +416,9 @@ int archtoo_cli_main(int argc, char *argv[]) {
 
     if (filtered_argc == 1) {
         if (strcmp(filtered[0], "-v") == 0 || strcmp(filtered[0], "--version") == 0) {
-            printf("%s v%s (target=%s opt=-O%s pipe=%s chroot=%s)\n", ARCHTOO_NAME, ARCHTOO_VERSION,
+            printf("%s v%s (target=%s opt=-O%s pipe=%s chroot=%s binary=%s)\n", ARCHTOO_NAME, ARCHTOO_VERSION,
                    get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no",
-                   get_gentoo_chroot() ? "on" : "off");
+                   get_gentoo_chroot() ? "on" : "off", get_use_binary() ? "on" : "off");
             printf("Copyright (C) 2026 TheCookieGod64\n");
             return 0;
         }
@@ -414,9 +430,9 @@ int archtoo_cli_main(int argc, char *argv[]) {
 
     if (filtered_argc == 0) {
         if (strcmp(get_target_arch(), "native") != 0 || strcmp(get_opt_level(), "3") != 0 || !get_use_pipe() || get_gentoo_chroot()) {
-            printf(COLOR_CYAN "Current: target=%s opt=-O%s pipe=%s chroot=%s jobs=%ld path=%s\n" COLOR_RESET,
+            printf(COLOR_CYAN "Current: target=%s opt=-O%s pipe=%s chroot=%s binary=%s jobs=%ld path=%s\n" COLOR_RESET,
                    get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no",
-                   get_gentoo_chroot() ? "on" : "off", get_jobs(), get_gentoo_chroot_path());
+                   get_gentoo_chroot() ? "on" : "off", get_use_binary() ? "on" : "off", get_jobs(), get_gentoo_chroot_path());
         }
         return 0;
     }
@@ -470,7 +486,10 @@ int archtoo_cli_main(int argc, char *argv[]) {
     if (strcmp(filtered[argi], "-I") == 0) {
         if (filtered_argc < 2 || !init_system()) return 1;
         int failed = 0;
-        if (get_gentoo_chroot()) {
+        if (get_use_binary()) {
+            for (int i = 1; i < filtered_argc; i++)
+                if (!cmd_build(filtered[i])) failed++;
+        } else if (get_gentoo_chroot()) {
             for (int i = 1; i < filtered_argc; i++)
                 if (!cmd_gentoo_imitation_build(filtered[i])) failed++;
         } else {
@@ -539,6 +558,23 @@ int archtoo_cli_main(int argc, char *argv[]) {
 
     if (!init_system())
         return 1;
+
+    /* Binary mode: against Gentoo principles but like yay - only long flag */
+    if (get_use_binary()) {
+        int failed = 0;
+        for (int i = 0; i < filtered_argc; i++) {
+            if (filtered_argc > 1)
+                printf(COLOR_PURPLE "\n>>> [%d/%d] %s (binary mode)\n" COLOR_RESET,
+                       i + 1, filtered_argc, filtered[i]);
+            if (!cmd_build(filtered[i]))
+                failed++;
+        }
+        if (failed) {
+            fprintf(stderr, COLOR_RED "\n[-] %d package(s) failed in binary mode.\n" COLOR_RESET, failed);
+            return 1;
+        }
+        return 0;
+    }
 
     /* SUPER HARD IMITATION MODE: if enabled, use Gentoo chroot + real Portage */
     if (get_gentoo_chroot()) {
