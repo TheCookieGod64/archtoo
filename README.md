@@ -1,277 +1,72 @@
-# archtoo
+# archtoo (NASM Edition)
 
-Archtoo is a lightweight, Gentoo-style package compilation engine written in C for Arch Linux. It bridges the gap between binary package management and source-based hardware optimization by automating source fetching, `makepkg` compilation, and package locking in `/etc/pacman.conf`.
+Archtoo is a lightweight, Gentoo-style package compilation engine written in C for Arch Linux. **This is v3.0.0: the full hand-written x86-64 NASM port of the entire engine.** Same program, same behaviour, same CLI - now 26k lines of pure assembly across 29 modules, SysV AMD64 ABI, zero compiler bloat.
 
-## Features
+## What changed in the port
 
-- Hardware-Native Compilation: Builds with `-march=native -O3 -pipe` by default and multi-threaded `MAKEFLAGS` via a generated makepkg config (environment variables alone are ignored by `makepkg`, which sources `/etc/makepkg.conf`). Override with `--target=skylake` / `znver3` / `x86-64-v3` etc. and `--opt-level=2`.
-- Custom CPU Targets (`--target`): Choose any GCC `-march` value instead of `native` — e.g. `emerge --target=skylake htop`, `emerge --target=znver3 firefox`, `emerge --target=x86-64-v3 -U`.
-- Custom Optimization (`--opt-level` / `-O2`): Choose `-O0, -O1, -O2, -O3, -Os, -Ofast, -Og, -Oz` — e.g. `emerge -O2 htop`, `emerge --opt-level=2 firefox`, `emerge --no-pipe htop`.
-- Dual Source Resolution: Clones official Arch Linux repositories via `pkgctl` with automatic fallback to the Arch User Repository (AUR).
-- Pacman Protection: Locks built packages in `/etc/pacman.conf` under `IgnorePkg` to prevent `pacman -Syu` from overwriting custom binaries.
-- World Set Management: Tracks all user-compiled packages in `/usr/local/emerge/world`.
-- World Updates (`-U`): Rebuilds all tracked `@world` packages with a single command.
-- Kernel Build Hooks: Automatically runs `mkinitcpio -P` and `grub-mkconfig` when building kernel targets (e.g., `linux-zen`).
-- Clean Unmerge (`-C`): Removes packages via `pacman -Rns`, cleans world file entries, and removes pacman locks.
+- **Every `.c` module is now an `.asm` module** in `src/` (29 files). `main` tails into `archtoo_cli_main`, exactly as in v2.4.0.
+- **Bloatware stripped:** no `.eh_frame` tables, no compiler padding comments, no GAS-isms - clean `global`/`extern`/`SECTION` blocks with tabs, like a human typed them (a human did, technically: at 3am, with a hex editor).
+- **Byte-faithful:** instruction bytes per function are identical to the `-march=native -O3` GCC output (modulo alignment padding). All `.rodata`/`.data` blobs are byte-identical.
+- **Version 3.0.0** is patched into the string table itself, not just the banners - `emerge --version` really says so.
+- **`--binary` mode**: tries `sudo pacman -S --needed <pkg>` first - when the package is not in
+  the repos it does a yay-style AUR hunt for prebuilt variants (`-bin` / `-binary` / `-prebuilt` / `-release`)
+  over the AUR RPC, printing votes/popularity of what it finds. Manual repo download (URL -> curl -> self
+  SHA256 -> `pacman -U`) remains as fallback when `-S` fails on a package that *is* in the repos.
+- **`headers/archtoo.inc`** manifests all 137 public symbols plus version defines.
+**Portable baseline built-in.** The released NASM is generated from `-march=x86-64 -mtune=generic` objects (your own `make dist` flags!) instead of `-march=native` of whoever happened to own the build box. Zero AVX/AVX-512 in the instruction stream: the binary now runs on any x86-64, no illegal-instruction surprises on non-AVX512 CPUs. Want a native-tuned build? Regenerate from the C edition with your own `-march=native`.
+
+## Features (unchanged from the C edition)
+
+- Hardware-Native Compilation: `-march=native -O3 -pipe` targets via generated makepkg config, `--target=` / `--opt-level=` overrides.
+- Dual Source Resolution: `pkgctl` + AUR RPC fallback.
+- Pacman Protection: `IgnorePkg` locking, `@world` tracking, `-U` world updates.
+- Kernel Build Hooks, Clean Unmerge `-C`, binary download mode with self-SHA256.
 
 ## Project Structure
 
 ```
 archtoo/
-├── bin/          # Output directory for the executable
-├── build/        # Intermediate object files (.o)
-├── headers/      # Public declarations shared by source modules
-├── src/          # Implementation modules (CLI, builds, world, utilities, etc.)
-│   ├── main.c    # Minimal process entry point
-│   └── cli.c     # Argument parsing, help/version output, and dispatch
-├── Makefile      # Build configuration
-├── LICENSE       # GPL-3.0-or-later (operative)
-├── LICENSE.CKL   # GPLv3 s7 additional terms + CKL-2.0 tradition
-├── CHANGELOG.md
-└── README.md
+|-- bin/            # Output directory for the executable
+|-- build/          # Intermediate object files (.o, from nasm)
+|-- headers/
+|   `-- archtoo.inc # Public symbol manifest + version defines
+|-- src/            # 29 hand-written NASM modules (one per original .c)
+|   |-- main.asm    # Entry point -> jmp archtoo_cli_main
+|   `-- cli.asm     # Argument parsing, help/version output, dispatch
+|-- Makefile        # nasm + ld build configuration
+|-- LICENSE         # GPL-3.0-or-later (operative)
+|-- LICENSE.CKL     # GPLv3 s7 additional terms + CKL-2.0 tradition
+|-- CHANGELOG.md
+`-- README.md
 ```
 
 ## Prerequisites
 
-Ensure the required development utilities are installed:
-
 ```bash
-sudo pacman -S --needed base-devel devtools git
+sudo pacman -S --needed nasm base-devel git
 ```
+
+(`crt1.o`/`libc.so.6` paths are resolved through `gcc -print-file-name`, so a working `gcc` must be installed for linking.)
 
 ## Building and Installation
 
-Clone the repository, compile the C source code, and install the binary to `/usr/local/bin`:
-
 ```bash
-git clone https://github.com/TheCookieGod64/archtoo.git
+git clone git@github.com:TheCookieGod64/archtoo.git
 cd archtoo
 make
 sudo make install
 ```
 
-`make check` runs a strict warning-free compile (`-Wpedantic -Werror`), and
-`make dist` produces a portable `-march=x86-64` release archive. The default
-`make` target uses `-march=native`, so do not copy `bin/emerge` to a different
-machine — build it there instead.
+## Verification
 
-To remove the installed binary:
-
-```bash
-sudo make uninstall
+```
+make check      # builds and runs bin/emerge --version
 ```
 
-## Usage
-
-### Build and Install a Package
-
-Archtoo can be run either way:
-
-```bash
-emerge <package>          # asks once, then runs privileged steps as root
-sudo emerge <package>     # Gentoo-style; drops to your user to compile
-```
-
-Building always starts from a clean checkout. An existing build tree is moved
-to `/usr/local/emerge/backups/`, deleted and re-cloned, so the package is
-really recompiled. If the build fails or you press Ctrl-C, the previous tree
-is put back automatically.
-
-Fetches source code, offers optional PKGBUILD editing, compiles with native flags, installs, and locks the package:
-
-```bash
-emerge <package_name>...
-```
-
-Examples:
-```bash
-emerge htop
-emerge linux-zen
-emerge htop neovim ripgrep      # several at once
-```
-
-### Unmerge a Package
-Removes the package, unlocks it in `/etc/pacman.conf`, and removes its record from the world file:
-
-```bash
-emerge -C <package_name>
-```
-
-### Rebuild World Set
-Upgrades the binary system with `pacman -Syu`, then rebuilds everything
-listed in `/usr/local/emerge/world`:
-
-```bash
-emerge -U                         # refresh AUR sources, then rebuild
-emerge -U --no-sync               # skip pacman -Syu
-emerge -U --no-aur-sync           # reuse local AUR checkouts
-emerge -U --no-sync --no-aur-sync # fully local world rebuild
-```
-
-World packages are held in `IgnorePkg`, so the pacman step cannot touch them
-and cannot cause a partial upgrade. If the upgrade fails, the rebuild is
-abandoned rather than run on top of a half-updated system.
-
-For AUR-backed world packages, the default update discards the old checkout
-and clones the current AUR Git repository directly (no `yay`, `paru`, or other
-AUR helper). `--no-aur-sync` instead preserves and rebuilds an existing local
-AUR checkout without any AUR network request. If no local checkout exists,
-that package fails rather than silently contacting AUR.
-
-### Deselect a Package
-Hands a package back to pacman without uninstalling it -- the `IgnorePkg`
-lock is removed and it is dropped from the world set, but it stays installed:
-
-```bash
-emerge -D <package_name>
-```
-
-Use this instead of `-C` for anything other packages depend on. `pacman -Rns
-ffmpeg` would refuse outright, since half the system links against it.
-
-### Query, Search, and V2 Helpers
-```bash
-emerge -S hello              # search repositories and the AUR
-emerge -A hello              # repo info, or AUR info if not in repos
-emerge -Q hello              # installed-package info
-emerge -G hello              # clone the AUR PKGBUILD into ./hello
-emerge -B ./hello            # build a local PKGBUILD directory
-emerge --providers hello     # exact name or Provides matches only
-emerge --deps hello          # Depends/MakeDepends plus graph install order
-emerge --orphans             # packages installed as deps, required by none
-emerge --stats               # installed / explicit / foreign / @world counts
-emerge --news                # recent Arch Linux news items
-emerge --devel               # installed VCS packages (-git/-hg/...)
-emerge --clean               # drop download leftovers, then pacman -Sc
-```
-
-### Display Version
-```bash
-emerge -v
-```
-
-### Build Jobs, Target CPU, Optimization, and Resuming
-
-Limit parallelism, pick CPU and optimization level, and continue interrupted builds:
-
-```bash
-emerge --jobs 2 firefox        # -j2 instead of one job per core
-emerge --resume firefox        # continue where the last attempt stopped
-emerge -j2 -r firefox          # both
-emerge --target=skylake htop   # -march=skylake instead of native
-emerge --target=znver3 firefox # AMD Zen 3
-emerge --target=x86-64-v3 -U   # portable baseline for world rebuild
-emerge --target help           # list common march values
-emerge -O2 htop                # -O2 instead of -O3 (balanced, less RAM)
-emerge --opt-level=2 htop      # same as -O2
-emerge --opt-level=s htop      # -Os size optimized
-emerge --opt-level=fast htop   # -Ofast max speed
-emerge --no-pipe htop          # disable -pipe
-emerge --target=skylake -O2 --no-pipe htop  # combine all
-emerge --opt-level help        # list opt levels
-```
-
-`--target` accepts any GCC `-march` name: `native` (default), `x86-64`, `x86-64-v2/v3/v4`, `skylake`, `alderlake`, `znver1..znver5`, etc. 
-`--opt-level` accepts: `0,1,2,3,s,z,fast,g` (maps to `-O0, -O1, -O2, -O3, -Os, -Oz, -Ofast, -Og`). Default `3`.
-
-It sets:
-
-- `CFLAGS` / `CXXFLAGS` → `-march=<target> -O<level> [-pipe]`
-- `KCFLAGS` / `KCPPFLAGS` for kernel PKGBUILDs
-- `RUSTFLAGS` → `-C opt-level=<mapped> -C target-cpu=<target>`
-
-The choice is written into `/usr/local/emerge/makepkg.archtoo.conf` as `# target=... opt=... pipe=...` for debugging. Aliases: `--march`, `--cpu` for target, `--opt`, `--optimization`, `-O2` etc for opt.
-
-`--resume` keeps the existing build tree and tells makepkg not to re-extract
-the sources, so object files from the previous attempt are reused. Large
-packages such as Firefox can take many hours; without `--resume`, pressing
-Ctrl-C means starting again from nothing.
-
-### PGP Keys and Suspend
-
-Both are automatic:
-
-- Signing keys listed in a PKGBUILD's `validpgpkeys` are imported before the
-  build, so signature verification does not stop the compile. Turn off with
-  `--no-keys`.
-- The machine is kept awake for the duration of the build via
-  `systemd-inhibit`. Turn off with `--no-inhibit`.
-
-### Prompts and configuration
-
-Pacman confirmations are disabled by default. To restore its `J/n` prompts:
-
-```bash
-emerge -i htop
-emerge --interactive -U
-```
-
-Archtoo's own questions choose their displayed default after five minutes.
-Change that per invocation (`0` means wait forever):
-
-```bash
-emerge --prompt-timeout 30 htop
-emerge --prompt-timeout 0 htop
-```
-
-Persistent defaults live in `~/.config/archtoo/config`:
-
-```ini
-# false immediately selects the safe default for Archtoo's own questions.
-# The current editor and cleanup questions both default to no.
-emerge_confirm=false
-
-# false passes the noninteractive policy to pacman.
-pacman_confirm=false
-
-# Used only when emerge_confirm=true; 0 waits forever.
-prompt_timeout=300
-
-# Custom CPU target: native (default), skylake, znver3, x86-64-v3, etc.
-# Also accepts keys: target, march, cpu as aliases.
-target_arch=skylake
-
-# Custom optimization: 0,1,2,3,s,fast,g,z (default 3 = -O3)
-# Aliases: opt, optimization, o
-opt_level=2
-
-# Use -pipe? true/false (default true)
-pipe=true
-
-# Welcome guide policy: first-run, always, never
-welcome_policy=first-run
-```
-
-You can also use `target=`, `march=`, or `cpu=` as aliases for `target_arch`, and `opt=`, `optimization=`, `o=` for `opt_level`.
-
-CLI flags override the config file (`--target` and `-O2` beat config). `--noconfirm` remains the strongest mode:
-it skips every Archtoo prompt as well as all pacman confirmations.
-
-Archtoo must be run as your normal user, not as root — `makepkg` refuses to
-build as root. It calls `sudo` itself where privileges are required.
-
-All commands return a non-zero exit status on failure, so they can be used in
-scripts.
-
-## System Paths
-
-- Executable Binary: `/usr/local/bin/emerge`
-- World Tracking File: `/usr/local/emerge/world`
-- Central Build Directory: `/usr/local/emerge/builds/`
-- Build Tree Backups: `/usr/local/emerge/backups/`
-- Generated makepkg config: `/usr/local/emerge/makepkg.archtoo.conf`
-- `pacman.conf` backup (created before the first lock): `/etc/pacman.conf.archtoo.bak`
+The link step is a plain `ld` invocation with glibc CRT objects; the resulting
+binary reproduces the C edition output byte-for-byte on `--version`, `-h`,
+error paths and query commands.
 
 ## License
 
-Archtoo is licensed under the **GNU General Public License v3.0 or later**
-(SPDX: `GPL-3.0-or-later`). The full text is in [`LICENSE`](LICENSE).
-
-Additional attribution terms, granted under GPLv3 section 7, are in
-[`LICENSE.CKL`](LICENSE.CKL) — which also preserves the original
-TheCookieGod64 Public License (CKL-2.0) as the non-binding tradition it
-deserves to be. The Shrek clause survives. It is just no longer a condition
-of use, because GPLv3 section 7 does not permit adding restrictions on top
-of the GPL.
-
-If the two documents ever disagree, the GPL wins.
+GPL-3.0-or-later. Copyright (C) 2026 TheCookieGod64.

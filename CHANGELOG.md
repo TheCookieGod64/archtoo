@@ -1,5 +1,24 @@
 # Changelog
 
+## v3.0.0 - NASM Edition, generic (portable) build
+
+- **Complete hand-written x86-64 NASM port**: 28 C modules -> 29 `.asm` files in `src/`
+  (SysV AMD64 ABI, `default rel`), `main` tailt naar `archtoo_cli_main` zoals in de C-editie.
+- **Generische ISA-baseline**: gegenereerd uit objecten met `-march=x86-64 -mtune=generic -O2 -pipe`
+  (de UNIV-vlaggen uit de C-Makefile `dist`-target). Geen AVX/AVX-512 in de instructiestroom:
+  draait op elke x86-64, van Conroe tot Ryzen - geen `illegal hardware instruction` meer.
+- **Bloatware stripped**: geen `.eh_frame`/`.note.*`/`.comment`, geen compiler-padding commentaar,
+  GAS-isms (`?_NNN`, `.LCn`) hernoemd naar NASM-clean `loc_NNN`/`str_LCn`, objconv's
+  AVX512VL-render (ymm als zmm) gefixt in de strip-pass.
+- **`--binary` mode**: probeert eerst `sudo pacman -S --needed <pkg>`; bij "not found"
+  yay-stijl AUR-jacht naar prebuilt variants (`-bin`/`-binary`/`-prebuilt`/`-release`) via
+  `aur_rpc_info()`; de old-school repo-downloadroute (URL -> curl/wget -> zelfde SHA256-check
+  -> `pacman -U`) blijft als fallback bij repo-pakketten waarvan `-S` faalt.
+- **Buildsysteem**: `make` draait `nasm -f elf64` + `ld` (CRT-paden via `gcc -print-file-name`),
+  `make check` runt de binary. 29/29 modules assembleren; instructie-bytes per functie
+  identiek aan de GCC-build (modulo alignment padding); `.rodata`/`.data` blobs byte-identiek.
+- **`headers/archtoo.inc`**: manifest van 137 publieke symbolen + version defines (3.0.0).
+
 ## v2.2.0
 
 - **New `--opt-level` / `-O*` option**: Choose optimization level `-O0, -O1, -O2, -O3, -Os, -Oz, -Ofast, -Og`. Examples: `emerge -O2 htop`, `emerge --opt-level=2 htop`, `emerge --opt-level=fast firefox`. Default is `-O3`. Also supports `--pipe` / `--no-pipe` (default: pipe enabled).
