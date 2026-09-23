@@ -1,0 +1,12 @@
+# Build & release artifacts
+bin/
+build/
+dist/
+*.o
+
+# Editor junk
+*.swp
+*~
+.DS_Store
+.vscode/
+.idea/
