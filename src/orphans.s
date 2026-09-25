@@ -33,25 +33,27 @@ cmd_orphans_v2:
 	ldrb	w1, [x1]
 	cbz	w1, .L3
 	cbnz	w0, .L2
-	stp	x19, x20, [sp, 16]
 	adrp	x0, .LC3
 	add	x0, x0, :lo12:.LC3
-	adrp	x20, :got:stdout;ldr	x20, [x20, :got_lo12:stdout]
 	bl	printf
+	adrp	x2, :got:stdout
+	ldr	x2, [x2, :got_lo12:stdout]
+	str	x2, [sp, 24]
 	ldr	x0, [sp, 40]
-	ldr	x1, [x20]
+	ldr	x1, [x2]
 	bl	fputs
-	ldr	x19, [sp, 40]
-	mov	x0, x19
+	ldr	x1, [sp, 40]
+	str	x1, [sp, 16]
+	mov	x0, x1
 	bl	strlen
-	add	x0, x19, x0
+	ldr	x1, [sp, 16]
+	add	x0, x1, x0
 	ldrb	w0, [x0, -1]
 	cmp	w0, 10
 	bne	.L17
-	mov	x0, x19
+	mov	x0, x1
 	bl	free
-	ldp	x19, x20, [sp, 16]
-.L5:
+.L8:
 	mov	w0, 1
 	ldp	x29, x30, [sp], 48
 	ret
@@ -62,15 +64,16 @@ cmd_orphans_v2:
 	bl	puts
 	ldr	x0, [sp, 40]
 	bl	free
-	b	.L5
+	b	.L8
 	.p2align 2,,3
 .L2:
-	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
 	mov	x2, 50
 	mov	x1, 1
+	ldr	x3, [x0]
 	adrp	x0, .LC2
 	add	x0, x0, :lo12:.LC2
-	ldr	x3, [x3]
 	bl	fwrite
 	ldr	x0, [sp, 40]
 	bl	free
@@ -79,12 +82,16 @@ cmd_orphans_v2:
 	ret
 	.p2align 2,,3
 .L17:
-	ldr	x1, [x20]
+	ldr	x2, [sp, 24]
 	mov	w0, 10
+	ldr	x1, [x2]
 	bl	putc
-	ldr	x19, [sp, 40]
-	mov	x0, x19
+	ldr	x1, [sp, 40]
+	mov	x0, x1
 	bl	free
-	ldp	x19, x20, [sp, 16]
-	b	.L5
+	b	.L8
 	.section	.note.GNU-stack,"",@progbits
+	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128
+	.aeabi_attribute Tag_Feature_BTI, 0
+	.aeabi_attribute Tag_Feature_PAC, 0
+	.aeabi_attribute Tag_Feature_GCS, 0

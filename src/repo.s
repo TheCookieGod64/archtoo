@@ -28,74 +28,79 @@ cmd_repo_install_v2:
 	sub	sp, sp, #1008
 	stp	x29, x30, [sp]
 	mov	x29, sp
-	stp	x19, x20, [sp, 16]
+	str	x19, [sp, 16]
 	mov	x19, x0
 	bl	valid_pkgname
 	cbnz	w0, .L2
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	cmp	x19, 0
-	adrp	x2, .LC0
-	add	x2, x2, :lo12:.LC0
-	adrp	x1, .LC2
-	csel	x2, x2, x19, eq
+	mov	w3, w0
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
 	ldr	x0, [x0]
+	cbz	x19, .L15
+.L3:
+	mov	x2, x19
+	adrp	x1, .LC2
 	add	x1, x1, :lo12:.LC2
+	str	w3, [sp, 40]
 	bl	fprintf
-.L4:
+	ldr	w3, [sp, 40]
+.L1:
+	ldr	x19, [sp, 16]
+	mov	w0, w3
 	ldp	x29, x30, [sp]
-	mov	w0, 0
-	ldp	x19, x20, [sp, 16]
 	add	sp, sp, 1008
 	ret
 	.p2align 2,,3
 .L2:
-	add	x20, sp, 48
+	add	x1, sp, 48
 	mov	x0, x19
-	mov	x1, x20
 	mov	x2, 320
 	bl	shell_quote
-	cbz	w0, .L4
+	mov	w3, w0
+	cbz	w0, .L1
 	mov	x1, x19
 	adrp	x0, .LC3
 	add	x0, x0, :lo12:.LC3
-	str	x21, [sp, 32]
 	bl	printf
 	bl	priv_prefix
-	mov	x21, x0
+	str	x0, [sp, 40]
 	bl	use_noconfirm
-	cmp	w0, 0
-	adrp	x2, .LC1
+	ldr	x3, [sp, 40]
+	cbnz	w0, .L16
 	adrp	x4, .LC0
-	add	x2, x2, :lo12:.LC1
 	add	x4, x4, :lo12:.LC0
-	add	x1, sp, 368
-	mov	x5, x20
-	csel	x4, x4, x2, eq
-	mov	x3, x21
+.L5:
+	add	x5, sp, 48
 	adrp	x2, .LC4
 	add	x2, x2, :lo12:.LC4
-	mov	x20, x1
-	mov	x0, x1
 	mov	x1, 640
+	add	x0, sp, 368
 	bl	xsnprintf
-	mov	x0, x20
+	add	x0, sp, 368
 	bl	run_cmd
-	mov	w1, w0
-	mov	w0, 1
-	cbnz	w1, .L15
-	ldr	x21, [sp, 32]
-	ldp	x29, x30, [sp]
-	ldp	x19, x20, [sp, 16]
-	add	sp, sp, 1008
-	ret
-	.p2align 2,,3
-.L15:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	mov	w3, 1
+	cbz	w0, .L1
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
 	mov	x2, x19
 	adrp	x1, .LC5
 	add	x1, x1, :lo12:.LC5
 	ldr	x0, [x0]
 	bl	fprintf
-	ldr	x21, [sp, 32]
-	b	.L4
+	mov	w3, 0
+	b	.L1
+	.p2align 2,,3
+.L15:
+	adrp	x19, .LC0
+	add	x19, x19, :lo12:.LC0
+	b	.L3
+	.p2align 2,,3
+.L16:
+	adrp	x4, .LC1
+	add	x4, x4, :lo12:.LC1
+	b	.L5
 	.section	.note.GNU-stack,"",@progbits
+	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128
+	.aeabi_attribute Tag_Feature_BTI, 0
+	.aeabi_attribute Tag_Feature_PAC, 0
+	.aeabi_attribute Tag_Feature_GCS, 0

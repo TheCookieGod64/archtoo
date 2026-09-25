@@ -6,148 +6,144 @@
 sha256_transform:
 	ld4	{v28.16b - v31.16b}, [x1]
 	sub	sp, sp, #256
-	add	x2, sp, 64
-	add	x3, sp, 256
-	uxtl2	v18.8h, v28.16b
-	uxtl2	v17.8h, v29.16b
-	shll2	v16.8h, v30.16b, 8
-	uxtl2	v7.8h, v31.16b
+	add	x1, sp, 64
+	uxtl2	v6.8h, v28.16b
+	uxtl2	v26.8h, v29.16b
+	shll2	v5.8h, v30.16b, 8
+	uxtl2	v4.8h, v31.16b
 	uxtl	v28.8h, v28.8b
-	uxtl2	v2.4s, v18.8h
-	uxtl	v18.4s, v18.4h
+	uxtl2	v17.4s, v6.8h
+	uxtl	v6.4s, v6.4h
 	uxtl	v29.8h, v29.8b
-	shll2	v1.4s, v17.8h, 16
 	shll	v30.8h, v30.8b, 8
-	uxtl2	v0.4s, v16.8h
 	uxtl	v31.8h, v31.8b
-	uxtl2	v20.4s, v7.8h
-	uxtl	v19.4s, v28.4h
-	shl	v2.4s, v2.4s, 24
+	shll2	v18.4s, v26.8h, 16
+	uxtl2	v16.4s, v5.8h
+	uxtl2	v20.4s, v4.8h
+	uxtl	v22.4s, v28.4h
+	shl	v17.4s, v17.4s, 24
 	uxtl2	v28.4s, v28.8h
-	shl	v18.4s, v18.4s, 24
-	shll	v17.4s, v17.4h, 16
-	uxtl	v16.4s, v16.4h
-	uxtl	v7.4s, v7.4h
-	shll	v22.4s, v29.4h, 16
+	shll	v26.4s, v26.4h, 16
+	shl	v6.4s, v6.4s, 24
+	uxtl	v5.4s, v5.4h
+	uxtl	v4.4s, v4.4h
+	shll	v7.4s, v29.4h, 16
 	uxtl	v21.4s, v30.4h
 	uxtl	v23.4s, v31.4h
-	orr	v1.16b, v2.16b, v1.16b
-	orr	v20.16b, v0.16b, v20.16b
-	shl	v19.4s, v19.4s, 24
-	shl	v28.4s, v28.4s, 24
+	orr	v17.16b, v18.16b, v17.16b
+	orr	v20.16b, v16.16b, v20.16b
+	shl	v22.4s, v22.4s, 24
 	shll2	v29.4s, v29.8h, 16
+	shl	v28.4s, v28.4s, 24
 	uxtl2	v30.4s, v30.8h
 	uxtl2	v31.4s, v31.8h
-	orr	v17.16b, v18.16b, v17.16b
-	orr	v7.16b, v16.16b, v7.16b
-	orr	v20.16b, v1.16b, v20.16b
-	orr	v22.16b, v19.16b, v22.16b
-	orr	v29.16b, v28.16b, v29.16b
+	orr	v6.16b, v26.16b, v6.16b
+	orr	v4.16b, v5.16b, v4.16b
+	orr	v20.16b, v17.16b, v20.16b
+	orr	v22.16b, v7.16b, v22.16b
 	orr	v23.16b, v21.16b, v23.16b
+	orr	v28.16b, v29.16b, v28.16b
 	orr	v31.16b, v30.16b, v31.16b
-	orr	v7.16b, v17.16b, v7.16b
+	orr	v4.16b, v6.16b, v4.16b
 	orr	v23.16b, v22.16b, v23.16b
-	orr	v31.16b, v29.16b, v31.16b
-	stp	q7, q20, [sp, 32]
+	orr	v31.16b, v28.16b, v31.16b
+	stp	q4, q20, [sp, 32]
 	dup	d20, v20.d[1]
 	stp	q23, q31, [sp]
 	.p2align 5,,15
 .L2:
-	ldr	d27, [x2, -60]
-	shl	v2.2s, v20.2s, 13
-	ushr	v24.2s, v20.2s, 19
-	shl	v1.2s, v20.2s, 15
-	ushr	v0.2s, v20.2s, 17
-	shl	v6.2s, v27.2s, 14
-	ushr	v5.2s, v27.2s, 18
-	shl	v4.2s, v27.2s, 25
-	ushr	v3.2s, v27.2s, 7
-	orr	v24.8b, v2.8b, v24.8b
+	ldr	d0, [x1, -60]
+	shl	v3.2s, v20.2s, 13
+	shl	v2.2s, v20.2s, 15
+	ldr	d27, [x1, -64]
+	add	x2, sp, 256
+	shl	v25.2s, v0.2s, 14
+	shl	v1.2s, v0.2s, 25
+	ldr	d24, [x1, -28]
+	usra	v3.2s, v20.2s, 19
+	usra	v2.2s, v20.2s, 17
 	ushr	v20.2s, v20.2s, 10
-	orr	v0.8b, v1.8b, v0.8b
-	ushr	v27.2s, v27.2s, 3
-	orr	v5.8b, v6.8b, v5.8b
-	ldr	d25, [x2, -64]
-	orr	v3.8b, v4.8b, v3.8b
-	ldr	d26, [x2, -28]
-	eor	v0.8b, v24.8b, v0.8b
-	add	v25.2s, v26.2s, v25.2s
-	eor	v3.8b, v5.8b, v3.8b
-	eor	v20.8b, v0.8b, v20.8b
-	eor	v27.8b, v3.8b, v27.8b
-	add	v20.2s, v27.2s, v20.2s
-	add	v20.2s, v20.2s, v25.2s
-	str	d20, [x2], 8
-	cmp	x2, x3
+	usra	v25.2s, v0.2s, 18
+	usra	v1.2s, v0.2s, 7
+	ushr	v0.2s, v0.2s, 3
+	add	v27.2s, v24.2s, v27.2s
+	eor	v2.8b, v3.8b, v2.8b
+	eor	v1.8b, v25.8b, v1.8b
+	eor	v20.8b, v2.8b, v20.8b
+	eor	v0.8b, v1.8b, v0.8b
+	add	v20.2s, v20.2s, v0.2s
+	add	v20.2s, v20.2s, v27.2s
+	str	d20, [x1], 8
+	cmp	x1, x2
 	bne	.L2
 	ldp	q23, q24, [x0, 80]
-	adrp	x9, .LANCHOR0
-	ldp	w5, w1, [x0, 80]
-	fmov	s29, w1
-	ldp	w4, w1, [x0, 96]
-	add	x9, x9, :lo12:.LANCHOR0
+	adrp	x8, .LANCHOR0
+	ldp	w4, w1, [x0, 80]
+	fmov	s31, w1
+	ldp	w3, w1, [x0, 96]
+	mov	x9, sp
 	dup	s25, v23.s[3]
-	mov	x10, sp
-	dup	s31, v24.s[3]
+	add	x8, x8, :lo12:.LANCHOR0
+	dup	s26, v24.s[3]
 	ldr	s30, [x0, 88]
-	ldr	s28, [x0, 104]
+	ldr	s29, [x0, 104]
+	fmov	s28, w1
 	mov	x6, 1
-	fmov	s27, w1
 	b	.L3
 	.p2align 2,,3
 .L4:
-	fmov	s28, s27
-	fmov	s27, w4
-	fmov	w4, s26
-	fmov	s30, s29
-	fmov	s29, w5
-	mov	w5, w1
+	fmov	s29, s28
+	fmov	s28, w3
+	fmov	w3, s27
+	fmov	s30, s31
+	fmov	s31, w4
+	mov	w4, w1
 .L3:
-	add	x2, x10, x6, lsl 2
-	add	x3, x9, x6, lsl 2
-	eor	v26.8b, v29.8b, v30.8b
-	ror	w1, w4, 11
-	eor	w1, w1, w4, ror 6
-	add	x6, x6, 1
-	ldr	w8, [x2, -4]
 	fmov	w2, s28
-	ldr	w7, [x3, -4]
-	eor	w1, w1, w4, ror 25
-	add	w7, w7, w8
-	bic	w3, w2, w4
-	fmov	w2, s27
-	and	w2, w4, w2
-	eor	w3, w3, w2
-	ror	w2, w5, 13
-	add	w1, w1, w3
-	fmov	w3, s26
-	and	v26.8b, v29.8b, v30.8b
-	add	w1, w1, w7
-	eor	w2, w2, w5, ror 2
-	eor	w2, w2, w5, ror 22
-	and	w3, w3, w5
-	fmov	w7, s26
-	eor	w3, w3, w7
-	fmov	w7, s31
-	add	w2, w2, w3
-	add	w1, w1, w7
-	fmov	s31, w1
+	ror	w1, w3, 11
+	eor	w1, w1, w3, ror 6
+	eor	v27.8b, v31.8b, v30.8b
+	eor	w1, w1, w3, ror 25
+	and	w5, w3, w2
+	fmov	w2, s29
+	bic	w2, w2, w3
+	eor	w2, w2, w5
+	add	x5, x9, x6, lsl 2
 	add	w1, w1, w2
-	add	v26.2s, v31.2s, v25.2s
+	add	x2, x8, x6, lsl 2
+	add	x6, x6, 1
+	ldr	w5, [x5, -4]
+	ldr	w2, [x2, -4]
+	add	w2, w2, w5
+	fmov	w5, s27
+	and	v27.8b, v31.8b, v30.8b
+	add	w1, w1, w2
+	fmov	w2, s26
+	fmov	s26, s29
+	and	w5, w5, w4
+	fmov	w7, s27
+	add	w1, w1, w2
+	ror	w2, w4, 13
+	eor	w2, w2, w4, ror 2
+	fmov	s27, w1
+	eor	w2, w2, w4, ror 22
+	eor	w5, w5, w7
+	add	v27.2s, v27.2s, v25.2s
+	add	w2, w2, w5
 	fmov	s25, s30
-	fmov	s31, s28
+	add	w1, w1, w2
 	cmp	x6, 65
 	bne	.L4
-	fmov	s31, w1
-	ins	v26.s[1], v27.s[0]
-	ins	v31.s[1], v29.s[0]
-	fmov	s29, w5
-	ins	v29.s[1], v30.s[0]
-	fmov	s30, w4
-	ins	v30.s[1], v28.s[0]
-	zip1	v31.4s, v31.4s, v29.4s
-	zip1	v30.4s, v26.4s, v30.4s
+	fmov	s26, w1
+	uzp1	v27.2s, v27.2s, v28.2s
+	uzp1	v31.2s, v26.2s, v31.2s
+	fmov	s26, w4
+	uzp1	v30.2s, v26.2s, v30.2s
+	zip1	v31.4s, v31.4s, v30.4s
+	fmov	s30, w3
+	uzp1	v30.2s, v30.2s, v29.2s
 	add	v31.4s, v31.4s, v23.4s
+	zip1	v30.4s, v27.4s, v30.4s
 	add	v30.4s, v30.4s, v24.4s
 	stp	q31, q30, [x0, 80]
 	add	sp, sp, 256
@@ -157,12 +153,11 @@ sha256_transform:
 	.global	sha256_init
 	.type	sha256_init, %function
 sha256_init:
-	adrp	x1, .LC0
+	adrp	x1, .LANCHOR0
+	add	x1, x1, :lo12:.LANCHOR0
 	str	wzr, [x0, 64]
 	str	xzr, [x0, 72]
-	ldr	q31, [x1, #:lo12:.LC0]
-	adrp	x1, .LC1
-	ldr	q30, [x1, #:lo12:.LC1]
+	ldp	q31, q30, [x1, 256]
 	stp	q31, q30, [x0, 80]
 	ret
 	.align	2
@@ -171,21 +166,21 @@ sha256_init:
 	.type	sha256_update, %function
 sha256_update:
 	cbz	x2, .L18
-	mov	x11, x1
-	add	x12, x1, x2
+	mov	x10, x1
+	add	x11, x1, x2
 	b	.L19
 	.p2align 2,,3
 .L25:
-	add	x11, x11, 1
-	cmp	x11, x12
+	add	x10, x10, 1
+	cmp	x10, x11
 	beq	.L24
 .L19:
 	ldr	w2, [x0, 64]
-	ldrb	w3, [x11]
-	add	w1, w2, 1
-	strb	w3, [x0, w2, uxtw]
-	str	w1, [x0, 64]
-	cmp	w1, 64
+	ldrb	w1, [x10]
+	strb	w1, [x0, w2, uxtw]
+	add	w2, w2, 1
+	str	w2, [x0, 64]
+	cmp	w2, 64
 	bne	.L25
 	stp	x29, x30, [sp, -16]!
 	mov	x29, sp
@@ -193,22 +188,22 @@ sha256_update:
 	mov	x1, x0
 	bl	sha256_transform
 	ldr	x1, [x0, 72]
-	add	x11, x11, 1
+	add	x10, x10, 1
 	str	wzr, [x0, 64]
 	add	x1, x1, 512
 	str	x1, [x0, 72]
-	cmp	x11, x12
+	cmp	x10, x11
 	beq	.L26
 .L12:
 	ldr	w2, [x0, 64]
-	ldrb	w3, [x11]
-	add	w1, w2, 1
-	strb	w3, [x0, w2, uxtw]
-	str	w1, [x0, 64]
-	cmp	w1, 64
+	ldrb	w1, [x10]
+	strb	w1, [x0, w2, uxtw]
+	add	w2, w2, 1
+	str	w2, [x0, 64]
+	cmp	w2, 64
 	beq	.L20
-	add	x11, x11, 1
-	cmp	x11, x12
+	add	x10, x10, 1
+	cmp	x10, x11
 	bne	.L12
 .L26:
 	ldp	x29, x30, [sp], 16
@@ -237,25 +232,25 @@ sha256_final:
 	cmp	w21, 55
 	bhi	.L28
 	cmp	w0, 56
-	beq	.L30
+	beq	.L29
 	mov	w2, 55
 	add	x0, x19, w0, uxtw
 	sub	w2, w2, w21
 	mov	w1, 0
 	bl	memset
-.L30:
-	ldr	x2, [x19, 72]
+.L29:
+	ldr	x0, [x19, 72]
 	lsl	w21, w21, 3
 	mov	x1, x19
-	mov	x0, x19
-	add	x21, x21, x2
+	add	x21, x21, x0
 	str	x21, [x19, 72]
 	rev	x21, x21
 	str	x21, [x19, 56]
+	mov	x0, x19
 	bl	sha256_transform
 	mov	w0, 24
 	mov	x1, x20
-.L34:
+.L31:
 	ldr	w2, [x19, 80]
 	add	x1, x1, 1
 	lsr	w2, w2, w0
@@ -283,7 +278,7 @@ sha256_final:
 	sub	w0, w0, #8
 	strb	w2, [x1, 27]
 	cmn	w0, #8
-	bne	.L34
+	bne	.L31
 	ldr	x21, [sp, 32]
 	ldp	x19, x20, [sp, 16]
 	ldp	x29, x30, [sp], 48
@@ -291,13 +286,13 @@ sha256_final:
 	.p2align 2,,3
 .L28:
 	cmp	w0, 63
-	bhi	.L33
+	bhi	.L30
 	mov	w2, 63
 	add	x0, x19, w0, uxtw
 	sub	w2, w2, w21
 	mov	w1, 0
 	bl	memset
-.L33:
+.L30:
 	mov	x1, x19
 	mov	x0, x19
 	bl	sha256_transform
@@ -305,7 +300,7 @@ sha256_final:
 	movi	v31.4s, 0
 	stp	q31, q31, [x19]
 	str	q31, [x19, 32]
-	b	.L30
+	b	.L29
 	.section	.rodata.str1.8,"aMS",@progbits,1
 	.align	3
 .LC2:
@@ -316,74 +311,64 @@ sha256_final:
 	.text
 	.align	2
 	.p2align 5,,15
-	.global	sha256_file
-	.type	sha256_file, %function
-sha256_file:
-	cmp	x0, 0
-	ccmp	x1, 0, 4, ne
-	bne	.L57
-	mov	w0, 0
-	ret
-	.p2align 2,,3
-.L57:
+	.type	sha256_file.part.0, %function
+sha256_file.part.0:
 	mov	x12, 8400
 	sub	sp, sp, x12
 	stp	x29, x30, [sp]
 	mov	x29, sp
-	stp	x19, x20, [sp, 16]
 	stp	x21, x22, [sp, 32]
 	mov	x21, x1
 	adrp	x1, .LC2
 	add	x1, x1, :lo12:.LC2
 	bl	fopen
+	cbz	x0, .L45
+	stp	x19, x20, [sp, 16]
 	mov	x20, x0
-	cbz	x0, .L39
-	adrp	x0, .LC0
+	adrp	x0, .LANCHOR0
+	add	x0, x0, :lo12:.LANCHOR0
 	add	x19, sp, 208
-	add	x22, sp, 96
 	str	wzr, [sp, 160]
-	ldr	q30, [x0, #:lo12:.LC0]
-	adrp	x0, .LC1
 	str	xzr, [sp, 168]
-	ldr	q31, [x0, #:lo12:.LC1]
+	ldp	q30, q31, [x0, 256]
 	stp	q30, q31, [sp, 176]
 	.p2align 5,,15
-.L41:
+.L40:
 	mov	x3, x20
 	mov	x0, x19
 	mov	x2, 8192
 	mov	x1, 1
 	bl	fread
-	cbz	x0, .L58
-	add	x12, x19, x0
-	mov	x11, x19
-	b	.L43
-	.p2align 2,,3
-.L42:
-	add	x11, x11, 1
-	cmp	x11, x12
-	beq	.L41
-.L43:
-	ldr	w3, [sp, 160]
-	ldrb	w4, [x11]
-	add	w2, w3, 1
-	str	w2, [sp, 160]
-	strb	w4, [x22, w3, uxtw]
-	cmp	w2, 64
-	bne	.L42
-	mov	x0, x22
-	mov	x1, x22
-	bl	sha256_transform
-	str	wzr, [sp, 160]
-	ldr	x0, [sp, 168]
-	add	x0, x0, 512
-	str	x0, [sp, 168]
+	cbz	x0, .L50
+	mov	x10, x19
+	add	x11, x19, x0
 	b	.L42
 	.p2align 2,,3
-.L58:
+.L41:
+	add	x10, x10, 1
+	cmp	x10, x11
+	beq	.L40
+.L42:
+	ldr	w2, [sp, 160]
+	add	x0, sp, 96
+	ldrb	w3, [x10]
+	strb	w3, [x0, w2, uxtw]
+	add	w2, w2, 1
+	str	w2, [sp, 160]
+	cmp	w2, 64
+	bne	.L41
+	mov	x1, x0
+	bl	sha256_transform
+	ldr	x0, [sp, 168]
+	str	wzr, [sp, 160]
+	add	x0, x0, 512
+	str	x0, [sp, 168]
+	b	.L41
+	.p2align 2,,3
+.L50:
 	mov	x0, x20
 	bl	ferror
-	cbnz	w0, .L59
+	cbnz	w0, .L51
 	add	x19, sp, 64
 	mov	x0, x20
 	adrp	x22, .LC3
@@ -392,106 +377,110 @@ sha256_file:
 	str	x23, [sp, 48]
 	add	x23, x19, 32
 	bl	fclose
+	add	x1, sp, 64
 	add	x0, sp, 96
-	mov	x1, x19
 	bl	sha256_final
 	.p2align 5,,15
-.L47:
+.L46:
 	ldrb	w2, [x19], 1
 	mov	x0, x20
 	mov	x1, x22
 	add	x20, x20, 2
 	bl	sprintf
-	cmp	x23, x19
-	bne	.L47
+	cmp	x19, x23
+	bne	.L46
 	strb	wzr, [x21, 64]
 	mov	w0, 1
 	mov	x12, 8400
 	ldr	x23, [sp, 48]
-	ldp	x29, x30, [sp]
 	ldp	x19, x20, [sp, 16]
+	ldp	x29, x30, [sp]
 	ldp	x21, x22, [sp, 32]
 	add	sp, sp, x12
 	ret
-.L59:
+.L51:
 	mov	x0, x20
 	bl	fclose
-.L39:
-	ldp	x29, x30, [sp]
-	mov	w0, 0
 	ldp	x19, x20, [sp, 16]
+.L45:
+	mov	w0, 0
+	ldp	x29, x30, [sp]
 	mov	x12, 8400
 	ldp	x21, x22, [sp, 32]
 	add	sp, sp, x12
 	ret
 	.align	2
 	.p2align 5,,15
+	.global	sha256_file
+	.type	sha256_file, %function
+sha256_file:
+	cmp	x0, 0
+	ccmp	x1, 0, 4, ne
+	bne	.L54
+	mov	w0, 0
+	ret
+	.p2align 2,,3
+.L54:
+	b	sha256_file.part.0
+	.align	2
+	.p2align 5,,15
 	.global	sha256_verify_file
 	.type	sha256_verify_file, %function
 sha256_verify_file:
+	cbnz	x0, .L56
+	mov	w0, 0
+	ret
+	.p2align 2,,3
+.L56:
 	stp	x29, x30, [sp, -112]!
+	mov	x5, x1
 	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	add	x20, sp, 40
-	mov	x19, x1
-	mov	x1, x20
-	bl	sha256_file
-	cmp	x19, 0
+	add	x1, sp, 40
+	str	x5, [sp, 24]
+	bl	sha256_file.part.0
+	ldr	x5, [sp, 24]
 	eor	w0, w0, 1
 	and	w0, w0, 1
-	cset	w1, eq
-	orr	w0, w1, w0
-	cbnz	w0, .L66
-	sub	x8, x19, #1
+	cmp	x5, 0
+	cset	w2, eq
+	orr	w2, w2, w0
+	cbnz	w2, .L58
+	sub	x5, x5, #1
+	add	x1, sp, 40
 	mov	x3, 1
-	b	.L64
+	b	.L61
 	.p2align 2,,3
-.L70:
-	cmp	x3, 65
-	beq	.L69
-.L64:
-	add	x2, x20, x3
-	ldrb	w0, [x8, x3]
+.L67:
 	add	x3, x3, 1
-	sub	w5, w0, #65
-	add	w4, w0, 32
-	ldrb	w2, [x2, -1]
-	and	w5, w5, 255
+	cmp	x3, 65
+	beq	.L66
+.L61:
+	add	x0, x1, x3
+	ldrb	w2, [x0, -1]
+	ldrb	w0, [x5, x3]
+	sub	w4, w2, #65
 	and	w4, w4, 255
-	sub	w7, w2, #65
-	add	w6, w2, 32
-	and	w7, w7, 255
-	and	w6, w6, 255
-	cmp	w7, 6
-	csel	w2, w6, w2, cc
-	cmp	w5, 6
-	csel	w0, w4, w0, cc
+	cmp	w4, 5
+	add	w4, w2, 32
+	and	w4, w4, 255
+	csel	w2, w2, w4, hi
+	sub	w4, w0, #65
+	and	w4, w4, 255
+	cmp	w4, 5
+	add	w4, w0, 32
+	and	w4, w4, 255
+	csel	w0, w0, w4, hi
 	cmp	w2, w0
-	beq	.L70
-.L66:
-	ldp	x19, x20, [sp, 16]
+	beq	.L67
+.L58:
 	mov	w0, 0
 	ldp	x29, x30, [sp], 112
 	ret
 	.p2align 2,,3
-.L69:
-	ldp	x19, x20, [sp, 16]
+.L66:
 	mov	w0, 1
 	ldp	x29, x30, [sp], 112
 	ret
-	.section	.rodata.cst16,"aM",@progbits,16
-	.align	4
-.LC0:
-	.word	1779033703
-	.word	-1150833019
-	.word	1013904242
-	.word	-1521486534
-	.align	4
-.LC1:
-	.word	1359893119
-	.word	-1694144372
-	.word	528734635
-	.word	1541459225
 	.section	.rodata
 	.align	4
 	.set	.LANCHOR0,. + 0
@@ -561,4 +550,18 @@ k:
 	.word	-1538233109
 	.word	-1090935817
 	.word	-965641998
+.LC0:
+	.word	1779033703
+	.word	-1150833019
+	.word	1013904242
+	.word	-1521486534
+.LC1:
+	.word	1359893119
+	.word	-1694144372
+	.word	528734635
+	.word	1541459225
 	.section	.note.GNU-stack,"",@progbits
+	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128
+	.aeabi_attribute Tag_Feature_BTI, 0
+	.aeabi_attribute Tag_Feature_PAC, 0
+	.aeabi_attribute Tag_Feature_GCS, 0

@@ -50,3 +50,21 @@ archtoo/
 ```
 
 Geen `headers/`-map nodig: GAS externals hoeven geen declaraties — `ld` lost alles op.
+
+
+## Provenance & eerlijkheid (onthulling)
+
+De 29 modules in `src/*.s` zijn **niet met de hand getypt**. Herkomst:
+
+1. C-bron in `c_src/` (met `headers/`, version.h = 1.0.0)
+2. `aarch64-linux-gnu-gcc -S` (armv8-A, -O2, geen unwind-tables) → GAS-assembly
+3. `tools/strip_gcc_asm.pl`: kaalgeknipt-station — `.cfi_*`/`.loc`/`.file`/`.size`/`.ident`-bloat eruit,
+   met de hand nagelopen op netheid en leesbaarheid
+
+Op deze tak géén objconv (dat is het gereedschap van de x86-editie); GAS is hier de standaard —
+dezelfde keuze als de Linux-kernel zelf op arm64 maakt.
+
+**Bewezen reproduceerbaar**: `make regen` produceerde 29/29 byte-identieke `.s` en `make` een
+byte-identieke binary (smid-verificatie 2026-09-24).
+
+Update-flow: `c_src/` bewarken → `make regen` → `git diff src/` → `make && make check` → commit.

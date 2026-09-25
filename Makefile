@@ -5,6 +5,7 @@
 #   Debian: sudo apt install gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
 # Op een native ARM64 host: make AS=as LD=ld SYSROOT=/usr
 
+CC      := aarch64-linux-gnu-gcc
 AS      := aarch64-linux-gnu-as
 LD      := aarch64-linux-gnu-ld
 SYSROOT := /usr/aarch64-linux-gnu
@@ -43,7 +44,21 @@ install: all
 uninstall:
 	rm -f /usr/local/bin/emerge
 
+regen:
+	@echo "[*] BOEM: GAS-modules regenereren uit c_src/ ..."
+	@mkdir -p build/regen
+	@for c in $(wildcard c_src/*.c); do \
+	  m=$$(basename $$c .c); \
+	  $(CC) -std=gnu11 -O2 -pipe -march=armv8-a -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-ident \
+	     -Ic_src/headers -S $$c -o build/regen/$$m.s.raw || { echo "GEREED: $(CC) faalde op $$c"; exit 1; }; \
+	  perl -ne 'next if /^\s*\#|^\s*\.cfi|^\s*\.file|^\s*\.loc|^\s*\.size|^\s*\.ident|^\s*$$/; print' \
+	     build/regen/$$m.s.raw > src/$$m.s || { echo "GEREED: strip faalde op $$m"; exit 1; }; \
+	  echo "  -> src/$$m.s"; \
+	done
+	@rm -rf build/regen
+	@echo "[+] regen klaar — review met: git diff src/ && make && make check"
+
 clean:
 	rm -rf build bin
 
-.PHONY: all check install uninstall clean
+.PHONY: all check install uninstall clean regen

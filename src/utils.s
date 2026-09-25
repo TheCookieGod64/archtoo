@@ -53,10 +53,10 @@ get_interactive:
 	.global	use_noconfirm
 	.type	use_noconfirm, %function
 use_noconfirm:
-	adrp	x1, .LANCHOR0
-	add	x2, x1, :lo12:.LANCHOR0
+	adrp	x0, .LANCHOR0
+	add	x2, x0, :lo12:.LANCHOR0
+	ldr	w1, [x0, #:lo12:.LANCHOR0]
 	mov	w0, 1
-	ldr	w1, [x1, #:lo12:.LANCHOR0]
 	cbnz	w1, .L8
 	ldr	w0, [x2, 4]
 	cmp	w0, 0
@@ -200,76 +200,64 @@ get_jobs:
 	.global	valid_target_arch
 	.type	valid_target_arch, %function
 valid_target_arch:
-	stp	x29, x30, [sp, -48]!
+	cbz	x0, .L54
+	stp	x29, x30, [sp, -32]!
 	mov	x29, sp
-	str	x21, [sp, 32]
-	cbz	x0, .L35
 	stp	x19, x20, [sp, 16]
-	mov	w21, 0
-	mov	x20, x0
-	ldrb	w19, [x0]
-	cbz	w19, .L52
+	mov	x19, x0
+	ldrb	w20, [x0]
+	cbz	w20, .L32
 	bl	strlen
 	sub	x0, x0, #1
 	cmp	x0, 63
-	bhi	.L52
-	mov	x0, x20
+	bhi	.L32
 	adrp	x1, .LC0
-	mov	w21, 1
+	mov	x0, x19
 	add	x1, x1, :lo12:.LC0
 	bl	strcmp
-	cbz	w0, .L52
+	cbz	w0, .L33
 	adrp	x1, .LC1
-	mov	x0, x20
+	mov	x0, x19
 	add	x1, x1, :lo12:.LC1
 	bl	strcmp
-	cbz	w0, .L52
+	cbz	w0, .L33
 	bl	__ctype_b_loc
-	mov	w21, 0
 	ldr	x2, [x0]
-	ubfiz	x1, x19, 1, 8
-	ldrh	w0, [x2, x1]
-	and	w1, w0, 8
-	tbnz	x0, 3, .L34
-	b	.L52
-	.p2align 2,,3
-.L53:
+	ubfiz	x0, x20, 1, 8
 	ldrh	w0, [x2, x0]
 	and	w1, w0, 8
-.L34:
-	sub	w0, w19, #45
-	cmp	w19, 95
+	tbz	x0, 3, .L32
+	.p2align 5,,15
+.L37:
+	cbnz	w1, .L36
+	sub	w0, w20, #45
+	cmp	w20, 95
 	and	w0, w0, 255
-	cbnz	w1, .L33
 	ccmp	w0, 1, 0, ne
-	bhi	.L41
+	bhi	.L32
+.L36:
+	ldrb	w20, [x19, 1]!
+	cbz	w20, .L33
+	ubfiz	x0, x20, 1, 8
+	ldrh	w0, [x2, x0]
+	and	w1, w0, 8
+	b	.L37
+	.p2align 2,,3
+.L32:
+	ldp	x19, x20, [sp, 16]
+	mov	w0, 0
+	ldp	x29, x30, [sp], 32
+	ret
+	.p2align 2,,3
 .L33:
-	ldrb	w19, [x20, 1]!
-	ubfiz	x0, x19, 1, 8
-	cbnz	w19, .L53
 	ldp	x19, x20, [sp, 16]
-	mov	w21, 1
-	b	.L31
-	.p2align 2,,3
-.L52:
-	ldp	x19, x20, [sp, 16]
-.L31:
-	mov	w0, w21
-	ldr	x21, [sp, 32]
-	ldp	x29, x30, [sp], 48
+	mov	w0, 1
+	ldp	x29, x30, [sp], 32
 	ret
 	.p2align 2,,3
-.L35:
-	mov	w21, 0
-	mov	w0, w21
-	ldr	x21, [sp, 32]
-	ldp	x29, x30, [sp], 48
+.L54:
+	mov	w0, 0
 	ret
-	.p2align 2,,3
-.L41:
-	ldp	x19, x20, [sp, 16]
-	mov	w21, 0
-	b	.L31
 	.align	2
 	.p2align 5,,15
 	.global	get_target_arch
@@ -312,7 +300,7 @@ get_target_arch:
 	.string	"  lunarlake, emeraldrapids, graniterapids"
 	.align	3
 .LC12:
-	.string	"\n\033[1;36mAMD:\n\033[0m"
+	.base64	"ChtbMTszNm1BTUQ6ChtbMG0A"
 	.align	3
 .LC13:
 	.string	"  k8, athlon64, amdfam10, bdver1, bdver2, bdver3, bdver4"
@@ -413,114 +401,105 @@ print_known_targets:
 	.global	valid_opt_level
 	.type	valid_opt_level, %function
 valid_opt_level:
-	stp	x29, x30, [sp, -48]!
+	cbz	x0, .L121
+	stp	x29, x30, [sp, -32]!
 	mov	x29, sp
 	stp	x19, x20, [sp, 16]
-	cbz	x0, .L70
-	str	x21, [sp, 32]
 	mov	x19, x0
-	mov	w20, 0
-	ldrb	w21, [x0]
-	cbz	w21, .L114
+	ldrb	w20, [x0]
+	cbz	w20, .L64
 	adrp	x1, .LC0
-	mov	w20, 1
 	add	x1, x1, :lo12:.LC0
 	bl	strcmp
-	cbz	w0, .L114
+	cbz	w0, .L66
 	adrp	x1, .LC1
 	mov	x0, x19
 	add	x1, x1, :lo12:.LC1
 	bl	strcmp
-	cbz	w0, .L114
-	cmp	w21, 45
-	beq	.L115
-	and	w21, w21, -33
-	cmp	w21, 79
-	bne	.L69
-.L68:
+	cbz	w0, .L66
+	cmp	w20, 45
+	beq	.L122
+	and	w20, w20, -33
+	cmp	w20, 79
+	bne	.L77
+.L76:
 	ldrb	w0, [x19, 1]
 	add	x19, x19, 1
-.L60:
-	mov	w20, 0
-	cbz	w0, .L114
-.L69:
-	ldrb	w21, [x19]
-	cmp	w21, 48
-	bne	.L83
+.L68:
+	cbz	w0, .L64
+.L77:
+	ldrb	w20, [x19]
+	cmp	w20, 48
+	bne	.L79
 	ldrb	w0, [x19, 1]
-	mov	w20, 1
-	cbnz	w0, .L83
+	cbnz	w0, .L79
 	.p2align 5,,15
-.L114:
-	ldr	x21, [sp, 32]
-.L57:
-	mov	w0, w20
+.L66:
+	mov	w0, 1
+.L61:
 	ldp	x19, x20, [sp, 16]
-	ldp	x29, x30, [sp], 48
+	ldp	x29, x30, [sp], 32
 	ret
 	.p2align 2,,3
-.L115:
+.L64:
+	ldp	x19, x20, [sp, 16]
+	mov	w0, 0
+	ldp	x29, x30, [sp], 32
+	ret
+	.p2align 2,,3
+.L122:
 	ldrb	w0, [x19, 1]
 	add	x19, x19, 1
 	and	w1, w0, -33
 	cmp	w1, 79
-	beq	.L68
-	b	.L60
+	beq	.L76
+	b	.L68
 	.p2align 2,,3
+.L79:
+	cmp	w20, 49
+	bne	.L80
+	ldrb	w0, [x19, 1]
+	cbz	w0, .L66
+.L80:
+	cmp	w20, 50
+	beq	.L123
+.L81:
+	cmp	w20, 51
+	bne	.L82
+	ldrb	w0, [x19, 1]
+	cbz	w0, .L66
+.L82:
+	cmp	w20, 115
+	bne	.L83
+	ldrb	w0, [x19, 1]
+	cbz	w0, .L66
 .L83:
-	cmp	w21, 49
-	bne	.L84
-	ldrb	w0, [x19, 1]
-	mov	w20, 1
-	cbz	w0, .L114
-.L84:
-	cmp	w21, 50
-	beq	.L116
-.L85:
-	cmp	w21, 51
-	bne	.L86
-	ldrb	w0, [x19, 1]
-	mov	w20, 1
-	cbz	w0, .L114
-.L86:
-	cmp	w21, 115
-	bne	.L87
-	ldrb	w0, [x19, 1]
-	mov	w20, 1
-	cbz	w0, .L114
-.L87:
-	mov	x0, x19
 	adrp	x1, .LC21
-	mov	w20, 1
+	mov	x0, x19
 	add	x1, x1, :lo12:.LC21
 	bl	strcmp
-	cbz	w0, .L114
-	cmp	w21, 103
-	bne	.L88
+	cbz	w0, .L66
+	cmp	w20, 103
+	bne	.L84
 	ldrb	w0, [x19, 1]
-	cbz	w0, .L114
-.L88:
-	subs	w21, w21, #122
-	bne	.L67
-	ldrb	w21, [x19, 1]
-.L67:
-	cmp	w21, 0
-	ldr	x21, [sp, 32]
-	cset	w20, eq
-	b	.L57
+	cbz	w0, .L66
+.L84:
+	subs	w20, w20, #122
+	bne	.L75
+	ldrb	w20, [x19, 1]
+.L75:
+	cmp	w20, 0
+	cset	w0, eq
+	b	.L61
 	.p2align 2,,3
-.L70:
-	mov	w20, 0
-	mov	w0, w20
-	ldp	x19, x20, [sp, 16]
-	ldp	x29, x30, [sp], 48
+.L121:
+	mov	w0, 0
 	ret
 	.p2align 2,,3
-.L116:
+.L123:
 	ldrb	w0, [x19, 1]
-	mov	w20, 1
-	cbz	w0, .L114
-	b	.L85
+	cbz	w0, .L66
+	b	.L81
 	.align	2
 	.p2align 5,,15
 	.global	get_opt_level
@@ -626,10 +605,10 @@ print_known_opt_levels:
 	.global	set_use_pipe
 	.type	set_use_pipe, %function
 set_use_pipe:
-	adrp	x1, .LANCHOR1+176
 	cmp	w0, 0
-	cset	w0, ne
-	str	w0, [x1, #:lo12:.LANCHOR1+176]
+	adrp	x0, .LANCHOR1+176
+	cset	w1, ne
+	str	w1, [x0, #:lo12:.LANCHOR1+176]
 	ret
 	.align	2
 	.p2align 5,,15
@@ -655,79 +634,76 @@ get_use_pipe:
 	.global	run_cmd
 	.type	run_cmd, %function
 run_cmd:
-	stp	x29, x30, [sp, -208]!
+	stp	x29, x30, [sp, -192]!
 	mov	x29, sp
-	str	x21, [sp, 32]
-	mov	x21, x0
-	bl	fork
-	cmp	w0, 0
-	blt	.L126
 	stp	x19, x20, [sp, 16]
+	mov	x20, x0
+	bl	fork
+	tbnz	w0, #31, .L130
 	mov	w19, w0
-	add	x20, sp, 56
-	beq	.L134
+	cbz	w0, .L140
 	.p2align 5,,15
-.L125:
-	mov	x1, x20
+.L131:
+	add	x1, sp, 40
 	mov	w0, w19
 	mov	w2, 0
 	bl	waitpid
-	tbz	w0, #31, .L135
+	tbz	w0, #31, .L141
 	bl	__errno_location
-	ldr	w1, [x0]
-	cmp	w1, 4
-	beq	.L125
-.L133:
+	ldr	w0, [x0]
+	cmp	w0, 4
+	beq	.L131
+.L130:
 	ldp	x19, x20, [sp, 16]
-.L126:
 	mov	w0, -1
-	ldr	x21, [sp, 32]
-	ldp	x29, x30, [sp], 208
+	ldp	x29, x30, [sp], 192
 	ret
 	.p2align 2,,3
-.L135:
-	ldr	w0, [sp, 56]
+.L141:
+	ldr	w0, [sp, 40]
 	and	w2, w0, 127
 	add	w1, w2, 1
 	sbfx	x1, x1, 1, 7
 	cmp	w1, 0
-	bgt	.L136
-	cbnz	w2, .L133
-	ldr	x21, [sp, 32]
-	ubfx	x0, x0, 8, 8
+	bgt	.L142
+	cbnz	w2, .L130
 	ldp	x19, x20, [sp, 16]
-	ldp	x29, x30, [sp], 208
+	ubfx	x0, x0, 8, 8
+	ldp	x29, x30, [sp], 192
 	ret
 	.p2align 2,,3
-.L136:
-	ldr	x21, [sp, 32]
-	add	w0, w2, 128
+.L142:
 	ldp	x19, x20, [sp, 16]
-	ldp	x29, x30, [sp], 208
+	add	w0, w2, 128
+	ldp	x29, x30, [sp], 192
 	ret
-.L134:
+.L140:
 	movi	v31.4s, 0
-	str	xzr, [x20, 144]
-	add	x0, sp, 64
-	str	q31, [sp, 56]
-	stp	q31, q31, [x20, 16]
-	stp	q31, q31, [x20, 48]
-	stp	q31, q31, [x20, 80]
-	stp	q31, q31, [x20, 112]
+	add	x0, sp, 56
+	str	q31, [sp, 40]
+	stp	q31, q31, [x0]
+	add	x0, sp, 88
+	stp	q31, q31, [x0]
+	add	x0, sp, 120
+	stp	q31, q31, [x0]
+	add	x0, sp, 152
+	stp	q31, q31, [x0]
+	add	x0, sp, 48
+	str	xzr, [sp, 184]
 	bl	sigemptyset
-	mov	x1, x20
+	add	x1, sp, 40
 	mov	x2, 0
 	mov	w0, 2
 	bl	sigaction
-	mov	x1, x20
+	add	x1, sp, 40
 	mov	x2, 0
 	mov	w0, 15
 	bl	sigaction
-	mov	x1, x20
+	add	x1, sp, 40
 	mov	x2, 0
 	mov	w0, 1
 	bl	sigaction
-	mov	x3, x21
+	mov	x3, x20
 	adrp	x2, .LC35
 	adrp	x1, .LC36
 	add	x2, x2, :lo12:.LC35
@@ -748,79 +724,77 @@ run_cmd:
 	.global	run_cmd_capture
 	.type	run_cmd_capture, %function
 run_cmd_capture:
-	cbz	x1, .L166
+	cbz	x1, .L173
 	stp	x29, x30, [sp, -240]!
 	mov	x29, sp
 	stp	x19, x20, [sp, 16]
-	mov	x20, x0
 	stp	x21, x22, [sp, 32]
 	stp	x23, x24, [sp, 48]
 	stp	x25, x26, [sp, 64]
-	mov	x25, x1
+	mov	x26, x1
 	str	xzr, [x1]
-	cbz	x0, .L139
+	cbz	x0, .L144
+	mov	x19, x0
 	add	x0, sp, 80
 	bl	pipe
-	cbnz	w0, .L139
+	cbnz	w0, .L144
 	bl	fork
-	mov	w24, w0
-	cmp	w0, 0
-	blt	.L171
-	beq	.L172
+	mov	w25, w0
+	tbnz	w0, #31, .L178
+	cbz	w0, .L179
 	ldr	w0, [sp, 84]
 	bl	close
 	mov	x0, 4096
 	bl	malloc
-	mov	x20, x0
-	cbz	x0, .L170
-	mov	x22, 1024
+	mov	x21, x0
+	cbz	x0, .L177
+	mov	x23, 1024
 	mov	x0, 16776192
-	add	x23, x22, x0
-	mov	x26, 0
+	add	x24, x23, x0
+	mov	x20, 0
 	mov	x19, 4096
 	.p2align 5,,15
-.L146:
-	cmp	x22, x19
-	bcc	.L147
+.L150:
+	cmp	x23, x19
+	bcc	.L151
 	lsl	x19, x19, 1
-	cmp	x19, x23
-	bhi	.L169
-.L148:
+	cmp	x19, x24
+	bhi	.L176
+.L152:
 	mov	x1, x19
-	mov	x0, x20
+	mov	x0, x21
 	bl	realloc
-	cbz	x0, .L169
-	mov	x20, x0
-.L147:
+	cbz	x0, .L176
+	mov	x21, x0
+.L151:
 	ldr	w0, [sp, 80]
-	add	x21, x20, x26
-	sub	x2, x19, x26
-	mov	x1, x21
+	add	x22, x21, x20
+	sub	x2, x19, x20
+	mov	x1, x22
 	sub	x2, x2, #1
 	bl	read
-	cmp	x0, 0
-	blt	.L173
-	beq	.L151
-	add	x26, x26, x0
-	add	x22, x26, 1024
-	cmp	x22, x19
-	bcc	.L147
+	tbnz	x0, #63, .L180
+	cbz	x0, .L155
+	add	x20, x20, x0
+	add	x23, x20, 1024
+	cmp	x23, x19
+	bcc	.L151
 	lsl	x19, x19, 1
-	cmp	x19, x23
-	bls	.L148
-.L169:
-	mov	x0, x20
+	cmp	x19, x24
+	bls	.L152
+.L176:
+	mov	x0, x21
 	bl	free
-.L170:
+.L177:
 	ldr	w0, [sp, 80]
 	bl	close
-	mov	w0, w24
+	mov	w0, w25
 	mov	w2, 0
 	mov	x1, 0
 	bl	waitpid
-.L139:
+.L144:
 	mov	w0, -1
-.L137:
+.L143:
 	ldp	x19, x20, [sp, 16]
 	ldp	x21, x22, [sp, 32]
 	ldp	x23, x24, [sp, 48]
@@ -828,26 +802,29 @@ run_cmd_capture:
 	ldp	x29, x30, [sp], 240
 	ret
 	.p2align 2,,3
-.L172:
+.L179:
 	movi	v31.4s, 0
-	add	x19, sp, 88
-	str	xzr, [x19, 144]
-	add	x0, sp, 96
+	add	x0, sp, 104
 	str	q31, [sp, 88]
-	stp	q31, q31, [x19, 16]
-	stp	q31, q31, [x19, 48]
-	stp	q31, q31, [x19, 80]
-	stp	q31, q31, [x19, 112]
+	stp	q31, q31, [x0]
+	add	x0, sp, 136
+	stp	q31, q31, [x0]
+	add	x0, sp, 168
+	stp	q31, q31, [x0]
+	add	x0, sp, 200
+	stp	q31, q31, [x0]
+	add	x0, sp, 96
+	str	xzr, [sp, 232]
 	bl	sigemptyset
-	mov	x1, x19
+	add	x1, sp, 88
 	mov	x2, 0
 	mov	w0, 2
 	bl	sigaction
-	mov	x1, x19
+	add	x1, sp, 88
 	mov	x2, 0
 	mov	w0, 15
 	bl	sigaction
-	mov	x1, x19
+	add	x1, sp, 88
 	mov	x2, 0
 	mov	w0, 1
 	bl	sigaction
@@ -856,17 +833,17 @@ run_cmd_capture:
 	ldr	w0, [sp, 84]
 	mov	w1, 1
 	bl	dup2
-	tbnz	w0, #31, .L174
+	tbnz	w0, #31, .L181
 	ldr	w0, [sp, 84]
 	bl	close
-	adrp	x0, .LC38
 	mov	w1, 1
+	adrp	x0, .LC38
 	add	x0, x0, :lo12:.LC38
 	bl	open
-	mov	w19, w0
-	tbz	w0, #31, .L175
-.L145:
-	mov	x3, x20
+	mov	w20, w0
+	tbz	w0, #31, .L182
+.L149:
+	mov	x3, x19
 	adrp	x2, .LC35
 	adrp	x1, .LC36
 	add	x2, x2, :lo12:.LC35
@@ -878,69 +855,68 @@ run_cmd_capture:
 	mov	w0, 127
 	bl	_exit
 	.p2align 2,,3
-.L173:
+.L180:
 	bl	__errno_location
 	ldr	w0, [x0]
 	cmp	w0, 4
-	beq	.L146
-	b	.L169
+	beq	.L150
+	b	.L176
 	.p2align 2,,3
-.L166:
+.L173:
 	mov	w0, -1
 	ret
 	.p2align 2,,3
-.L175:
+.L182:
 	mov	w1, 2
 	bl	dup2
-	mov	w0, w19
+	mov	w0, w20
 	bl	close
-	b	.L145
+	b	.L149
 	.p2align 2,,3
-.L174:
+.L181:
 	mov	w0, 127
 	bl	_exit
 	.p2align 2,,3
-.L151:
+.L155:
 	ldr	w0, [sp, 80]
-	add	x19, sp, 88
 	bl	close
-	strb	wzr, [x21]
-	b	.L152
+	strb	wzr, [x22]
+	b	.L156
 	.p2align 2,,3
-.L153:
+.L157:
 	bl	__errno_location
 	ldr	w0, [x0]
 	cmp	w0, 4
-	bne	.L176
-.L152:
-	mov	x1, x19
-	mov	w0, w24
+	bne	.L183
+.L156:
+	add	x1, sp, 88
+	mov	w0, w25
 	mov	w2, 0
 	bl	waitpid
-	tbnz	w0, #31, .L153
+	tbnz	w0, #31, .L157
 	ldr	w0, [sp, 88]
-	str	x20, [x25]
+	str	x21, [x26]
 	and	w2, w0, 127
 	add	w1, w2, 1
 	sbfx	x1, x1, 1, 7
 	cmp	w1, 0
-	bgt	.L177
-	cbnz	w2, .L139
+	bgt	.L184
+	cbnz	w2, .L144
 	ubfx	x0, x0, 8, 8
-	b	.L137
-.L176:
-	mov	x0, x20
+	b	.L143
+.L183:
+	mov	x0, x21
 	bl	free
-	b	.L139
-.L177:
+	b	.L144
+.L184:
 	add	w0, w2, 128
-	b	.L137
-.L171:
+	b	.L143
+.L178:
 	ldr	w0, [sp, 80]
 	bl	close
 	ldr	w0, [sp, 84]
 	bl	close
-	b	.L139
+	b	.L144
 	.align	2
 	.p2align 5,,15
 	.global	shell_quote
@@ -949,55 +925,55 @@ shell_quote:
 	cmp	x1, 0
 	ccmp	x2, 2, 0, ne
 	ccmp	x0, 0, 4, hi
-	bne	.L179
-.L183:
+	bne	.L186
+.L190:
 	mov	w0, 0
 	ret
 	.p2align 2,,3
-.L179:
+.L186:
 	mov	w3, 39
 	strb	w3, [x1]
-	mov	x4, 1
-	ldrb	w3, [x0]
-	cbz	w3, .L186
-	mov	w7, 92
-	b	.L185
+	mov	x3, 1
+	ldrb	w4, [x0]
+	cbz	w4, .L193
+	mov	w6, 92
+	b	.L192
 	.p2align 2,,3
-.L182:
+.L189:
+	add	x5, x3, 1
 	cmp	x5, x2
-	bcs	.L183
-	strb	w3, [x1, x4]
-	mov	x4, x5
-	ldrb	w3, [x0, 1]!
-	cbz	w3, .L188
-.L185:
-	add	x5, x4, 1
-	cmp	w3, 39
-	bne	.L182
-	add	x6, x4, 4
-	add	x5, x1, x4
-	cmp	x6, x2
-	bcs	.L183
-	strb	w3, [x1, x4]
-	mov	x4, x6
-	strb	w7, [x5, 1]
-	strb	w3, [x5, 2]
-	strb	w3, [x5, 3]
-	ldrb	w3, [x0, 1]!
-	cbnz	w3, .L185
+	bcs	.L190
+	strb	w4, [x1, x3]
+	mov	x3, x5
+	ldrb	w4, [x0, 1]!
+	cbz	w4, .L195
+.L192:
+	cmp	w4, 39
+	bne	.L189
+	add	x5, x3, 4
+	cmp	x5, x2
+	bcs	.L190
+	strb	w4, [x1, x3]
+	add	x3, x1, x3
+	strb	w6, [x3, 1]
+	strb	w4, [x3, 2]
+	strb	w4, [x3, 3]
+	mov	x3, x5
+	ldrb	w4, [x0, 1]!
+	cbnz	w4, .L192
+.L195:
+	add	x0, x3, 1
+	cmp	x0, x2
+	bcs	.L190
 .L188:
-	add	x3, x4, 1
-	cmp	x3, x2
-	bcs	.L183
-.L181:
-	mov	w0, 39
-	strb	w0, [x1, x4]
+	mov	w2, 39
+	strb	w2, [x1, x3]
+	strb	wzr, [x1, x0]
 	mov	w0, 1
-	strb	wzr, [x1, x3]
 	ret
-.L186:
-	mov	x3, 2
-	b	.L181
+.L193:
+	mov	x0, 2
+	b	.L188
 	.section	.rodata.str1.8
 	.align	3
 .LC39:
@@ -1008,56 +984,50 @@ shell_quote:
 	.global	valid_search_query
 	.type	valid_search_query, %function
 valid_search_query:
+	cbz	x0, .L213
 	stp	x29, x30, [sp, -64]!
 	mov	x29, sp
 	stp	x19, x20, [sp, 16]
-	cbz	x0, .L193
-	ldrb	w1, [x0]
 	mov	x19, x0
+	ldrb	w1, [x0]
+	cbz	w1, .L199
 	str	w1, [sp, 60]
-	mov	w20, 0
-	cbz	w1, .L189
 	bl	strlen
 	cmp	x0, 128
-	bhi	.L189
+	bhi	.L199
 	str	x21, [sp, 32]
 	bl	__ctype_b_loc
-	ldr	x21, [x0]
-	adrp	x20, .LC39
+	ldr	x20, [x0]
+	adrp	x21, .LC39
 	ldr	w1, [sp, 60]
-	add	x20, x20, :lo12:.LC39
+	add	x21, x21, :lo12:.LC39
 	.p2align 5,,15
-.L192:
-	ubfiz	x2, x1, 1, 8
-	mov	x0, x20
-	ldrh	w2, [x21, x2]
-	tbnz	x2, 3, .L191
+.L201:
+	ubfiz	x0, x1, 1, 8
+	ldrh	w0, [x20, x0]
+	tbnz	x0, 3, .L200
+	mov	x0, x21
 	bl	strchr
-	cbz	x0, .L196
-.L191:
+	cbz	x0, .L212
+.L200:
 	ldrb	w1, [x19, 1]!
-	cbnz	w1, .L192
+	cbnz	w1, .L201
 	ldr	x21, [sp, 32]
-	mov	w20, 1
-.L189:
-	mov	w0, w20
+	mov	w0, 1
 	ldp	x19, x20, [sp, 16]
 	ldp	x29, x30, [sp], 64
 	ret
 	.p2align 2,,3
-.L193:
-	mov	w20, 0
-	mov	w0, w20
+.L212:
+	ldr	x21, [sp, 32]
+.L199:
+	mov	w0, 0
 	ldp	x19, x20, [sp, 16]
 	ldp	x29, x30, [sp], 64
 	ret
 	.p2align 2,,3
-.L196:
-	mov	w20, 0
-	mov	w0, w20
-	ldr	x21, [sp, 32]
-	ldp	x19, x20, [sp, 16]
-	ldp	x29, x30, [sp], 64
+.L213:
+	mov	w0, 0
 	ret
 	.align	2
 	.p2align 5,,15
@@ -1066,53 +1036,53 @@ valid_search_query:
 dep_basename:
 	cmp	x1, 0
 	ccmp	x2, 0, 4, ne
-	beq	.L200
-	cbz	x0, .L202
+	beq	.L214
+	cbz	x0, .L216
 	ldrb	w3, [x0]
 	cmp	w3, 32
 	ccmp	w3, 9, 4, ne
-	bne	.L204
+	bne	.L218
 	.p2align 5,,15
-.L203:
+.L217:
 	ldrb	w3, [x0, 1]!
 	cmp	w3, 32
 	ccmp	w3, 9, 4, ne
-	beq	.L203
-.L204:
+	beq	.L217
+.L218:
 	mov	x8, 512
 	mov	x5, x1
 	movk	x8, 0x1, lsl 32
 	mov	x6, x1
 	mov	x4, 0
 	movk	x8, 0x7400, lsl 48
-	cbnz	w3, .L208
-	b	.L206
+	cbnz	w3, .L223
+	b	.L220
 	.p2align 2,,3
-.L209:
+.L224:
 	cmp	w3, 62
-	bhi	.L207
+	bhi	.L221
 	lsr	x7, x8, x3
-	tbnz	x7, 0, .L206
-.L207:
+	tbnz	x7, 0, .L220
+.L221:
 	strb	w3, [x5], 1
 	ldrb	w3, [x0, x4]
-	cbz	w3, .L214
-.L208:
+	cbz	w3, .L229
+.L223:
 	add	x4, x4, 1
 	mov	x6, x5
 	cmp	x4, x2
-	bcc	.L209
-.L206:
+	bcc	.L224
+.L220:
 	strb	wzr, [x6]
-.L200:
+.L214:
 	ret
 	.p2align 2,,3
-.L214:
+.L229:
 	add	x6, x1, x4
 	strb	wzr, [x6]
-	b	.L200
+	b	.L214
 	.p2align 2,,3
-.L202:
+.L216:
 	strb	wzr, [x1]
 	ret
 	.section	.rodata.str1.8
@@ -1126,39 +1096,42 @@ dep_basename:
 	.type	xsnprintf, %function
 xsnprintf:
 	stp	x29, x30, [sp, -272]!
-	mov	w10, -40
-	mov	w9, -128
 	mov	x29, sp
-	add	x8, sp, 272
-	add	x11, sp, 224
-	stp	x8, x8, [sp, 64]
-	add	x8, sp, 32
-	str	x11, [sp, 80]
-	stp	w10, w9, [sp, 88]
+	stp	x3, x4, [sp, 232]
+	add	x3, sp, 272
+	stp	x3, x3, [sp, 64]
+	add	x3, sp, 224
+	ldr	q31, [sp, 64]
+	str	x3, [sp, 80]
+	mov	w3, -40
+	str	w3, [sp, 88]
+	mov	w3, -128
+	str	w3, [sp, 92]
+	str	q31, [sp, 32]
+	add	x3, sp, 32
+	ldr	q31, [sp, 80]
 	str	x19, [sp, 16]
 	mov	x19, x1
-	ldp	q30, q31, [sp, 64]
-	stp	x3, x4, [sp, 232]
-	mov	x3, x8
-	stp	x5, x6, [sp, 248]
-	str	x7, [sp, 264]
-	str	q30, [sp, 32]
 	stp	q0, q1, [sp, 96]
+	str	q31, [sp, 48]
 	stp	q2, q3, [sp, 128]
 	stp	q4, q5, [sp, 160]
 	stp	q6, q7, [sp, 192]
-	str	q31, [x8, 16]
+	stp	x5, x6, [sp, 248]
+	str	x7, [sp, 264]
 	bl	vsnprintf
-	mov	w2, w0
-	tbnz	w0, #31, .L216
-	cmp	x19, w0, sxtw
-	bls	.L216
+	sxtw	x1, w0
+	cmp	w0, 0
+	ccmp	x1, x19, 2, ge
+	bcs	.L233
 	ldr	x19, [sp, 16]
 	ldp	x29, x30, [sp], 272
 	ret
-.L216:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+.L233:
+	mov	w2, w0
 	mov	x3, x19
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
 	adrp	x1, .LC40
 	add	x1, x1, :lo12:.LC40
 	ldr	x0, [x0]
@@ -1175,32 +1148,32 @@ xsnprintf:
 	.global	set_target_arch
 	.type	set_target_arch, %function
 set_target_arch:
-	cbz	x0, .L234
+	cbz	x0, .L249
 	stp	x29, x30, [sp, -32]!
 	mov	x29, sp
 	str	x19, [sp, 16]
 	mov	x19, x0
 	bl	valid_target_arch
-	cbz	w0, .L219
+	cbz	w0, .L234
 	adrp	x1, .LC0
 	mov	x0, x19
 	add	x1, x1, :lo12:.LC0
 	bl	strcmp
-	cbz	w0, .L219
+	cbz	w0, .L234
 	adrp	x1, .LC1
 	mov	x0, x19
 	add	x1, x1, :lo12:.LC1
 	bl	strcmp
-	cbnz	w0, .L237
-.L219:
+	cbnz	w0, .L252
+.L234:
 	ldr	x19, [sp, 16]
 	ldp	x29, x30, [sp], 32
 	ret
 	.p2align 2,,3
-.L234:
+.L249:
 	ret
 	.p2align 2,,3
-.L237:
+.L252:
 	mov	x3, x19
 	adrp	x0, .LANCHOR1
 	ldr	x19, [sp, 16]
@@ -1216,40 +1189,40 @@ set_target_arch:
 	.global	set_opt_level
 	.type	set_opt_level, %function
 set_opt_level:
-	cbz	x0, .L291
+	cbz	x0, .L306
 	stp	x29, x30, [sp, -32]!
 	mov	x29, sp
 	str	x19, [sp, 16]
 	mov	x19, x0
 	bl	valid_opt_level
-	cbz	w0, .L238
+	cbz	w0, .L253
 	adrp	x1, .LC0
 	mov	x0, x19
 	add	x1, x1, :lo12:.LC0
 	bl	strcmp
-	cbz	w0, .L238
+	cbz	w0, .L253
 	adrp	x1, .LC1
 	mov	x0, x19
 	add	x1, x1, :lo12:.LC1
 	bl	strcmp
-	cbz	w0, .L238
+	cbz	w0, .L253
 	ldrb	w0, [x19]
 	cmp	w0, 45
-	beq	.L294
-.L240:
+	beq	.L309
+.L255:
 	and	w0, w0, -33
 	and	w0, w0, 255
 	cmp	w0, 79
 	cinc	x19, x19, eq
 	ldrb	w0, [x19]
 	cmp	w0, 48
-	beq	.L295
-.L250:
+	beq	.L310
+.L265:
 	cmp	w0, 49
-	bne	.L251
+	bne	.L266
 	ldrb	w1, [x19, 1]
-	cbnz	w1, .L251
-.L243:
+	cbnz	w1, .L266
+.L258:
 	mov	x3, x19
 	adrp	x0, .LANCHOR1
 	ldr	x19, [sp, 16]
@@ -1261,55 +1234,55 @@ set_opt_level:
 	add	x2, x2, :lo12:.LC41
 	b	xsnprintf
 	.p2align 2,,3
-.L251:
+.L266:
 	cmp	w0, 50
-	bne	.L252
+	bne	.L267
 	ldrb	w1, [x19, 1]
-	cbz	w1, .L243
+	cbz	w1, .L258
 	.p2align 5,,15
-.L252:
+.L267:
 	cmp	w0, 51
-	bne	.L253
+	bne	.L268
 	ldrb	w1, [x19, 1]
-	cbz	w1, .L243
+	cbz	w1, .L258
 	.p2align 5,,15
-.L253:
+.L268:
 	cmp	w0, 115
-	bne	.L254
+	bne	.L269
 	ldrb	w1, [x19, 1]
-	cbz	w1, .L243
-.L254:
+	cbz	w1, .L258
+.L269:
 	cmp	w0, 103
-	bne	.L255
+	bne	.L270
 	ldrb	w1, [x19, 1]
-	cbz	w1, .L243
-.L255:
+	cbz	w1, .L258
+.L270:
 	cmp	w0, 122
-	bne	.L256
+	bne	.L271
 	ldrb	w0, [x19, 1]
-	cbz	w0, .L243
-.L256:
+	cbz	w0, .L258
+.L271:
 	adrp	x1, .LC21
 	mov	x0, x19
 	add	x1, x1, :lo12:.LC21
 	bl	strcmp
-	cbz	w0, .L243
-.L238:
+	cbz	w0, .L258
+.L253:
 	ldr	x19, [sp, 16]
 	ldp	x29, x30, [sp], 32
 	ret
 	.p2align 2,,3
-.L295:
+.L310:
 	ldrb	w1, [x19, 1]
-	cbz	w1, .L243
-	b	.L250
+	cbz	w1, .L258
+	b	.L265
 	.p2align 2,,3
-.L294:
+.L309:
 	ldrb	w0, [x19, 1]
 	add	x19, x19, 1
-	b	.L240
+	b	.L255
 	.p2align 2,,3
-.L291:
+.L306:
 	ret
 	.section	.rodata.str1.8
 	.align	3
@@ -1321,23 +1294,20 @@ set_opt_level:
 	.global	run_cmd_quiet
 	.type	run_cmd_quiet, %function
 run_cmd_quiet:
-	mov	x12, 4640
+	mov	x12, 4624
 	sub	sp, sp, x12
 	mov	x3, x0
 	adrp	x2, .LC42
 	add	x2, x2, :lo12:.LC42
 	mov	x1, 4608
 	stp	x29, x30, [sp]
+	add	x0, sp, 16
 	mov	x29, sp
-	str	x19, [sp, 16]
-	add	x19, sp, 32
-	mov	x0, x19
 	bl	xsnprintf
-	mov	x0, x19
+	add	x0, sp, 16
 	bl	run_cmd
-	ldr	x19, [sp, 16]
-	mov	x12, 4640
 	ldp	x29, x30, [sp]
+	mov	x12, 4624
 	add	sp, sp, x12
 	ret
 	.align	2
@@ -1346,49 +1316,50 @@ run_cmd_quiet:
 	.type	fopen_nofollow, %function
 fopen_nofollow:
 	stp	x29, x30, [sp, -32]!
+	mov	x3, x1
 	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	mov	x19, x1
 	ldrb	w1, [x1]
 	cmp	w1, 114
-	beq	.L305
+	beq	.L318
 	cmp	w1, 119
-	beq	.L306
+	beq	.L319
 	cmp	w1, 97
-	beq	.L307
+	beq	.L320
 	bl	__errno_location
 	mov	w1, 22
 	str	w1, [x0]
-.L300:
-	mov	x19, 0
-.L298:
-	mov	x0, x19
-	ldp	x19, x20, [sp, 16]
+.L316:
+	mov	x1, 0
+.L313:
+	mov	x0, x1
 	ldp	x29, x30, [sp], 32
 	ret
 	.p2align 2,,3
-.L306:
+.L319:
 	mov	w1, 33345
-.L299:
+.L314:
 	mov	w2, 420
+	str	x3, [sp, 24]
 	bl	open
-	mov	w20, w0
-	tbnz	w0, #31, .L300
-	mov	x1, x19
+	tbnz	w0, #31, .L316
+	ldr	x1, [sp, 24]
+	str	w0, [sp, 24]
 	bl	fdopen
-	mov	x19, x0
-	cbnz	x0, .L298
-	mov	w0, w20
+	mov	x1, x0
+	cbnz	x0, .L313
+	ldr	w0, [sp, 24]
+	str	x1, [sp, 24]
 	bl	close
-	b	.L298
+	ldr	x1, [sp, 24]
+	b	.L313
 	.p2align 2,,3
-.L307:
+.L320:
 	mov	w1, 33857
-	b	.L299
+	b	.L314
 	.p2align 2,,3
-.L305:
+.L318:
 	mov	w1, 32768
-	b	.L299
+	b	.L314
 	.align	2
 	.p2align 5,,15
 	.global	file_exists
@@ -1398,7 +1369,7 @@ file_exists:
 	mov	x29, sp
 	add	x1, sp, 16
 	bl	stat
-	cbnz	w0, .L311
+	cbnz	w0, .L324
 	ldr	w0, [sp, 32]
 	ldp	x29, x30, [sp], 144
 	and	w0, w0, 61440
@@ -1406,7 +1377,7 @@ file_exists:
 	cset	w0, eq
 	ret
 	.p2align 2,,3
-.L311:
+.L324:
 	mov	w0, 0
 	ldp	x29, x30, [sp], 144
 	ret
@@ -1419,7 +1390,7 @@ dir_exists:
 	mov	x29, sp
 	add	x1, sp, 16
 	bl	stat
-	cbnz	w0, .L315
+	cbnz	w0, .L328
 	ldr	w0, [sp, 32]
 	ldp	x29, x30, [sp], 144
 	and	w0, w0, 61440
@@ -1427,7 +1398,7 @@ dir_exists:
 	cset	w0, eq
 	ret
 	.p2align 2,,3
-.L315:
+.L328:
 	mov	w0, 0
 	ldp	x29, x30, [sp], 144
 	ret
@@ -1441,69 +1412,57 @@ dir_exists:
 	.global	valid_pkgname
 	.type	valid_pkgname, %function
 valid_pkgname:
+	cbz	x0, .L347
 	stp	x29, x30, [sp, -64]!
 	mov	x29, sp
-	stp	x21, x22, [sp, 32]
-	cbz	x0, .L321
 	stp	x19, x20, [sp, 16]
-	mov	w21, 0
-	mov	x20, x0
-	ldrb	w19, [x0]
-	cbz	w19, .L331
-	sub	w1, w19, #45
-	and	w1, w1, 255
-	cmp	w1, 1
-	bls	.L331
+	mov	x19, x0
+	ldrb	w1, [x0]
+	cbz	w1, .L333
+	sub	w2, w1, #45
+	and	w2, w2, 255
+	cmp	w2, 1
+	bls	.L333
+	str	w1, [sp, 60]
 	bl	strlen
 	cmp	x0, 128
-	bhi	.L331
-	mov	w22, 2560
-	str	x23, [sp, 48]
-	adrp	x23, .LC43
+	bhi	.L333
+	stp	x21, x22, [sp, 32]
 	bl	__ctype_b_loc
+	adrp	x22, .LC43
 	ldr	x21, [x0]
-	add	x23, x23, :lo12:.LC43
-	b	.L320
+	add	x22, x22, :lo12:.LC43
+	ldr	w1, [sp, 60]
+	mov	w20, 2560
+	b	.L335
 	.p2align 2,,3
-.L319:
-	ldrb	w19, [x20, 1]!
-	cbz	w19, .L332
-.L320:
-	ubfiz	x0, x19, 1, 8
+.L334:
+	ldrb	w1, [x19, 1]!
+	cbz	w1, .L348
+.L335:
+	ubfiz	x0, x1, 1, 8
 	ldrh	w0, [x21, x0]
-	tst	w22, w0
-	bne	.L319
-	mov	w1, w19
-	mov	x0, x23
+	tst	w20, w0
+	bne	.L334
+	mov	x0, x22
 	bl	strchr
-	cbnz	x0, .L319
-	ldr	x23, [sp, 48]
-	mov	w21, 0
-	ldp	x19, x20, [sp, 16]
-	b	.L317
-	.p2align 2,,3
-.L331:
-	ldp	x19, x20, [sp, 16]
-.L317:
-	mov	w0, w21
+	cbnz	x0, .L334
 	ldp	x21, x22, [sp, 32]
+.L333:
+	mov	w0, 0
+	ldp	x19, x20, [sp, 16]
 	ldp	x29, x30, [sp], 64
 	ret
 	.p2align 2,,3
-.L332:
-	mov	w21, 1
-	mov	w0, w21
-	ldr	x23, [sp, 48]
-	ldp	x19, x20, [sp, 16]
+.L348:
 	ldp	x21, x22, [sp, 32]
+	mov	w0, 1
+	ldp	x19, x20, [sp, 16]
 	ldp	x29, x30, [sp], 64
 	ret
 	.p2align 2,,3
-.L321:
-	mov	w21, 0
-	mov	w0, w21
-	ldp	x21, x22, [sp, 32]
-	ldp	x29, x30, [sp], 64
+.L347:
+	mov	w0, 0
 	ret
 	.section	.rodata.str1.8
 	.align	3
@@ -1519,52 +1478,45 @@ regex_escape:
 	mov	x29, sp
 	stp	x19, x20, [sp, 16]
 	stp	x21, x22, [sp, 32]
-	mov	x21, x2
+	mov	x22, x2
 	stp	x23, x24, [sp, 48]
 	mov	x24, x1
 	ldrb	w1, [x0]
-	cbz	w1, .L341
-	adrp	x22, .LC44
+	cbz	w1, .L356
+	adrp	x21, .LC44
 	mov	x20, x0
-	add	x22, x22, :lo12:.LC44
+	add	x21, x21, :lo12:.LC44
 	mov	x19, 0
 	mov	w23, 92
-	b	.L340
+	b	.L355
 	.p2align 2,,3
-.L344:
-	cmp	x3, x21
-	bcs	.L339
-	add	x0, x19, 1
+.L360:
+	add	x0, x19, 2
+	cmp	x0, x22
+	bcs	.L352
+	add	x2, x19, 1
 	strb	w23, [x24, x19]
-	mov	x19, x3
-.L338:
-	ldrb	w3, [x20]
-	strb	w3, [x24, x0]
+	mov	x19, x0
+	ldrb	w0, [x20]
+	strb	w0, [x24, x2]
 	ldrb	w1, [x20, 1]!
-	cbz	w1, .L334
-.L340:
-	mov	x0, x22
+	cbz	w1, .L350
+.L355:
+	mov	x0, x21
 	bl	strchr
-	add	x3, x19, 2
-	cbnz	x0, .L344
-	add	x1, x19, 1
-	mov	x0, x19
-	mov	x19, x1
-	cmp	x1, x21
-	bcc	.L338
-.L339:
-	ldp	x19, x20, [sp, 16]
-	mov	w0, 0
-	ldp	x21, x22, [sp, 32]
-	ldp	x23, x24, [sp, 48]
-	ldp	x29, x30, [sp], 64
-	ret
-.L341:
-	mov	x19, 0
-	.p2align 5,,15
-.L334:
-	cmp	x21, x19
-	bls	.L339
+	cbnz	x0, .L360
+	add	x0, x19, 1
+	cmp	x0, x22
+	bcs	.L352
+	mov	x2, x19
+	mov	x19, x0
+	ldrb	w0, [x20]
+	strb	w0, [x24, x2]
+	ldrb	w1, [x20, 1]!
+	cbnz	w1, .L355
+.L350:
+	cmp	x22, x19
+	bls	.L352
 	strb	wzr, [x24, x19]
 	mov	w0, 1
 	ldp	x19, x20, [sp, 16]
@@ -1572,6 +1524,17 @@ regex_escape:
 	ldp	x23, x24, [sp, 48]
 	ldp	x29, x30, [sp], 64
 	ret
+	.p2align 2,,3
+.L352:
+	ldp	x19, x20, [sp, 16]
+	mov	w0, 0
+	ldp	x21, x22, [sp, 32]
+	ldp	x23, x24, [sp, 48]
+	ldp	x29, x30, [sp], 64
+	ret
+.L356:
+	mov	x19, 0
+	b	.L350
 	.section	.rodata.str1.8
 	.align	3
 .LC45:
@@ -1587,15 +1550,15 @@ build_user:
 	add	x0, x0, :lo12:.LC45
 	mov	x29, sp
 	bl	getenv
-	cbz	x0, .L346
+	cbz	x0, .L362
 	ldrb	w1, [x0]
-	cbnz	w1, .L345
-.L346:
+	cbnz	w1, .L361
+.L362:
 	bl	getuid
 	bl	getpwuid
-	cbz	x0, .L345
+	cbz	x0, .L361
 	ldr	x0, [x0]
-.L345:
+.L361:
 	ldp	x29, x30, [sp], 16
 	ret
 	.section	.rodata.str1.8
@@ -1608,42 +1571,38 @@ build_user:
 	.global	load_user_config
 	.type	load_user_config, %function
 load_user_config:
-	sub	sp, sp, #1504
+	sub	sp, sp, #1488
 	mov	x2, 512
+	add	x1, sp, 16
+	add	x0, sp, 528
 	stp	x29, x30, [sp]
 	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	add	x20, sp, 32
-	add	x19, sp, 544
-	mov	x1, x20
-	mov	x0, x19
 	bl	config_load
-	cbz	w0, .L359
-	mov	x0, x19
+	cbz	w0, .L375
+	add	x0, sp, 528
 	bl	config_apply
 	ldp	x29, x30, [sp]
-	ldp	x19, x20, [sp, 16]
-	add	sp, sp, 1504
+	add	sp, sp, 1488
 	ret
 	.p2align 2,,3
-.L359:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x20
+.L375:
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
+	add	x2, sp, 16
 	adrp	x1, .LC46
 	add	x1, x1, :lo12:.LC46
 	ldr	x0, [x0]
 	bl	fprintf
 	ldp	x29, x30, [sp]
-	ldp	x19, x20, [sp, 16]
-	add	sp, sp, 1504
+	add	sp, sp, 1488
 	ret
 	.section	.rodata.str1.8
 	.align	3
 .LC47:
-	.string	""
+	.string	"sudo "
 	.align	3
 .LC48:
-	.string	"sudo "
+	.string	""
 	.text
 	.align	2
 	.p2align 5,,15
@@ -1653,13 +1612,16 @@ priv_prefix:
 	stp	x29, x30, [sp, -16]!
 	mov	x29, sp
 	bl	geteuid
-	adrp	x1, .LC47
-	cmp	w0, 0
-	add	x1, x1, :lo12:.LC47
+	cbnz	w0, .L378
+	ldp	x29, x30, [sp], 16
 	adrp	x0, .LC48
 	add	x0, x0, :lo12:.LC48
-	csel	x0, x0, x1, ne
+	ret
+	.p2align 2,,3
+.L378:
 	ldp	x29, x30, [sp], 16
+	adrp	x0, .LC47
+	add	x0, x0, :lo12:.LC47
 	ret
 	.section	.rodata.str1.8
 	.align	3
@@ -1671,32 +1633,28 @@ priv_prefix:
 	.global	have_cmd
 	.type	have_cmd, %function
 have_cmd:
-	mov	x12, 5152
+	mov	x12, 5136
 	sub	sp, sp, x12
 	mov	x3, x0
 	mov	x1, 512
+	add	x0, sp, 16
 	adrp	x2, .LC49
-	add	x2, x2, :lo12:.LC49
 	stp	x29, x30, [sp]
+	add	x2, x2, :lo12:.LC49
 	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	add	x20, sp, 32
-	mov	x0, x20
 	bl	xsnprintf
-	add	x19, sp, 544
-	mov	x3, x20
+	add	x3, sp, 16
 	adrp	x2, .LC42
 	add	x2, x2, :lo12:.LC42
 	mov	x1, 4608
-	mov	x0, x19
+	add	x0, sp, 528
 	bl	xsnprintf
-	mov	x0, x19
+	add	x0, sp, 528
 	bl	run_cmd
 	cmp	w0, 0
 	ldp	x29, x30, [sp]
 	cset	w0, eq
-	ldp	x19, x20, [sp, 16]
-	mov	x12, 5152
+	mov	x12, 5136
 	add	sp, sp, x12
 	ret
 	.section	.rodata.str1.8
@@ -1724,109 +1682,133 @@ have_cmd:
 	.global	acquire_sudo
 	.type	acquire_sudo, %function
 acquire_sudo:
-	stp	x29, x30, [sp, -80]!
+	stp	x29, x30, [sp, -96]!
 	mov	x29, sp
 	stp	x19, x20, [sp, 16]
-	mov	w20, w0
-	mov	x19, x1
+	mov	w20, 1
+	stp	x21, x22, [sp, 32]
+	mov	w21, w0
+	mov	x22, x1
 	bl	geteuid
-	cbnz	w0, .L375
+	cbnz	w0, .L391
+.L382:
+	ldp	x21, x22, [sp, 32]
+	mov	w0, w20
 	ldp	x19, x20, [sp, 16]
-	mov	w0, 1
-	ldp	x29, x30, [sp], 80
+	ldp	x29, x30, [sp], 96
 	ret
 	.p2align 2,,3
-.L375:
-	stp	x21, x22, [sp, 32]
-	stp	x23, x24, [sp, 48]
-	adrp	x23, .LC50
-	add	x22, x23, :lo12:.LC50
-	mov	x0, x22
+.L391:
+	adrp	x0, .LC50
+	add	x19, x0, :lo12:.LC50
+	mov	x0, x19
 	bl	have_cmd
-	cbz	w0, .L376
+	mov	w20, w0
+	cbz	w0, .L392
 	adrp	x0, .LC52
 	add	x0, x0, :lo12:.LC52
 	bl	run_cmd
-	cbnz	w0, .L377
-	sxtw	x24, w20
+	mov	w20, w0
+	cbnz	w0, .L393
+	sxtw	x0, w21
 	mov	x1, 8
-	add	x0, x24, 3
+	str	x23, [sp, 48]
+	mov	x23, x0
+	add	x0, x0, 3
 	bl	calloc
-	mov	x21, x0
-	cbz	x0, .L378
-	adrp	x1, .LC55
-	add	x1, x1, :lo12:.LC55
-	ldr	w4, [x22]
-	add	x0, sp, 64
-	str	w4, [sp, 72]
-	add	x2, sp, 72
-	ldrh	w5, [x1]
-	strh	w5, [sp, 64]
-	ldrb	w3, [x1, 2]
-	ldrb	w1, [x22, 4]
-	stp	x2, x0, [x21]
-	strb	w3, [sp, 66]
-	strb	w1, [sp, 76]
-	cmp	w20, 0
-	ble	.L372
-	ubfiz	x2, x20, 3, 32
-	mov	x1, x19
-	add	x0, x21, 16
+	mov	x3, x0
+	cbz	x0, .L394
+	ldrb	w0, [x19, 4]
+	add	x1, sp, 88
+	strb	w0, [sp, 92]
+	adrp	x0, .LC55
+	add	x0, x0, :lo12:.LC55
+	ldr	w2, [x19]
+	str	w2, [sp, 88]
+	add	x2, sp, 80
+	ldrh	w5, [x0]
+	ldrb	w0, [x0, 2]
+	strh	w5, [sp, 80]
+	strb	w0, [sp, 82]
+	mov	w0, w21
+	stp	x1, x2, [x3]
+	cmp	w21, 0
+	ble	.L388
+	ubfiz	x2, x0, 3, 32
+	mov	x1, x22
+	add	x0, x3, 16
+	str	x3, [sp, 72]
 	bl	memcpy
-.L372:
-	add	x24, x24, 2
-	mov	x1, x21
-	add	x0, x23, :lo12:.LC50
-	str	xzr, [x21, x24, lsl 3]
+	ldr	x3, [sp, 72]
+.L388:
+	add	x0, x23, 2
+	mov	x1, x3
+	str	x3, [sp, 72]
+	str	xzr, [x3, x0, lsl 3]
+	adrp	x0, .LC50
+	add	x0, x0, :lo12:.LC50
 	bl	execvp
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
 	ldr	x19, [x0]
 	bl	__errno_location
 	ldr	w0, [x0]
 	bl	strerror
 	mov	x2, x0
 	adrp	x1, .LC56
-	add	x1, x1, :lo12:.LC56
 	mov	x0, x19
+	add	x1, x1, :lo12:.LC56
 	bl	fprintf
-	mov	x0, x21
+	ldr	x0, [sp, 72]
 	bl	free
-.L369:
-	ldp	x21, x22, [sp, 32]
-	mov	w0, 0
-	ldp	x23, x24, [sp, 48]
+	ldr	x23, [sp, 48]
+	mov	w0, w20
 	ldp	x19, x20, [sp, 16]
-	ldp	x29, x30, [sp], 80
+	ldp	x21, x22, [sp, 32]
+	ldp	x29, x30, [sp], 96
 	ret
 	.p2align 2,,3
-.L376:
-	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
-	adrp	x0, .LC51
+.L392:
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
 	mov	x2, 33
 	mov	x1, 1
+	ldr	x3, [x0]
+	adrp	x0, .LC51
 	add	x0, x0, :lo12:.LC51
-	ldr	x3, [x3]
 	bl	fwrite
-	b	.L369
+	mov	w0, w20
+	ldp	x19, x20, [sp, 16]
+	ldp	x21, x22, [sp, 32]
+	ldp	x29, x30, [sp], 96
+	ret
 	.p2align 2,,3
-.L377:
-	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
-	adrp	x0, .LC53
+.L393:
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
 	mov	x2, 54
 	mov	x1, 1
+	mov	w20, 0
+	ldr	x3, [x0]
+	adrp	x0, .LC53
 	add	x0, x0, :lo12:.LC53
-	ldr	x3, [x3]
 	bl	fwrite
-	b	.L369
-.L378:
-	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
-	adrp	x0, .LC54
+	mov	w0, w20
+	ldp	x19, x20, [sp, 16]
+	ldp	x21, x22, [sp, 32]
+	ldp	x29, x30, [sp], 96
+	ret
+.L394:
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
 	mov	x2, 30
 	mov	x1, 1
+	ldr	x3, [x0]
+	adrp	x0, .LC54
 	add	x0, x0, :lo12:.LC54
-	ldr	x3, [x3]
 	bl	fwrite
-	b	.L369
+	ldr	x23, [sp, 48]
+	b	.L382
 	.section	.rodata.str1.8
 	.align	3
 .LC55:
@@ -1846,51 +1828,49 @@ fix_owner:
 	sub	sp, sp, x12
 	stp	x29, x30, [sp]
 	mov	x29, sp
-	stp	x19, x20, [sp, 16]
+	str	x19, [sp, 16]
 	mov	x19, x0
 	bl	geteuid
-	cbz	w0, .L394
-.L379:
-	ldp	x29, x30, [sp]
+	cbz	w0, .L409
+.L395:
+	ldr	x19, [sp, 16]
 	mov	x12, 5664
-	ldp	x19, x20, [sp, 16]
+	ldp	x29, x30, [sp]
 	add	sp, sp, x12
 	ret
 	.p2align 2,,3
-.L394:
+.L409:
 	adrp	x0, .LC45
 	add	x0, x0, :lo12:.LC45
 	bl	getenv
 	mov	x3, x0
-	cbz	x0, .L381
+	cbz	x0, .L397
 	ldrb	w0, [x0]
-	cbnz	w0, .L382
-.L381:
+	cbnz	w0, .L398
+.L397:
 	bl	getuid
 	bl	getpwuid
-	cbz	x0, .L379
+	cbz	x0, .L395
 	ldr	x3, [x0]
-	cbz	x3, .L379
-.L382:
-	add	x20, sp, 32
+	cbz	x3, .L395
+.L398:
 	mov	x4, x19
-	mov	x0, x20
+	add	x0, sp, 32
 	mov	x1, 1024
 	adrp	x2, .LC57
 	add	x2, x2, :lo12:.LC57
 	bl	xsnprintf
-	add	x19, sp, 1056
-	mov	x3, x20
+	add	x3, sp, 32
 	adrp	x2, .LC42
 	add	x2, x2, :lo12:.LC42
 	mov	x1, 4608
-	mov	x0, x19
+	add	x0, sp, 1056
 	bl	xsnprintf
-	mov	x0, x19
+	add	x0, sp, 1056
 	bl	run_cmd
-	ldp	x29, x30, [sp]
+	ldr	x19, [sp, 16]
 	mov	x12, 5664
-	ldp	x19, x20, [sp, 16]
+	ldp	x29, x30, [sp]
 	add	sp, sp, x12
 	ret
 	.section	.rodata.str1.8
@@ -1933,155 +1913,148 @@ fix_owner:
 	.global	run_as_user
 	.type	run_as_user, %function
 run_as_user:
-	mov	x12, 4832
+	mov	x12, 4800
 	sub	sp, sp, x12
 	stp	x29, x30, [sp]
 	mov	x29, sp
 	stp	x19, x20, [sp, 16]
 	stp	x21, x22, [sp, 32]
 	mov	x21, x1
-	str	x0, [sp, 112]
+	stp	x27, x28, [sp, 80]
+	mov	x28, x0
 	bl	geteuid
-	cbz	w0, .L396
-	cbz	x21, .L397
+	cbz	w0, .L411
+	cbz	x21, .L412
 	ldrb	w0, [x21]
-	cbnz	w0, .L398
-.L397:
+	cbnz	w0, .L413
+.L412:
 	ldp	x29, x30, [sp]
-	mov	x12, 4832
+	mov	x0, x28
 	ldp	x19, x20, [sp, 16]
+	mov	x12, 4800
 	ldp	x21, x22, [sp, 32]
-	ldr	x0, [sp, 112]
+	ldp	x27, x28, [sp, 80]
 	add	sp, sp, x12
 	b	run_cmd
 	.p2align 2,,3
-.L396:
+.L411:
 	adrp	x0, .LC45
 	add	x0, x0, :lo12:.LC45
+	stp	x25, x26, [sp, 64]
 	bl	getenv
-	str	x0, [sp, 120]
-	cbz	x0, .L400
+	mov	x26, x0
+	cbz	x0, .L415
 	ldrb	w0, [x0]
-	cbnz	w0, .L401
-.L400:
+	cbnz	w0, .L416
+.L415:
 	bl	getuid
 	bl	getpwuid
-	cbz	x0, .L402
-	ldr	x0, [x0]
-	str	x0, [sp, 120]
-	cbz	x0, .L402
-.L401:
-	add	x20, sp, 136
+	cbz	x0, .L417
+	ldr	x26, [x0]
+	cbz	x26, .L417
+.L416:
 	stp	x23, x24, [sp, 48]
 	adrp	x23, .LC60
 	add	x23, x23, :lo12:.LC60
-	stp	x25, x26, [sp, 64]
-	add	x25, sp, 128
-	stp	x27, x28, [sp, 80]
-	add	x28, sp, 736
-	mov	w0, 16
+	mov	w22, 16
 	adrp	x24, .LC61
-	adrp	x26, .LC62
-	str	w0, [sp, 108]
+	adrp	x25, .LC62
 	.p2align 5,,15
-.L403:
+.L418:
 	bl	getpid
-	sxtw	x19, w0
+	sxtw	x20, w0
 	mov	w1, 524288
 	mov	x0, x23
 	bl	open
-	mov	w27, w0
-	mov	x1, x25
+	mov	w19, w0
+	tbnz	w0, #31, .L420
+	add	x1, sp, 96
 	mov	x2, 4
-	tbnz	w0, #31, .L405
 	bl	read
-	mov	x22, x0
-	mov	w0, w27
+	mov	x27, x0
+	mov	w0, w19
 	bl	close
-	cmp	x22, 4
-	beq	.L428
-.L405:
-	mov	x1, x28
+	cmp	x27, 4
+	beq	.L442
+.L420:
+	add	x1, sp, 704
 	mov	w0, 0
 	bl	clock_gettime
-	ldr	x27, [sp, 744]
+	ldr	x19, [sp, 712]
 	bl	getpid
-	mov	w22, w0
+	sbfiz	x27, x0, 16, 32
 	bl	clock
-	eor	x5, x27, x0
-	sbfiz	x1, x22, 16, 32
-	eor	x5, x5, x1
+	eor	x5, x19, x0
+	eor	x5, x5, x27
 	and	x5, x5, 4294967295
-.L406:
-	mov	x4, x19
+.L421:
+	mov	x4, x20
 	add	x3, x24, :lo12:.LC61
-	add	x2, x26, :lo12:.LC62
+	add	x2, x25, :lo12:.LC62
 	mov	x1, 600
-	mov	x0, x20
+	add	x0, sp, 104
 	bl	xsnprintf
-	mov	x0, x20
+	add	x0, sp, 104
 	mov	w2, 448
 	mov	w1, 32961
 	bl	open
 	mov	w19, w0
-	tbnz	w0, #31, .L429
+	tbnz	w0, #31, .L443
 	adrp	x1, .LC64
 	add	x1, x1, :lo12:.LC64
 	bl	fdopen
-	mov	x22, x0
-	cbz	x0, .L430
-	ldr	x3, [sp, 112]
-	cmp	x21, 0
-	adrp	x2, .LC47
-	add	x2, x2, :lo12:.LC47
-	csel	x2, x2, x21, eq
+	mov	x20, x0
+	cbz	x0, .L444
+	cbz	x21, .L445
+.L425:
+	mov	x3, x28
+	mov	x2, x21
 	adrp	x1, .LC66
 	add	x1, x1, :lo12:.LC66
+	mov	x0, x20
 	bl	fprintf
-	mov	x0, x22
+	mov	x0, x20
 	bl	fclose
-	cbnz	w0, .L431
+	cbnz	w0, .L446
 	mov	w1, 493
-	mov	x0, x20
+	add	x0, sp, 104
 	bl	chmod
-	add	x19, sp, 736
-	mov	x0, x20
+	add	x0, sp, 104
 	bl	fix_owner
-	ldr	x3, [sp, 120]
-	mov	x4, x20
+	mov	x3, x26
+	add	x4, sp, 104
 	adrp	x2, .LC68
 	add	x2, x2, :lo12:.LC68
 	mov	x1, 1024
-	mov	x0, x19
+	add	x0, sp, 704
 	bl	xsnprintf
-	mov	x0, x19
+	add	x0, sp, 704
 	bl	run_cmd
 	mov	w19, w0
-	mov	x0, x20
+	add	x0, sp, 104
 	bl	unlink
 	ldp	x23, x24, [sp, 48]
 	ldp	x25, x26, [sp, 64]
-	ldp	x27, x28, [sp, 80]
-.L395:
+.L410:
 	mov	w0, w19
 	ldp	x29, x30, [sp]
-	mov	x12, 4832
+	mov	x12, 4800
 	ldp	x19, x20, [sp, 16]
 	ldp	x21, x22, [sp, 32]
+	ldp	x27, x28, [sp, 80]
 	add	sp, sp, x12
 	ret
 	.p2align 2,,3
-.L429:
+.L443:
 	bl	__errno_location
 	ldr	w0, [x0]
 	cmp	w0, 17
-	bne	.L408
-	ldr	w1, [sp, 108]
-	subs	w1, w1, #1
-	str	w1, [sp, 108]
-	bne	.L403
-.L408:
-	adrp	x1, :got:stderr;ldr	x1, [x1, :got_lo12:stderr]
+	bne	.L423
+	subs	w22, w22, #1
+	bne	.L418
+.L423:
+	adrp	x1, :got:stderr
+	ldr	x1, [x1, :got_lo12:stderr]
 	ldr	x19, [x1]
 	bl	strerror
 	add	x2, x24, :lo12:.LC61
@@ -2089,72 +2062,78 @@ run_as_user:
 	adrp	x1, .LC63
 	mov	x0, x19
 	add	x1, x1, :lo12:.LC63
-	mov	w19, -1
 	bl	fprintf
 	ldp	x23, x24, [sp, 48]
+.L419:
+	mov	w19, -1
 	ldp	x25, x26, [sp, 64]
-	ldp	x27, x28, [sp, 80]
-	b	.L395
+	b	.L410
 	.p2align 2,,3
-.L428:
-	ldr	w5, [sp, 128]
+.L442:
+	ldr	w5, [sp, 96]
 	rev	w5, w5
-	b	.L406
+	b	.L421
 	.p2align 2,,3
-.L398:
-	ldr	x4, [sp, 112]
+.L413:
+	mov	x4, x28
 	mov	x3, x21
 	adrp	x2, .LC58
 	add	x2, x2, :lo12:.LC58
-	add	x19, sp, 736
 	mov	x1, 4096
-	mov	x0, x19
+	add	x0, sp, 704
 	bl	xsnprintf
-	mov	x0, x19
+	add	x0, sp, 704
 	bl	run_cmd
 	mov	w19, w0
-	mov	x12, 4832
+	mov	x12, 4800
 	ldp	x29, x30, [sp]
 	mov	w0, w19
 	ldp	x19, x20, [sp, 16]
 	ldp	x21, x22, [sp, 32]
+	ldp	x27, x28, [sp, 80]
 	add	sp, sp, x12
 	ret
-.L431:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	.p2align 2,,3
+.L445:
+	adrp	x21, .LC48
+	add	x21, x21, :lo12:.LC48
+	b	.L425
+.L446:
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
+	add	x2, sp, 104
 	adrp	x1, .LC67
-	mov	x2, x20
 	add	x1, x1, :lo12:.LC67
 	ldr	x0, [x0]
 	bl	fprintf
-.L427:
-	mov	x0, x20
-	mov	w19, -1
+	add	x0, sp, 104
 	bl	unlink
 	ldp	x23, x24, [sp, 48]
-	ldp	x25, x26, [sp, 64]
-	ldp	x27, x28, [sp, 80]
-	b	.L395
-.L402:
-	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
-	adrp	x0, .LC59
+	b	.L419
+.L417:
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
 	mov	x2, 96
-	add	x0, x0, :lo12:.LC59
 	mov	x1, 1
-	mov	w19, -1
-	ldr	x3, [x3]
+	ldr	x3, [x0]
+	adrp	x0, .LC59
+	add	x0, x0, :lo12:.LC59
 	bl	fwrite
-	b	.L395
-.L430:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x20
+	b	.L419
+.L444:
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
+	add	x2, sp, 104
 	adrp	x1, .LC65
 	add	x1, x1, :lo12:.LC65
 	ldr	x0, [x0]
 	bl	fprintf
 	mov	w0, w19
 	bl	close
-	b	.L427
+	add	x0, sp, 104
+	bl	unlink
+	ldp	x23, x24, [sp, 48]
+	b	.L419
 	.section	.rodata.str1.8
 	.align	3
 .LC69:
@@ -2192,229 +2171,224 @@ run_as_user:
 	.global	init_system
 	.type	init_system, %function
 init_system:
-	mov	x12, 5712
+	mov	x12, 5696
 	sub	sp, sp, x12
+	add	x1, sp, 1088
 	stp	x29, x30, [sp]
 	mov	x29, sp
-	stp	x21, x22, [sp, 32]
-	add	x21, sp, 1104
-	mov	x1, x21
-	adrp	x22, .LC70
 	stp	x19, x20, [sp, 16]
-	adrp	x20, .LC69
-	add	x0, x20, :lo12:.LC69
+	adrp	x19, .LC69
+	adrp	x20, .LC70
+	add	x0, x19, :lo12:.LC69
 	bl	stat
-	cbnz	w0, .L436
-	ldr	w0, [sp, 1120]
-	adrp	x22, .LC70
+	cbnz	w0, .L451
+	ldr	w0, [sp, 1104]
+	adrp	x20, .LC70
 	and	w0, w0, 61440
 	cmp	w0, 16384
-	beq	.L506
-.L436:
+	beq	.L520
+.L451:
 	bl	geteuid
-	cmp	w0, 0
-	adrp	x3, .LC48
-	adrp	x0, .LC47
-	add	x3, x3, :lo12:.LC48
-	add	x0, x0, :lo12:.LC47
-	csel	x3, x3, x0, ne
-	add	x5, x22, :lo12:.LC70
-	add	x4, x20, :lo12:.LC69
+	cbz	w0, .L521
+.L479:
+	adrp	x3, .LC47
+	add	x3, x3, :lo12:.LC47
+.L454:
+	add	x5, x20, :lo12:.LC70
+	add	x4, x19, :lo12:.LC69
 	adrp	x2, .LC71
 	add	x2, x2, :lo12:.LC71
-	add	x19, sp, 80
 	mov	x1, 1024
-	mov	x0, x19
+	add	x0, sp, 64
 	bl	xsnprintf
-	mov	x0, x19
+	add	x0, sp, 64
 	bl	run_cmd
-	cbnz	w0, .L507
-.L438:
+	cbnz	w0, .L522
+.L453:
 	bl	geteuid
-	cbz	w0, .L444
+	cbz	w0, .L459
 	adrp	x0, .LC61
 	mov	w1, 2
 	add	x0, x0, :lo12:.LC61
 	bl	access
-	cbnz	w0, .L444
-.L445:
-	adrp	x19, .LC75
-	mov	x1, x21
-	add	x0, x19, :lo12:.LC75
-	bl	stat
-	cbnz	w0, .L452
-	ldr	w0, [sp, 1120]
-	and	w0, w0, 61440
-	cmp	w0, 32768
-	beq	.L456
-.L452:
-	add	x20, x19, :lo12:.LC75
-	adrp	x1, .LC76
-	mov	x0, x20
-	add	x1, x1, :lo12:.LC76
-	bl	fopen_nofollow
-	cbz	x0, .L508
-	bl	fclose
-.L456:
-	bl	geteuid
-	cbz	w0, .L509
+	cbz	w0, .L460
 .L459:
-	add	x19, x19, :lo12:.LC75
-	mov	w1, 2
-	mov	x0, x19
-	bl	access
-	mov	w1, w0
-	mov	w0, 1
-	cbnz	w1, .L510
-.L432:
-	ldp	x29, x30, [sp]
-	mov	x12, 5712
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	add	sp, sp, x12
-	ret
-	.p2align 2,,3
-.L444:
 	adrp	x0, .LC45
 	add	x0, x0, :lo12:.LC45
 	bl	getenv
-	mov	x20, x0
-	cbz	x0, .L443
-	ldrb	w19, [x0]
-	cbnz	w19, .L446
-.L443:
+	mov	x19, x0
+	cbz	x0, .L458
+	ldrb	w20, [x0]
+	cbnz	w20, .L461
+.L458:
 	bl	getuid
 	bl	getpwuid
-	cbz	x0, .L445
-	ldr	x20, [x0]
-	cbz	x20, .L445
-	mov	x0, x20
-	bl	valid_pkgname
-	cbnz	w0, .L448
-	ldrb	w1, [x20]
-	cbz	w1, .L448
-	str	x23, [sp, 48]
-	b	.L463
-	.p2align 2,,3
-.L506:
-	mov	x1, x21
-	add	x0, x22, :lo12:.LC70
+	cbz	x0, .L460
+	ldr	x19, [x0]
+	cbnz	x19, .L523
+.L460:
+	adrp	x19, .LC75
+	add	x1, sp, 1088
+	add	x0, x19, :lo12:.LC75
 	bl	stat
-	cbnz	w0, .L436
-	ldr	w0, [sp, 1120]
+	cbnz	w0, .L468
+	ldr	w0, [sp, 1104]
+	and	w0, w0, 61440
+	cmp	w0, 32768
+	beq	.L472
+.L468:
+	adrp	x1, .LC76
+	add	x0, x19, :lo12:.LC75
+	add	x1, x1, :lo12:.LC76
+	bl	fopen_nofollow
+	cbz	x0, .L524
+	bl	fclose
+.L472:
+	bl	geteuid
+	cbz	w0, .L525
+.L474:
+	mov	w1, 2
+	add	x0, x19, :lo12:.LC75
+	bl	access
+	mov	w1, w0
+	mov	w0, 1
+	cbnz	w1, .L526
+.L447:
+	ldp	x29, x30, [sp]
+	mov	x12, 5696
+	ldp	x19, x20, [sp, 16]
+	add	sp, sp, x12
+	ret
+	.p2align 2,,3
+.L520:
+	add	x1, sp, 1088
+	add	x0, x20, :lo12:.LC70
+	bl	stat
+	cbnz	w0, .L451
+	ldr	w0, [sp, 1104]
 	and	w0, w0, 61440
 	cmp	w0, 16384
-	bne	.L436
-	b	.L438
+	beq	.L453
+	bl	geteuid
+	cbnz	w0, .L479
+.L521:
+	adrp	x3, .LC48
+	add	x3, x3, :lo12:.LC48
+	b	.L454
 	.p2align 2,,3
-.L509:
+.L525:
 	adrp	x0, .LC45
 	add	x0, x0, :lo12:.LC45
 	bl	getenv
 	mov	x3, x0
-	cbz	x0, .L460
+	cbz	x0, .L475
 	ldrb	w0, [x0]
-	cbnz	w0, .L461
-.L460:
+	cbnz	w0, .L476
+.L475:
 	bl	getuid
 	bl	getpwuid
-	cbz	x0, .L459
+	cbz	x0, .L474
 	ldr	x3, [x0]
-	cbz	x3, .L459
-.L461:
-	add	x20, sp, 80
+	cbz	x3, .L474
+.L476:
 	add	x4, x19, :lo12:.LC75
 	mov	x1, 1024
-	mov	x0, x20
+	add	x0, sp, 64
 	adrp	x2, .LC57
 	add	x2, x2, :lo12:.LC57
 	bl	xsnprintf
-	add	x19, x19, :lo12:.LC75
-	mov	x3, x20
+	add	x3, sp, 64
 	adrp	x2, .LC42
 	add	x2, x2, :lo12:.LC42
 	mov	x1, 4608
-	mov	x0, x21
+	add	x0, sp, 1088
 	bl	xsnprintf
-	mov	x0, x21
+	add	x0, sp, 1088
 	bl	run_cmd
 	mov	w1, 2
-	mov	x0, x19
+	add	x0, x19, :lo12:.LC75
 	bl	access
 	mov	w1, w0
 	mov	w0, 1
-	cbz	w1, .L432
+	cbz	w1, .L447
 	.p2align 5,,15
-.L510:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x19
+.L526:
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
+	add	x2, x19, :lo12:.LC75
 	adrp	x1, .LC78
 	add	x1, x1, :lo12:.LC78
 	ldr	x0, [x0]
 	bl	fprintf
 	mov	w0, 0
-.L511:
+.L527:
 	ldp	x29, x30, [sp]
-	mov	x12, 5712
+	mov	x12, 5696
 	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
 	add	sp, sp, x12
 	ret
 	.p2align 2,,3
-.L446:
+.L461:
 	bl	valid_pkgname
-	cbnz	w0, .L448
-	mov	w1, w19
-	str	x23, [sp, 48]
-.L463:
-	str	w1, [sp, 76]
-	bl	__ctype_b_loc
-	ldr	x23, [x0]
+	cbnz	w0, .L463
+	mov	w1, w20
+	stp	x21, x22, [sp, 32]
+.L477:
 	adrp	x22, .LC73
-	ldr	w1, [sp, 76]
-	mov	x19, x20
+	str	w1, [sp, 60]
+	bl	__ctype_b_loc
+	ldr	x21, [x0]
+	mov	x20, x19
+	ldr	w1, [sp, 60]
 	add	x22, x22, :lo12:.LC73
 	.p2align 5,,15
-.L450:
-	ubfiz	x2, x1, 1, 8
+.L466:
+	ubfiz	x0, x1, 1, 8
+	ldrh	w0, [x21, x0]
+	tbnz	x0, 3, .L465
 	mov	x0, x22
-	ldrh	w2, [x23, x2]
-	tbnz	x2, 3, .L449
 	bl	strchr
-	cbz	x0, .L505
-.L449:
-	ldrb	w1, [x19, 1]!
-	cbnz	w1, .L450
-	ldr	x23, [sp, 48]
-.L448:
+	cbz	x0, .L519
+.L465:
+	ldrb	w1, [x20, 1]!
+	cbnz	w1, .L466
+	ldp	x21, x22, [sp, 32]
+.L463:
 	bl	geteuid
-	cmp	w0, 0
-	add	x19, sp, 80
-	adrp	x0, .LC47
+	cbnz	w0, .L480
 	adrp	x3, .LC48
-	add	x0, x0, :lo12:.LC47
 	add	x3, x3, :lo12:.LC48
-	csel	x3, x3, x0, ne
-	mov	x4, x20
-	mov	x0, x19
+.L467:
+	mov	x4, x19
+	add	x0, sp, 64
 	mov	x1, 1024
 	adrp	x5, .LC61
 	adrp	x2, .LC74
 	add	x5, x5, :lo12:.LC61
 	add	x2, x2, :lo12:.LC74
 	bl	xsnprintf
-	mov	x3, x19
+	add	x3, sp, 64
 	adrp	x2, .LC42
 	add	x2, x2, :lo12:.LC42
 	mov	x1, 4608
-	mov	x0, x21
+	add	x0, sp, 1088
 	bl	xsnprintf
-	mov	x0, x21
+	add	x0, sp, 1088
 	bl	run_cmd
-	b	.L445
+	b	.L460
 	.p2align 2,,3
-.L507:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+.L523:
+	mov	x0, x19
+	bl	valid_pkgname
+	cbnz	w0, .L463
+	ldrb	w1, [x19]
+	cbz	w1, .L463
+	stp	x21, x22, [sp, 32]
+	b	.L477
+	.p2align 2,,3
+.L522:
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
 	adrp	x2, .LC61
 	adrp	x1, .LC72
 	add	x2, x2, :lo12:.LC61
@@ -2422,20 +2396,26 @@ init_system:
 	ldr	x0, [x0]
 	bl	fprintf
 	mov	w0, 0
-	b	.L511
+	b	.L527
 	.p2align 2,,3
-.L505:
-	ldr	x23, [sp, 48]
-	b	.L445
-.L508:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x20
+.L480:
+	adrp	x3, .LC47
+	add	x3, x3, :lo12:.LC47
+	b	.L467
+	.p2align 2,,3
+.L519:
+	ldp	x21, x22, [sp, 32]
+	b	.L460
+.L524:
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
+	add	x2, x19, :lo12:.LC75
 	adrp	x1, .LC77
 	add	x1, x1, :lo12:.LC77
 	ldr	x0, [x0]
 	bl	fprintf
 	mov	w0, 0
-	b	.L511
+	b	.L527
 	.section	.rodata.str1.8
 	.align	3
 .LC79:
@@ -2454,16 +2434,13 @@ get_editor:
 	add	x0, x0, :lo12:.LC80
 	mov	x29, sp
 	bl	getenv
-	cbz	x0, .L514
-	ldrb	w2, [x0]
-	adrp	x1, .LC79
-	add	x1, x1, :lo12:.LC79
-	cmp	w2, 0
-	csel	x0, x1, x0, eq
+	cbz	x0, .L530
+	ldrb	w1, [x0]
+	cbz	w1, .L530
 	ldp	x29, x30, [sp], 16
 	ret
 	.p2align 2,,3
-.L514:
+.L530:
 	ldp	x29, x30, [sp], 16
 	adrp	x0, .LC79
 	add	x0, x0, :lo12:.LC79
@@ -2506,71 +2483,70 @@ get_cpu_cores:
 	.global	set_build_env
 	.type	set_build_env, %function
 set_build_env:
-	stp	x29, x30, [sp, -384]!
+	stp	x29, x30, [sp, -368]!
 	adrp	x0, .LANCHOR0+16
 	mov	x29, sp
 	ldr	x3, [x0, #:lo12:.LANCHOR0+16]
-	stp	x19, x20, [sp, 16]
-	stp	x21, x22, [sp, 32]
+	str	x19, [sp, 16]
 	cmp	x3, 0
-	ble	.L523
-.L519:
-	adrp	x20, .LANCHOR1
-	add	x20, x20, :lo12:.LANCHOR1
-	add	x21, sp, 64
-	mov	x1, 64
-	mov	x0, x21
+	ble	.L539
+.L535:
+	add	x0, sp, 48
 	adrp	x2, .LC82
+	mov	x1, 64
 	add	x2, x2, :lo12:.LC82
 	bl	xsnprintf
-	ldr	w5, [x20, 176]
-	adrp	x4, .LC81
-	add	x4, x4, :lo12:.LC81
-	add	x22, sp, 48
-	cmp	w5, 0
-	adrp	x3, .LC47
-	add	x3, x3, :lo12:.LC47
-	mov	x0, x22
-	csel	x3, x3, x4, eq
+	adrp	x19, .LANCHOR1
+	add	x0, x19, :lo12:.LANCHOR1
+	ldr	w0, [x0, 176]
+	cbz	w0, .L537
+	adrp	x3, .LC81
+	add	x3, x3, :lo12:.LC81
+.L536:
+	add	x0, sp, 32
 	mov	x1, 16
 	adrp	x2, .LC41
 	add	x2, x2, :lo12:.LC41
 	bl	xsnprintf
-	add	x19, sp, 128
-	mov	x5, x22
-	add	x4, x20, 160
-	add	x3, x20, 32
-	mov	x0, x19
+	add	x3, x19, :lo12:.LANCHOR1
+	add	x5, sp, 32
+	add	x4, x3, 160
+	add	x3, x3, 32
+	add	x0, sp, 112
 	mov	x1, 256
 	adrp	x2, .LC83
 	add	x2, x2, :lo12:.LC83
 	bl	xsnprintf
-	mov	x1, x19
+	add	x1, sp, 112
 	mov	w2, 1
 	adrp	x0, .LC84
 	add	x0, x0, :lo12:.LC84
 	bl	setenv
-	mov	x1, x19
+	add	x1, sp, 112
 	mov	w2, 1
 	adrp	x0, .LC85
 	add	x0, x0, :lo12:.LC85
 	bl	setenv
-	mov	x1, x21
+	add	x1, sp, 48
 	mov	w2, 1
 	adrp	x0, .LC86
 	add	x0, x0, :lo12:.LC86
 	bl	setenv
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	ldp	x29, x30, [sp], 384
+	ldr	x19, [sp, 16]
+	ldp	x29, x30, [sp], 368
 	ret
 	.p2align 2,,3
-.L523:
+.L537:
+	adrp	x3, .LC48
+	add	x3, x3, :lo12:.LC48
+	b	.L536
+	.p2align 2,,3
+.L539:
 	mov	w0, 84
 	bl	sysconf
 	cmp	x0, 0
 	csinc	x3, x0, xzr, gt
-	b	.L519
+	b	.L535
 	.section	.rodata.str1.8
 	.align	3
 .LC87:
@@ -2611,87 +2587,73 @@ set_build_env:
 	.global	write_makepkg_conf
 	.type	write_makepkg_conf, %function
 write_makepkg_conf:
-	sub	sp, sp, #928
-	adrp	x2, .LC81
-	adrp	x3, .LC47
-	add	x2, x2, :lo12:.LC81
-	add	x3, x3, :lo12:.LC47
+	sub	sp, sp, #896
 	stp	x29, x30, [sp, 16]
 	add	x29, sp, 16
 	stp	x19, x20, [sp, 32]
-	mov	x20, x0
+	adrp	x20, .LANCHOR1
 	stp	x21, x22, [sp, 48]
-	adrp	x22, .LANCHOR1
-	add	x19, x22, :lo12:.LANCHOR1
-	stp	x23, x24, [sp, 64]
-	add	x21, sp, 128
-	adrp	x24, .LC41
-	stp	x25, x26, [sp, 80]
-	add	x24, x24, :lo12:.LC41
-	add	x23, sp, 144
-	ldr	w4, [x19, 176]
-	mov	x0, x21
-	str	x27, [sp, 96]
-	mov	x27, x1
-	cmp	w4, 0
+	mov	x21, x0
+	add	x0, x20, :lo12:.LANCHOR1
+	mov	x22, x1
+	ldr	w0, [x0, 176]
+	str	x23, [sp, 64]
+	cbz	w0, .L560
+	adrp	x3, .LC81
+	add	x3, x3, :lo12:.LC81
+.L541:
+	adrp	x2, .LC41
+	add	x19, x2, :lo12:.LC41
+	mov	x2, x19
+	add	x23, x20, :lo12:.LANCHOR1
 	mov	x1, 16
-	csel	x3, x3, x2, eq
-	mov	x2, x24
-	adrp	x26, .LC83
-	add	x26, x26, :lo12:.LC83
+	add	x0, sp, 96
 	bl	xsnprintf
-	add	x25, sp, 416
-	mov	x2, x24
-	add	x3, x19, 160
+	mov	x2, x19
+	add	x3, x23, 160
 	mov	x1, 16
-	add	x19, x19, 32
-	mov	x0, x23
-	add	x24, sp, 160
+	add	x0, sp, 112
 	bl	xsnprintf
-	mov	x3, x19
-	mov	x5, x21
-	mov	x4, x23
-	mov	x2, x26
+	adrp	x19, .LC83
+	add	x5, sp, 96
+	add	x4, sp, 112
+	add	x3, x23, 32
+	add	x2, x19, :lo12:.LC83
 	mov	x1, 256
-	mov	x0, x24
+	add	x0, sp, 128
 	bl	xsnprintf
-	mov	x3, x19
-	mov	x5, x21
-	mov	x2, x26
-	mov	x0, x25
-	mov	x4, x23
+	add	x3, x23, 32
+	add	x5, sp, 96
+	add	x4, sp, 112
+	add	x2, x19, :lo12:.LC83
+	add	x0, sp, 384
 	mov	x1, 256
 	bl	xsnprintf
-	ldrh	w0, [sp, 144]
+	ldrh	w0, [sp, 112]
 	adrp	x3, .LC87
 	add	x3, x3, :lo12:.LC87
 	cmp	w0, 48
-	beq	.L528
-	adrp	x3, .LC88
-	add	x3, x3, :lo12:.LC88
+	beq	.L544
 	cmp	w0, 49
-	beq	.L528
+	beq	.L567
 	adrp	x3, .LC89
 	add	x3, x3, :lo12:.LC89
 	cmp	w0, 50
-	beq	.L528
+	beq	.L544
 	cmp	w0, 115
-	beq	.L550
+	beq	.L554
 	cmp	w0, 122
-	beq	.L550
-	cmp	w0, 103
+	beq	.L554
 	adrp	x3, .LC91
-	adrp	x0, .LC88
 	add	x3, x3, :lo12:.LC91
-	add	x0, x0, :lo12:.LC88
-	csel	x3, x3, x0, ne
+	cmp	w0, 103
+	beq	.L567
 	.p2align 5,,15
-.L528:
-	add	x26, x22, :lo12:.LANCHOR1
-	add	x21, sp, 672
-	add	x4, x26, 32
+.L544:
+	add	x23, x20, :lo12:.LANCHOR1
 	mov	x1, 256
-	mov	x0, x21
+	add	x4, x23, 32
+	add	x0, sp, 640
 	adrp	x2, .LC94
 	add	x2, x2, :lo12:.LC94
 	bl	xsnprintf
@@ -2699,27 +2661,27 @@ write_makepkg_conf:
 	adrp	x2, .LC95
 	add	x3, x3, :lo12:.LC61
 	add	x2, x2, :lo12:.LC95
-	mov	x1, x27
-	mov	x0, x20
+	mov	x1, x22
+	mov	x0, x21
 	bl	xsnprintf
-	mov	x0, x20
+	mov	x0, x21
 	adrp	x1, .LC64
 	add	x1, x1, :lo12:.LC64
 	bl	fopen_nofollow
 	mov	x19, x0
-	cbz	x0, .L551
+	cbz	x0, .L568
 	adrp	x0, .LANCHOR0+16
-	ldr	w4, [x26, 176]
+	ldr	w4, [x23, 176]
 	ldr	x0, [x0, #:lo12:.LANCHOR0+16]
 	cmp	x0, 0
-	ble	.L552
-.L541:
-	add	x2, x22, :lo12:.LANCHOR1
-	mov	x7, x21
+	ble	.L569
+.L559:
+	add	x2, x20, :lo12:.LANCHOR1
+	add	x7, sp, 640
+	add	x6, sp, 384
+	add	x5, sp, 128
+	add	x3, sp, 112
 	add	x2, x2, 32
-	mov	x6, x25
-	mov	x5, x24
-	mov	x3, x23
 	adrp	x1, .LC97
 	add	x1, x1, :lo12:.LC97
 	str	x0, [sp]
@@ -2727,41 +2689,50 @@ write_makepkg_conf:
 	bl	fprintf
 	mov	x0, x19
 	bl	fclose
-	mov	x0, x20
+	mov	x0, x21
 	bl	fix_owner
 	mov	w0, 1
-.L524:
-	ldr	x27, [sp, 96]
+.L540:
+	ldr	x23, [sp, 64]
 	ldp	x29, x30, [sp, 16]
 	ldp	x19, x20, [sp, 32]
 	ldp	x21, x22, [sp, 48]
-	ldp	x23, x24, [sp, 64]
-	ldp	x25, x26, [sp, 80]
-	add	sp, sp, 928
+	add	sp, sp, 896
 	ret
 	.p2align 2,,3
-.L552:
-	mov	w0, 84
-	str	w4, [sp, 124]
-	bl	sysconf
-	cmp	x0, 0
-	ldr	w4, [sp, 124]
-	csinc	x0, x0, xzr, gt
+.L560:
+	adrp	x3, .LC48
+	add	x3, x3, :lo12:.LC48
 	b	.L541
 	.p2align 2,,3
-.L550:
+.L567:
+	adrp	x3, .LC88
+	add	x3, x3, :lo12:.LC88
+	b	.L544
+	.p2align 2,,3
+.L569:
+	mov	w0, 84
+	str	w4, [sp, 92]
+	bl	sysconf
+	cmp	x0, 0
+	ldr	w4, [sp, 92]
+	csinc	x0, x0, xzr, gt
+	b	.L559
+	.p2align 2,,3
+.L554:
 	adrp	x3, .LC90
 	add	x3, x3, :lo12:.LC90
-	b	.L528
-.L551:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x20
+	b	.L544
+.L568:
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
+	mov	x2, x21
 	adrp	x1, .LC96
 	add	x1, x1, :lo12:.LC96
 	ldr	x0, [x0]
 	bl	fprintf
 	mov	w0, 0
-	b	.L524
+	b	.L540
 	.section	.rodata.str1.8
 	.align	3
 .LC98:
@@ -2790,156 +2761,161 @@ write_makepkg_conf:
 	.global	ask_yes_no
 	.type	ask_yes_no, %function
 ask_yes_no:
-	stp	x29, x30, [sp, -112]!
-	adrp	x2, .LANCHOR0
+	stp	x29, x30, [sp, -128]!
+	mov	x4, x0
+	adrp	x0, .LANCHOR0
 	mov	x29, sp
-	ldr	w2, [x2, #:lo12:.LANCHOR0]
+	ldr	w0, [x0, #:lo12:.LANCHOR0]
 	stp	x19, x20, [sp, 16]
-	mov	x20, x0
 	mov	w19, w1
-	cbnz	w2, .L557
-	str	x21, [sp, 32]
-	adrp	x21, .LANCHOR1
-	ldr	w0, [x21, #:lo12:.LANCHOR1]
-	cbnz	w0, .L592
-.L588:
-	ldr	x21, [sp, 32]
-.L557:
-	cbnz	w19, .L555
+	cbnz	w0, .L574
+	adrp	x20, .LANCHOR1
+	ldr	w0, [x20, #:lo12:.LANCHOR1]
+	cbnz	w0, .L610
+.L574:
+	cbnz	w19, .L572
 	adrp	x2, .LC100
 	adrp	x3, .LC101
 	add	x2, x2, :lo12:.LC100
 	add	x3, x3, :lo12:.LC101
-.L556:
+.L573:
 	adrp	x0, .LC102
-	mov	x1, x20
+	mov	x1, x4
 	add	x0, x0, :lo12:.LC102
 	bl	printf
-.L559:
+.L576:
 	mov	w0, w19
-.L553:
+.L570:
 	ldp	x19, x20, [sp, 16]
-	ldp	x29, x30, [sp], 112
+	ldp	x29, x30, [sp], 128
 	ret
 	.p2align 2,,3
-.L555:
+.L572:
 	adrp	x2, .LC98
 	adrp	x3, .LC99
 	add	x2, x2, :lo12:.LC98
 	add	x3, x3, :lo12:.LC99
-	b	.L556
+	b	.L573
 	.p2align 2,,3
-.L592:
+.L610:
 	mov	w0, 0
+	str	x4, [sp, 56]
 	bl	isatty
-	cbz	w0, .L588
-	cmp	w19, 0
-	adrp	x0, .LC98
+	ldr	x4, [sp, 56]
+	cbz	w0, .L574
+	str	x21, [sp, 32]
+	cbnz	w19, .L611
 	adrp	x2, .LC100
-	add	x0, x0, :lo12:.LC98
 	add	x2, x2, :lo12:.LC100
-	mov	x1, x20
-	csel	x2, x2, x0, eq
+.L577:
+	mov	x1, x4
 	adrp	x0, .LC103
 	add	x0, x0, :lo12:.LC103
 	bl	printf
-	adrp	x0, :got:stdout;ldr	x0, [x0, :got_lo12:stdout]
-	add	x21, x21, :lo12:.LANCHOR1
-	add	x20, sp, 48
+	adrp	x0, :got:stdout
+	ldr	x0, [x0, :got_lo12:stdout]
+	add	x21, sp, 64
 	ldr	x0, [x0]
 	bl	fflush
-	ldr	x2, [x21, 8]
-	cmp	x2, 0
-	ble	.L561
-	mov	w0, 1000
-	mov	x1, 50331
-	movk	x1, 0x20, lsl 16
-	cmp	x2, x1
-	mov	x3, 4294967296
-	mul	w2, w2, w0
-	mov	w1, 64888
-	add	x20, sp, 48
-	movk	w1, 0x7fff, lsl 16
-	mov	x0, x20
-	csel	w2, w2, w1, le
+	add	x0, x20, :lo12:.LANCHOR1
+	ldr	x0, [x0, 8]
+	cmp	x0, 0
+	ble	.L578
+	mov	x1, 4294967296
+	mov	x2, 50331
+	str	x1, [sp, 64]
+	mov	w1, 1000
+	movk	x2, 0x20, lsl 16
+	cmp	x0, x2
+	mul	w1, w0, w1
+	mov	w2, 64888
+	add	x0, sp, 64
+	movk	w2, 0x7fff, lsl 16
+	mov	x21, x0
+	csel	w2, w1, w2, le
 	mov	x1, 1
-	str	x3, [sp, 48]
 	bl	poll
-	cmp	w0, 0
-	cbz	w0, .L593
-	blt	.L594
-.L561:
-	adrp	x21, :got:stdin;ldr	x21, [x21, :got_lo12:stdin]
-	mov	x0, x20
+	cbz	w0, .L612
+	tbnz	w0, #31, .L613
+.L578:
+	adrp	x20, :got:stdin
+	ldr	x20, [x20, :got_lo12:stdin]
+	mov	x0, x21
 	mov	w1, 64
-	ldr	x2, [x21]
+	ldr	x2, [x20]
 	bl	fgets
-	cbz	x0, .L590
-	mov	x0, x20
+	cbz	x0, .L609
+	mov	x0, x21
 	mov	w1, 10
 	bl	strchr
-	cbz	x0, .L569
-.L568:
-	ldrb	w0, [sp, 48]
+	cbz	x0, .L586
+.L585:
+	ldrb	w0, [sp, 64]
 	cmp	w0, 13
-	bhi	.L570
+	bhi	.L587
 	mov	x1, 9217
 	lsr	x1, x1, x0
-	tbz	x1, 0, .L570
-.L590:
+	tbz	x1, 0, .L587
+.L609:
 	ldr	x21, [sp, 32]
-	b	.L559
+	b	.L576
 	.p2align 2,,3
-.L569:
-	ldr	x0, [x21]
+.L614:
+	cmn	w0, #1
+	beq	.L585
+.L586:
+	ldr	x0, [x20]
 	bl	getc
 	cmp	w0, 10
-	ccmn	w0, #1, 4, ne
-	beq	.L568
-	ldr	x0, [x21]
-	bl	getc
-	cmp	w0, 10
-	ccmn	w0, #1, 4, ne
-	bne	.L569
-	b	.L568
+	bne	.L614
+	b	.L585
 	.p2align 2,,3
-.L570:
+.L611:
+	adrp	x2, .LC98
+	add	x2, x2, :lo12:.LC98
+	b	.L577
+	.p2align 2,,3
+.L587:
 	and	w0, w0, -33
 	cmp	w0, 89
 	ldr	x21, [sp, 32]
 	cset	w0, eq
-	b	.L553
+	b	.L570
 	.p2align 2,,3
-.L593:
-	ldr	x2, [x21, 8]
-	cmp	w19, 0
-	adrp	x0, .LC99
+.L612:
+	cbnz	w19, .L615
 	adrp	x1, .LC101
-	add	x0, x0, :lo12:.LC99
 	add	x1, x1, :lo12:.LC101
-	csel	x1, x1, x0, eq
+.L581:
+	add	x20, x20, :lo12:.LANCHOR1
 	adrp	x0, .LC104
 	add	x0, x0, :lo12:.LC104
+	ldr	x2, [x20, 8]
 	bl	printf
 	ldr	x21, [sp, 32]
-	b	.L559
+	b	.L576
 	.p2align 2,,3
-.L594:
+.L615:
+	adrp	x1, .LC99
+	add	x1, x1, :lo12:.LC99
+	b	.L581
+	.p2align 2,,3
+.L613:
 	bl	__errno_location
 	ldr	w0, [x0]
 	cmp	w0, 4
-	beq	.L561
+	beq	.L578
 	ldr	x21, [sp, 32]
-	b	.L559
+	b	.L576
 	.align	2
 	.p2align 5,,15
 	.global	set_use_binary
 	.type	set_use_binary, %function
 set_use_binary:
-	adrp	x1, .LANCHOR0+24
 	cmp	w0, 0
-	cset	w0, ne
-	str	w0, [x1, #:lo12:.LANCHOR0+24]
+	adrp	x0, .LANCHOR0+24
+	cset	w1, ne
+	str	w1, [x0, #:lo12:.LANCHOR0+24]
 	ret
 	.align	2
 	.p2align 5,,15
@@ -2959,80 +2935,74 @@ get_use_binary:
 	.global	valid_gentoo_chroot_path
 	.type	valid_gentoo_chroot_path, %function
 valid_gentoo_chroot_path:
+	cbz	x0, .L633
 	stp	x29, x30, [sp, -48]!
 	mov	x29, sp
-	stp	x21, x22, [sp, 32]
-	cbz	x0, .L601
 	stp	x19, x20, [sp, 16]
-	mov	w22, 0
 	mov	x19, x0
-	ldrb	w21, [x0]
-	cbz	w21, .L610
+	ldrb	w20, [x0]
+	cbz	w20, .L621
 	bl	strlen
 	sub	x0, x0, #1
 	cmp	x0, 499
-	mov	w20, 47
-	ccmp	w21, w20, 0, ls
-	beq	.L611
-.L610:
+	mov	w1, 47
+	ccmp	w20, w1, 0, ls
+	beq	.L634
+.L621:
+	mov	w0, 0
+.L618:
 	ldp	x19, x20, [sp, 16]
-.L597:
-	mov	w0, w22
-	ldp	x21, x22, [sp, 32]
 	ldp	x29, x30, [sp], 48
 	ret
 	.p2align 2,,3
-.L611:
+.L634:
+	str	x21, [sp, 32]
 	bl	__ctype_b_loc
 	ldr	x21, [x0]
-	mov	w2, w20
 	adrp	x20, .LC105
+	mov	w0, 47
 	add	x20, x20, :lo12:.LC105
-	b	.L600
+	b	.L623
 	.p2align 2,,3
-.L613:
-	ldrb	w2, [x19, 1]!
-	cbz	w2, .L612
-.L600:
-	ubfiz	x3, x2, 1, 8
-	sub	w0, w2, #45
-	and	w4, w0, 255
+.L636:
+	ldrb	w0, [x19, 1]!
+	cbz	w0, .L635
+.L623:
+	ubfiz	x1, x0, 1, 8
+	ldrh	w1, [x21, x1]
+	tbnz	x1, 3, .L622
+	sub	w1, w0, #45
+	and	w1, w1, 255
+	cmp	w1, 2
+	bls	.L622
+	cmp	w0, 95
+	bne	.L632
+.L622:
 	mov	x1, x20
 	mov	x0, x19
-	ldrh	w3, [x21, x3]
-	tbnz	x3, 3, .L599
-	cmp	w4, 2
-	bls	.L599
-	cmp	w2, 95
-	bne	.L605
-.L599:
 	bl	strstr
-	cbz	x0, .L613
-.L605:
-	ldp	x19, x20, [sp, 16]
-	mov	w22, 0
-	b	.L597
+	cbz	x0, .L636
+.L632:
+	ldr	x21, [sp, 32]
+	b	.L621
 	.p2align 2,,3
-.L601:
-	mov	w22, 0
-	mov	w0, w22
-	ldp	x21, x22, [sp, 32]
-	ldp	x29, x30, [sp], 48
+.L633:
+	mov	w0, 0
 	ret
 	.p2align 2,,3
-.L612:
-	ldp	x19, x20, [sp, 16]
-	mov	w22, 1
-	b	.L597
+.L635:
+	ldr	x21, [sp, 32]
+	mov	w0, 1
+	b	.L618
 	.align	2
 	.p2align 5,,15
 	.global	set_gentoo_chroot
 	.type	set_gentoo_chroot, %function
 set_gentoo_chroot:
-	adrp	x1, .LANCHOR0+28
 	cmp	w0, 0
-	cset	w0, ne
-	str	w0, [x1, #:lo12:.LANCHOR0+28]
+	adrp	x0, .LANCHOR0+28
+	cset	w1, ne
+	str	w1, [x0, #:lo12:.LANCHOR0+28]
 	ret
 	.align	2
 	.p2align 5,,15
@@ -3047,10 +3017,10 @@ get_gentoo_chroot:
 	.global	set_portage_imitation
 	.type	set_portage_imitation, %function
 set_portage_imitation:
-	adrp	x1, .LANCHOR0+32
 	cmp	w0, 0
-	cset	w0, ne
-	str	w0, [x1, #:lo12:.LANCHOR0+32]
+	adrp	x0, .LANCHOR0+32
+	cset	w1, ne
+	str	w1, [x0, #:lo12:.LANCHOR0+32]
 	ret
 	.align	2
 	.p2align 5,,15
@@ -3059,8 +3029,8 @@ set_portage_imitation:
 get_portage_imitation:
 	adrp	x0, .LANCHOR0
 	add	x0, x0, :lo12:.LANCHOR0
-	ldp	w1, w0, [x0, 28]
-	orr	w0, w0, w1
+	ldp	w0, w1, [x0, 28]
+	orr	w0, w1, w0
 	cmp	w0, 0
 	cset	w0, ne
 	ret
@@ -3069,18 +3039,18 @@ get_portage_imitation:
 	.global	set_gentoo_chroot_path
 	.type	set_gentoo_chroot_path, %function
 set_gentoo_chroot_path:
-	cbz	x0, .L627
+	cbz	x0, .L650
 	stp	x29, x30, [sp, -32]!
 	mov	x29, sp
 	str	x19, [sp, 16]
 	mov	x19, x0
 	bl	valid_gentoo_chroot_path
-	cbnz	w0, .L630
+	cbnz	w0, .L653
 	ldr	x19, [sp, 16]
 	ldp	x29, x30, [sp], 32
 	ret
 	.p2align 2,,3
-.L630:
+.L653:
 	mov	x3, x19
 	adrp	x0, .LANCHOR1
 	ldr	x19, [sp, 16]
@@ -3092,7 +3062,7 @@ set_gentoo_chroot_path:
 	add	x2, x2, :lo12:.LC41
 	b	xsnprintf
 	.p2align 2,,3
-.L627:
+.L650:
 	ret
 	.align	2
 	.p2align 5,,15
@@ -3167,3 +3137,7 @@ g_gentoo_chroot:
 g_portage_imitation:
 	.zero	4
 	.section	.note.GNU-stack,"",@progbits
+	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128
+	.aeabi_attribute Tag_Feature_BTI, 0
+	.aeabi_attribute Tag_Feature_PAC, 0
+	.aeabi_attribute Tag_Feature_GCS, 0

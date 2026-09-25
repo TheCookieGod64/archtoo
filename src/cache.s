@@ -33,7 +33,6 @@ cmd_clean_v2:
 	add	x0, x0, :lo12:.LC2
 	stp	x29, x30, [sp]
 	mov	x29, sp
-	stp	x19, x20, [sp, 16]
 	bl	printf
 	adrp	x0, .LC3
 	add	x0, x0, :lo12:.LC3
@@ -41,41 +40,46 @@ cmd_clean_v2:
 	adrp	x0, .LC4
 	add	x0, x0, :lo12:.LC4
 	bl	printf
-	add	x19, sp, 32
 	bl	priv_prefix
-	mov	x20, x0
+	str	x0, [sp, 24]
 	bl	use_noconfirm
-	cmp	w0, 0
-	adrp	x1, .LC0
-	adrp	x4, .LC1
-	add	x1, x1, :lo12:.LC0
-	add	x4, x4, :lo12:.LC1
-	csel	x4, x4, x1, eq
-	mov	x3, x20
+	ldr	x3, [sp, 24]
+	cbz	w0, .L4
+	adrp	x4, .LC0
+	add	x4, x4, :lo12:.LC0
+.L2:
 	adrp	x2, .LC5
 	add	x2, x2, :lo12:.LC5
 	mov	x1, 512
-	mov	x0, x19
+	add	x0, sp, 32
 	bl	xsnprintf
-	mov	x0, x19
+	add	x0, sp, 32
 	bl	run_cmd
 	mov	w2, w0
 	mov	w0, 1
-	cbnz	w2, .L10
+	cbnz	w2, .L9
 	ldp	x29, x30, [sp]
-	ldp	x19, x20, [sp, 16]
 	add	sp, sp, 544
 	ret
 	.p2align 2,,3
-.L10:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+.L4:
+	adrp	x4, .LC1
+	add	x4, x4, :lo12:.LC1
+	b	.L2
+	.p2align 2,,3
+.L9:
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
 	adrp	x1, .LC6
 	add	x1, x1, :lo12:.LC6
 	ldr	x0, [x0]
 	bl	fprintf
 	ldp	x29, x30, [sp]
 	mov	w0, 0
-	ldp	x19, x20, [sp, 16]
 	add	sp, sp, 544
 	ret
 	.section	.note.GNU-stack,"",@progbits
+	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128
+	.aeabi_attribute Tag_Feature_BTI, 0
+	.aeabi_attribute Tag_Feature_PAC, 0
+	.aeabi_attribute Tag_Feature_GCS, 0

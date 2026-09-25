@@ -13,33 +13,29 @@
 	.global	unlock_pacman_pkg
 	.type	unlock_pacman_pkg, %function
 unlock_pacman_pkg:
-	sub	sp, sp, #2400
+	sub	sp, sp, #2384
 	mov	x2, 320
+	add	x1, sp, 16
 	stp	x29, x30, [sp]
 	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	add	x19, sp, 32
-	mov	x1, x19
 	bl	regex_escape
 	cbz	w0, .L1
 	bl	priv_prefix
 	mov	x3, x0
-	mov	x5, x19
-	mov	x4, x19
+	add	x5, sp, 16
 	adrp	x6, .LC0
-	adrp	x2, .LC1
+	mov	x4, x5
 	add	x6, x6, :lo12:.LC0
+	adrp	x2, .LC1
 	add	x2, x2, :lo12:.LC1
-	add	x20, sp, 352
 	mov	x1, 2048
-	mov	x0, x20
+	add	x0, sp, 336
 	bl	xsnprintf
-	mov	x0, x20
+	add	x0, sp, 336
 	bl	run_cmd
 .L1:
 	ldp	x29, x30, [sp]
-	ldp	x19, x20, [sp, 16]
-	add	sp, sp, 2400
+	add	sp, sp, 2384
 	ret
 	.section	.rodata.str1.8
 	.align	3
@@ -106,16 +102,16 @@ cmd_deselect:
 	mov	x3, x19
 	adrp	x2, .LC5
 	add	x2, x2, :lo12:.LC5
-	add	x20, sp, 32
 	mov	x1, 256
-	mov	x0, x20
+	add	x0, sp, 32
 	bl	xsnprintf
-	mov	x0, x20
+	add	x0, sp, 32
 	bl	unlock_pacman_pkg
 	b	.L12
 	.p2align 2,,3
 .L18:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
 	mov	x2, x19
 	adrp	x1, .LC3
 	add	x1, x1, :lo12:.LC3
@@ -126,7 +122,8 @@ cmd_deselect:
 .L17:
 	mov	w20, w0
 	mov	x2, x19
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
 	adrp	x1, .LC2
 	add	x1, x1, :lo12:.LC2
 	ldr	x0, [x0]
@@ -187,49 +184,45 @@ cmd_unmerge:
 	stp	x19, x20, [sp, 16]
 	mov	x19, x0
 	bl	valid_pkgname
-	cbz	w0, .L36
+	cbz	w0, .L35
 	mov	x1, x19
 	adrp	x0, .LC10
 	add	x0, x0, :lo12:.LC10
-	stp	x21, x22, [sp, 32]
 	bl	printf
-	add	x21, sp, 48
 	mov	x3, x19
 	mov	x1, 256
-	mov	x0, x21
+	add	x0, sp, 48
 	adrp	x2, .LC11
 	add	x2, x2, :lo12:.LC11
 	bl	xsnprintf
-	add	x20, sp, 560
-	mov	x3, x21
+	add	x3, sp, 48
 	adrp	x2, .LC12
 	add	x2, x2, :lo12:.LC12
 	mov	x1, 512
-	mov	x0, x20
+	add	x0, sp, 560
 	bl	xsnprintf
-	mov	x0, x20
+	add	x0, sp, 560
 	bl	run_cmd_quiet
-	cbz	w0, .L37
+	cbnz	w0, .L23
 	bl	priv_prefix
-	mov	x21, x0
+	str	x0, [sp, 40]
 	bl	use_noconfirm
-	cmp	w0, 0
-	adrp	x1, .LC8
-	adrp	x5, .LC9
-	add	x1, x1, :lo12:.LC8
-	add	x5, x5, :lo12:.LC9
-	csel	x5, x5, x1, eq
-	mov	x3, x21
+	ldr	x3, [sp, 40]
+	cbnz	w0, .L36
+	adrp	x6, .LC9
+	add	x6, x6, :lo12:.LC9
+.L24:
+	add	x5, sp, 48
 	mov	x4, x19
-	adrp	x2, .LC14
-	add	x2, x2, :lo12:.LC14
+	adrp	x2, .LC13
+	add	x2, x2, :lo12:.LC13
 	add	x20, sp, 1072
 	mov	x1, 1024
 	mov	x0, x20
 	bl	xsnprintf
 	mov	x0, x20
 	bl	run_cmd
-	cbnz	w0, .L38
+	cbnz	w0, .L37
 .L27:
 	mov	x1, x19
 	adrp	x0, .LC16
@@ -239,8 +232,8 @@ cmd_unmerge:
 	bl	unlock_pacman_pkg
 	mov	x0, x19
 	bl	is_kernel
-	cbnz	w0, .L39
-.L29:
+	cbnz	w0, .L38
+.L28:
 	adrp	x0, .LC17
 	add	x0, x0, :lo12:.LC17
 	bl	printf
@@ -255,33 +248,30 @@ cmd_unmerge:
 	mov	x0, x20
 	bl	xsnprintf
 	mov	x0, x20
+	mov	w20, 1
 	bl	run_cmd
 	mov	x1, x19
 	adrp	x0, .LC20
 	add	x0, x0, :lo12:.LC20
 	bl	printf
 	ldp	x29, x30, [sp]
-	mov	w0, 1
-	ldp	x21, x22, [sp, 32]
+	mov	w0, w20
 	ldp	x19, x20, [sp, 16]
 	add	sp, sp, 2096
 	ret
 	.p2align 2,,3
-.L37:
+.L23:
 	bl	priv_prefix
-	mov	x22, x0
+	str	x0, [sp, 40]
 	bl	use_noconfirm
-	cmp	w0, 0
-	adrp	x1, .LC8
-	adrp	x6, .LC9
-	add	x1, x1, :lo12:.LC8
-	add	x6, x6, :lo12:.LC9
-	csel	x6, x6, x1, eq
-	mov	x5, x21
-	mov	x3, x22
+	ldr	x3, [sp, 40]
+	cbnz	w0, .L39
+	adrp	x5, .LC9
+	add	x5, x5, :lo12:.LC9
+.L26:
 	mov	x4, x19
-	adrp	x2, .LC13
-	add	x2, x2, :lo12:.LC13
+	adrp	x2, .LC14
+	add	x2, x2, :lo12:.LC14
 	add	x20, sp, 1072
 	mov	x1, 1024
 	mov	x0, x20
@@ -289,41 +279,59 @@ cmd_unmerge:
 	mov	x0, x20
 	bl	run_cmd
 	cbz	w0, .L27
-.L38:
-	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
-	adrp	x0, .LC15
+.L37:
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
 	mov	x2, 31
-	add	x0, x0, :lo12:.LC15
 	mov	x1, 1
-	ldr	x3, [x3]
+	mov	w20, 0
+	ldr	x3, [x0]
+	adrp	x0, .LC15
+	add	x0, x0, :lo12:.LC15
 	bl	fwrite
-	ldp	x21, x22, [sp, 32]
-	mov	w0, 0
-.L40:
 	ldp	x29, x30, [sp]
+	mov	w0, w20
+	ldp	x19, x20, [sp, 16]
+	add	sp, sp, 2096
+	ret
+	.p2align 2,,3
+.L35:
+	mov	w20, w0
+	mov	x2, x19
+	adrp	x0, :got:stderr
+	ldr	x0, [x0, :got_lo12:stderr]
+	adrp	x1, .LC2
+	add	x1, x1, :lo12:.LC2
+	ldr	x0, [x0]
+	bl	fprintf
+	ldp	x29, x30, [sp]
+	mov	w0, w20
 	ldp	x19, x20, [sp, 16]
 	add	sp, sp, 2096
 	ret
 	.p2align 2,,3
 .L36:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x19
-	adrp	x1, .LC2
-	add	x1, x1, :lo12:.LC2
-	ldr	x0, [x0]
-	bl	fprintf
-	mov	w0, 0
-	b	.L40
+	adrp	x6, .LC8
+	add	x6, x6, :lo12:.LC8
+	b	.L24
 	.p2align 2,,3
 .L39:
+	adrp	x5, .LC8
+	add	x5, x5, :lo12:.LC8
+	b	.L26
+	.p2align 2,,3
+.L38:
 	mov	x3, x19
 	adrp	x2, .LC5
 	add	x2, x2, :lo12:.LC5
-	add	x21, sp, 304
 	mov	x1, 256
-	mov	x0, x21
+	add	x0, sp, 304
 	bl	xsnprintf
-	mov	x0, x21
+	add	x0, sp, 304
 	bl	unlock_pacman_pkg
-	b	.L29
+	b	.L28
 	.section	.note.GNU-stack,"",@progbits
+	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128
+	.aeabi_attribute Tag_Feature_BTI, 0
+	.aeabi_attribute Tag_Feature_PAC, 0
+	.aeabi_attribute Tag_Feature_GCS, 0

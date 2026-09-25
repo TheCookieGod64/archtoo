@@ -33,19 +33,20 @@ cmd_completion_v2:
 	bl	run_cmd_capture
 	mov	w1, w0
 	ldr	x0, [sp, 40]
-	cbnz	w1, .L3
-	cbz	x0, .L3
+	cbnz	w1, .L4
+	cbz	x0, .L4
 	ldrb	w1, [x0]
-	cbnz	w1, .L13
-.L3:
+	cbnz	w1, .L15
+.L4:
 	bl	free
 	ldr	x19, [sp, 16]
 	mov	w0, 1
 	ldp	x29, x30, [sp], 48
 	ret
 	.p2align 2,,3
-.L13:
-	adrp	x1, :got:stdout;ldr	x1, [x1, :got_lo12:stdout]
+.L15:
+	adrp	x1, :got:stdout
+	ldr	x1, [x1, :got_lo12:stdout]
 	ldr	x1, [x1]
 	bl	fputs
 	ldr	x0, [sp, 40]
@@ -347,3 +348,7 @@ flags.0:
 	.xword	.LC72
 	.xword	0
 	.section	.note.GNU-stack,"",@progbits
+	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128
+	.aeabi_attribute Tag_Feature_BTI, 0
+	.aeabi_attribute Tag_Feature_PAC, 0
+	.aeabi_attribute Tag_Feature_GCS, 0

@@ -20,3 +20,8 @@ Eerste zelfstandige publicatie van de ARM64-tak: de volledige Emerge Engine
 
 De x86-64-geschiedenis (v1.0 → v2.4 C-era, v3.0.0 NASM-port) staat in de CHANGELOG
 op de `main`-branch; deze branch is de ARM64-fork van dat verhaal.
+
+### Tooling-update 2026-09-24 (geen versiebump — binary unchanged)
+- `c_src/` toegevoegd: 29 C-modules + headers (versie 1.0.0) als regen-bron
+- `make regen` + `tools/strip_gcc_asm.pl`: C → cross-gcc -S → kaalgeknipte `.s`; in de smid bewezen 29/29 byte-identiek
+- Provenance-sectie in README: gegenereerd uit de C-toolchain-flow, daarna met de hand kaalgeknipt en nagelopen
