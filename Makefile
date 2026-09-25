@@ -51,6 +51,23 @@ dist: $(TARGET)
 	tar -czf archtoo-v$(VERSION)-nasm-linux-x86_64.tar.gz $(SRC_DIR) $(HDR_DIR) Makefile README.md CHANGELOG.md LICENSE LICENSE.CKL
 	@echo "[+] source archive built"
 
+# ---- regeneratie: BOEM C -> obj -> objconv -> strip -> src/*.asm (byte-idem geverifieerd) ----
+CC      := cc
+UNIV_CFLAGS := -march=x86-64 -mtune=generic -O2 -pipe
+OBJCONV ?= objconv
+
+regen:
+	@command -v $(OBJCONV) >/dev/null 2>&1 || [ -x "$(OBJCONV)" ] || { echo "[-] objconv niet gevonden: sudo pacman -S ... of maak: make regen OBJCONV=/pad/naar/objconv"; exit 1; }
+	@mkdir -p build/regen
+	@for c in $(wildcard c_src/*.c); do m=$$(basename $$c .c); \
+	  $(CC) $(UNIV_CFLAGS) -Ic_src/headers -c $$c -o build/regen/$$m.o || { echo "GEREED: cc faalde op $$c"; exit 1; }; \
+	  $(OBJCONV) -fnasm build/regen/$$m.o build/regen/$$m.raw >/dev/null || { echo "GEREED: objconv faalde op $$m"; exit 1; }; \
+	  perl tools/strip_asm.pl build/regen/$$m.raw src/$$m.asm $$m || { echo "GEREED: strip faalde op $$m"; exit 1; }; \
+	  echo "  -> src/$$m.asm"; \
+	done
+	@rm -rf build/regen
+	@echo "[+] regen klaar — review: git diff src/ ; daarna: make && make check"
+
 clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR)
 	@echo "[+] Build directories cleaned"

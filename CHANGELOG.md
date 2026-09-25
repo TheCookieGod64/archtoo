@@ -457,3 +457,8 @@ corrupt `/etc/pacman.conf`. Upgrading is recommended for all users.
 ## v1.0.0
 
 Initial release.
+
+### Tooling-update 2026-09-24 (geen versiebump — binary unchanged)
+- `c_src/` toegevoegd: 29 C-modules + headers als bron van de waarheid
+- `make regen`: C → gcc → objconv → `tools/strip_asm.pl` → `src/*.asm`; in de smid bewezen 29/29 byte-identiek
+- Provenance-sectie in README: assembly is object-code-geregenereerd **en daarna met de hand geoptimaliseerd**

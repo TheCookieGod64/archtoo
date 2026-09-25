@@ -20,6 +20,7 @@ extern is_kernel
 extern printf
 extern is_in_world
 extern valid_pkgname
+extern __stack_chk_fail
 extern run_cmd
 extern xsnprintf
 extern priv_prefix
@@ -28,55 +29,61 @@ extern regex_escape
 SECTION .text   align=16 exec
 
 unlock_pacman_pkg:; Function begin
-	push    rbp
+	sub     rsp, 2392
+; Note: Address is not rip-relative
+; Note: Absolute memory address without relocation
+	mov     rdx, qword [fs:abs 0x28]
+	mov     qword [rsp+0x948], rdx
 	mov     edx, 320
-	push    rbx
-	sub     rsp, 2376
 	mov     rsi, rsp
 	call    regex_escape
 	test    eax, eax
 	jz      loc_001
 	call    priv_prefix
-	mov     rbx, rsp
-	mov     esi, 2048
-	lea     rbp, [rsp+0x140]
-	mov     rcx, rax
 	sub     rsp, 8
-	mov     r9, rbx
-	mov     r8, rbx
-	lea     rax, [rel str_LC1]
+	mov     esi, 2048
+	lea     rcx, [rel str_LC1]
+	push    rcx
 	lea     rdx, [rel str_LC0]
-	mov     rdi, rbp
-	push    rax
+	mov     rcx, rax
 	xor     eax, eax
+	lea     r9, [rsp+0x10]
+	lea     rdi, [rsp+0x150]
+	mov     r8, r9
 	call    xsnprintf
-	mov     rdi, rbp
+	lea     rdi, [rsp+0x150]
 	call    run_cmd
-	mov     rsp, rbx
-loc_001:  add     rsp, 2376
-	pop     rbx
-	pop     rbp
+	pop     rax
+	pop     rdx
+loc_001:  mov     rax, qword [rsp+0x948]
+; Note: Address is not rip-relative
+; Note: Absolute memory address without relocation
+	sub     rax, qword [fs:abs 0x28]
+	jnz     loc_002
+	add     rsp, 2392
 	ret
 
-; Filling space: 0x6
-; Filler type: Multi-byte NOP
-;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
+loc_002:
+	call    __stack_chk_fail
+	nop
+ALIGN   16
 
-ALIGN   8
-
-cmd_deselect:; Function begin
-	push    rbp
+cmd_deselect:
 	push    rbx
+	sub     rsp, 288
+; Note: Address is not rip-relative
+; Note: Absolute memory address without relocation
+	mov     rbx, qword [fs:abs 0x28]
+	mov     qword [rsp+0x118], rbx
 	mov     rbx, rdi
-	sub     rsp, 264
 	call    valid_pkgname
 	test    eax, eax
-	je      loc_006
+	je      loc_008
 	mov     rdi, rbx
 	call    is_in_world
 	test    eax, eax
-	je      loc_005
-loc_002:  mov     rsi, rbx
+	je      loc_007
+loc_003:  mov     rsi, rbx
 	lea     rdi, [rel str_LC4]
 	xor     eax, eax
 	call    printf
@@ -85,11 +92,10 @@ loc_002:  mov     rsi, rbx
 	mov     rdi, rbx
 	call    is_kernel
 	test    eax, eax
-	jnz     loc_004
-loc_003:  mov     rsi, rbx
+	jnz     loc_006
+loc_004:  mov     rsi, rbx
 	lea     rdi, [rel str_LC6]
 	xor     eax, eax
-	mov     ebp, 1
 	call    printf
 	mov     rdi, rbx
 	call    remove_from_world
@@ -97,25 +103,42 @@ loc_003:  mov     rsi, rbx
 	lea     rdi, [rel str_LC7]
 	xor     eax, eax
 	call    printf
-	add     rsp, 264
-	mov     eax, ebp
+	mov     ecx, 1
+loc_005:  mov     rax, qword [rsp+0x118]
+; Note: Address is not rip-relative
+; Note: Absolute memory address without relocation
+	sub     rax, qword [fs:abs 0x28]
+	jne     loc_009
+	add     rsp, 288
+	mov     eax, ecx
 	pop     rbx
-	pop     rbp
 	ret
 
-; Filling space: 0x7
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00
+; Filling space: 0x1
+; Filler type: NOP
+;       db 0x90
 
 ALIGN   8
-loc_004:  mov     rdi, rsp
+loc_006:  lea     rdi, [rsp+0x10]
 	mov     rcx, rbx
-	lea     rdx, [rel str_LC5]
-	xor     eax, eax
 	mov     esi, 256
+	xor     eax, eax
+	lea     rdx, [rel str_LC5]
 	call    xsnprintf
-	mov     rdi, rsp
+	lea     rdi, [rsp+0x10]
 	call    unlock_pacman_pkg
+	jmp     loc_004
+
+; Filling space: 0x9
+; Filler type: Multi-byte NOP
+;       db 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00
+;       db 0x00
+
+ALIGN   16
+loc_007:  mov     rdi, qword [rel stderr]
+	mov     rdx, rbx
+	lea     rsi, [rel str_LC3]
+	call    fprintf
 	jmp     loc_003
 
 ; Filling space: 0x5
@@ -123,87 +146,76 @@ loc_004:  mov     rdi, rsp
 ;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
 
 ALIGN   8
-loc_005:  mov     rdi, qword [rel stderr]
-	mov     rdx, rbx
-	lea     rsi, [rel str_LC3]
-	call    fprintf
-	jmp     loc_002
-
-; Filling space: 0x5
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
-
-ALIGN   8
-loc_006:  mov     rdi, qword [rel stderr]
-	mov     ebp, eax
+loc_008:  mov     rdi, qword [rel stderr]
+	mov     dword [rsp+0x0C], eax
 	xor     eax, eax
 	mov     rdx, rbx
 	lea     rsi, [rel str_LC2]
 	call    fprintf
-	add     rsp, 264
-	mov     eax, ebp
-	pop     rbx
-	pop     rbp
-	ret
+	mov     ecx, dword [rsp+0x0C]
+	jmp     loc_005
 
-; Filling space: 0x2
-; Filler type: NOP with prefixes
-;       db 0x66, 0x90
+loc_009:
+	call    __stack_chk_fail
+; Filling space: 0x6
+; Filler type: Multi-byte NOP
+;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
 
 ALIGN   8
 
-cmd_unmerge:; Function begin
-	push    r13
-	push    r12
+cmd_unmerge:
 	push    rbp
 	push    rbx
+	sub     rsp, 2088
+; Note: Address is not rip-relative
+; Note: Absolute memory address without relocation
+	mov     rbx, qword [fs:abs 0x28]
+	mov     qword [rsp+0x818], rbx
 	mov     rbx, rdi
-	sub     rsp, 2056
 	call    valid_pkgname
 	test    eax, eax
-	je      loc_012
+	je      loc_015
 	mov     rsi, rbx
 	lea     rdi, [rel str_LC10]
 	xor     eax, eax
-	mov     r12, rsp
 	call    printf
 	mov     rcx, rbx
 	mov     esi, 256
-	mov     rdi, rsp
+	xor     eax, eax
 	lea     rdx, [rel str_LC11]
-	xor     eax, eax
-	lea     rbp, [rsp+0x200]
+	lea     rdi, [rsp+0x10]
 	call    xsnprintf
-	mov     rdi, rbp
+	lea     rdi, [rsp+0x210]
 	xor     eax, eax
-	mov     rcx, rsp
+	lea     rcx, [rsp+0x10]
 	lea     rdx, [rel str_LC12]
 	mov     esi, 512
 	call    xsnprintf
-	mov     rdi, rbp
+	lea     rdi, [rsp+0x210]
 	call    run_cmd_quiet
 	test    eax, eax
-	je      loc_009
+	je      loc_013
 	call    use_noconfirm
-	lea     r12, [rel str_LC9]
-	lea     rbp, [rsp+0x400]
+	lea     r9, [rel str_LC9]
+	lea     rbp, [rsp+0x410]
 	test    eax, eax
 	lea     rax, [rel str_LC8]
-	cmovne  r12, rax
+	cmovne  r9, rax
+	mov     qword [rsp+0x8], r9
 	call    priv_prefix
+	mov     r9, qword [rsp+0x8]
 	mov     rdi, rbp
 	mov     r8, rbx
-	mov     esi, 1024
 	mov     rcx, rax
-	mov     r9, r12
 	lea     rdx, [rel str_LC14]
 	xor     eax, eax
+	mov     esi, 1024
 	call    xsnprintf
 	mov     rdi, rbp
 	call    run_cmd
 	test    eax, eax
-	jne     loc_010
-loc_007:  mov     rsi, rbx
+	jne     loc_014
+loc_010:  mov     rsi, rbx
 	lea     rdi, [rel str_LC16]
 	xor     eax, eax
 	call    printf
@@ -212,8 +224,8 @@ loc_007:  mov     rsi, rbx
 	mov     rdi, rbx
 	call    is_kernel
 	test    eax, eax
-	jne     loc_013
-loc_008:  lea     rdi, [rel str_LC17]
+	jne     loc_016
+loc_011:  lea     rdi, [rel str_LC17]
 	xor     eax, eax
 	call    printf
 	mov     rdi, rbx
@@ -226,86 +238,93 @@ loc_008:  lea     rdi, [rel str_LC17]
 	xor     eax, eax
 	call    xsnprintf
 	mov     rdi, rbp
+	mov     ebp, 1
 	call    run_cmd
 	mov     rsi, rbx
 	lea     rdi, [rel str_LC20]
 	xor     eax, eax
 	call    printf
-	add     rsp, 2056
-	mov     eax, 1
+loc_012:  mov     rax, qword [rsp+0x818]
+; Note: Address is not rip-relative
+; Note: Absolute memory address without relocation
+	sub     rax, qword [fs:abs 0x28]
+	jne     loc_017
+	add     rsp, 2088
+	mov     eax, ebp
 	pop     rbx
 	pop     rbp
-	pop     r12
-	pop     r13
 	ret
 
-; Filling space: 0x5
+; Filling space: 0x9
 ; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
+;       db 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00
+;       db 0x00
 
-ALIGN   8
-loc_009:  call    use_noconfirm
-	lea     r13, [rel str_LC9]
-	lea     rbp, [rsp+0x400]
+ALIGN   16
+loc_013:  call    use_noconfirm
+	lea     rdx, [rel str_LC9]
+	lea     rbp, [rsp+0x410]
 	test    eax, eax
 	lea     rax, [rel str_LC8]
-	cmovne  r13, rax
+	cmovne  rdx, rax
+	mov     qword [rsp+0x8], rdx
 	call    priv_prefix
 	sub     rsp, 8
 	mov     rdi, rbp
-	mov     r9, r12
-	push    r13
-	mov     rcx, rax
 	mov     r8, rbx
-	xor     eax, eax
-	lea     rdx, [rel str_LC13]
+	mov     rdx, qword [rsp+0x10]
+	mov     rcx, rax
 	mov     esi, 1024
+	xor     eax, eax
+	push    rdx
+	lea     rdx, [rel str_LC13]
+	lea     r9, [rsp+0x20]
 	call    xsnprintf
-	mov     rsp, r12
+	pop     rax
 	mov     rdi, rbp
+	pop     rdx
 	call    run_cmd
 	test    eax, eax
-	je      loc_007
-loc_010:  mov     rcx, qword [rel stderr]
+	je      loc_010
+loc_014:  mov     rcx, qword [rel stderr]
 	mov     edx, 31
 	mov     esi, 1
+	xor     ebp, ebp
 	lea     rdi, [rel str_LC15]
 	call    fwrite
-	xor     eax, eax
-loc_011:  add     rsp, 2056
-	pop     rbx
-	pop     rbp
-	pop     r12
-	pop     r13
-	ret
+	jmp     loc_012
 
-; Filling space: 0x5
+; Filling space: 0x4
 ; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
+;       db 0x0F, 0x1F, 0x40, 0x00
 
 ALIGN   8
-loc_012:  mov     rdi, qword [rel stderr]
+loc_015:  mov     rdi, qword [rel stderr]
+	mov     ebp, eax
+	xor     eax, eax
 	mov     rdx, rbx
 	lea     rsi, [rel str_LC2]
 	call    fprintf
-	xor     eax, eax
-	jmp     loc_011
+	jmp     loc_012
 
-; Filling space: 0x6
-; Filler type: Multi-byte NOP
-;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
+; Filling space: 0x1
+; Filler type: NOP
+;       db 0x90
 
 ALIGN   8
-loc_013:  lea     r12, [rsp+0x100]
+loc_016:  lea     rdi, [rsp+0x110]
 	mov     rcx, rbx
 	mov     esi, 256
 	xor     eax, eax
-	mov     rdi, r12
 	lea     rdx, [rel str_LC5]
 	call    xsnprintf
-	mov     rdi, r12
+	lea     rdi, [rsp+0x110]
 	call    unlock_pacman_pkg
-	jmp     loc_008
+	jmp     loc_011
+
+loc_017:
+; Note: Function does not end with ret or jmp
+	call    __stack_chk_fail
 
 SECTION .rodata.str1.8 align=8 noexec
 

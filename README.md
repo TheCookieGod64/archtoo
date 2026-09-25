@@ -70,3 +70,24 @@ error paths and query commands.
 ## License
 
 GPL-3.0-or-later. Copyright (C) 2026 TheCookieGod64.
+
+
+## Provenance & eerlijkheid (onthulling)
+
+De 29 modules in `src/*.asm` zijn **niet met de hand getypt**. Herkomst, glashelder:
+
+1. C-bron in `c_src/` (de waarheid achter de assembly)
+2. `gcc` UNIV-build (`-march=x86-64 -mtune=generic -O2 -pipe`) → objecten
+3. `objconv -fnasm` → **object-code teruggegoten naar NASM-bron**
+4. `tools/strip_asm.pl`: met de hand geschreven kaalgeknipt- en optimalisatiestation —
+   bloat-secties (`.eh_frame`/`.comment`/`.debug`) eruit, GAS-labels genormaliseerd,
+   de objconv AVX-512-misrender gefixt, banners hersteld — eindresultaat: 0× ymm/zmm
+
+Dus: gegenereerd uit object-code, **vervolgens met de hand geoptimaliseerd** (dat laatste is heilig waar).
+
+**Bewezen reproduceerbaar**: `make regen` (gcc → objconv → strip over c_src/) produceerde in de
+smid 29/29 byte-identieke `.asm` en `make` een byte-identieke binary (2026-09-24).
+
+Update-flow voor de volgende release:
+`c_src/` bewarken → `make regen` → `git diff src/` (bijsturen waar je handmatig wilt) →
+`make && make check` → commit. Nodig om te regen: gcc, perl en objconv (of `make regen OBJCONV=/pad/naar/objconv`).
