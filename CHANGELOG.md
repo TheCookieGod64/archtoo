@@ -3,34 +3,34 @@
 ## v3.0.0 - NASM Edition, generic (portable) build
 
 - **Complete hand-written x86-64 NASM port**: 28 C modules -> 29 `.asm` files in `src/`
-  (SysV AMD64 ABI, `default rel`), `main` tailt naar `archtoo_cli_main` zoals in de C-editie.
-- **Generische ISA-baseline**: gegenereerd uit objecten met `-march=x86-64 -mtune=generic -O2 -pipe`
-  (de UNIV-vlaggen uit de C-Makefile `dist`-target). Geen AVX/AVX-512 in de instructiestroom:
-  draait op elke x86-64, van Conroe tot Ryzen - geen `illegal hardware instruction` meer.
-- **Bloatware stripped**: geen `.eh_frame`/`.note.*`/`.comment`, geen compiler-padding commentaar,
-  GAS-isms (`?_NNN`, `.LCn`) hernoemd naar NASM-clean `loc_NNN`/`str_LCn`, objconv's
-  AVX512VL-render (ymm als zmm) gefixt in de strip-pass.
-- **`--binary` mode**: probeert eerst `sudo pacman -S --needed <pkg>`; bij "not found"
-  yay-stijl AUR-jacht naar prebuilt variants (`-bin`/`-binary`/`-prebuilt`/`-release`) via
-  `aur_rpc_info()`; de old-school repo-downloadroute (URL -> curl/wget -> zelfde SHA256-check
-  -> `pacman -U`) blijft als fallback bij repo-pakketten waarvan `-S` faalt.
-- **Buildsysteem**: `make` draait `nasm -f elf64` + `ld` (CRT-paden via `gcc -print-file-name`),
-  `make check` runt de binary. 29/29 modules assembleren; instructie-bytes per functie
-  identiek aan de GCC-build (modulo alignment padding); `.rodata`/`.data` blobs byte-identiek.
-- **`headers/archtoo.inc`**: manifest van 137 publieke symbolen + version defines (3.0.0).
+  (SysV AMD64 ABI, `default rel`), `main` falls through to `archtoo_cli_main` as in the C edition.
+- **Generic ISA baseline**: generated from objects built with `-march=x86-64 -mtune=generic -O2 -pipe`
+  (the UNIV flags from the C Makefile `dist` target). No AVX/AVX-512 in the instruction stream:
+  runs on every x86-64, from Conroe to Ryzen — no more `illegal hardware instruction` errors.
+- **Bloatware stripped**: no `.eh_frame`/`.note.*`/`.comment`, no compiler-padding comments,
+  GASisms (`?_NNN`, `.LCn`) renamed to NASM-clean `loc_NNN`/`str_LCn`, and objconv's
+  AVX512VL rendering (`ymm` as `zmm`) fixed in the strip pass.
+- **`--binary` mode**: tries `sudo pacman -S --needed <pkg>` first; on "not found"
+  it performs a yay-style AUR search for prebuilt variants (`-bin`/`-binary`/`-prebuilt`/`-release`) via
+  `aur_rpc_info()`; the old-school repo-download route (URL -> curl/wget -> same SHA256 check
+  -> `pacman -U`) remains as a fallback for repo packages where `-S` fails.
+- **Build system**: `make` runs `nasm -f elf64` + `ld` (CRT paths via `gcc -print-file-name`),
+  `make check` runs the binary. 29/29 modules assemble; instruction bytes per function
+  are identical to the GCC build (modulo alignment padding); `.rodata`/`.data` blobs are byte-identical.
+- **`headers/archtoo.inc`**: manifest of 137 public symbols + version defines (3.0.0).
 
 ## v2.2.0
 
-- **New `--opt-level` / `-O*` option**: Choose optimization level `-O0, -O1, -O2, -O3, -Os, -Oz, -Ofast, -Og`. Examples: `emerge -O2 htop`, `emerge --opt-level=2 htop`, `emerge --opt-level=fast firefox`. Default is `-O3`. Also supports `--pipe` / `--no-pipe` (default: pipe enabled).
-- `CFLAGS` / `CXXFLAGS` now `-march=<target> -O<level> [-pipe]`, `KCFLAGS` / `KCPPFLAGS` same, `RUSTFLAGS` maps C level to Rust `opt-level` plus `target-cpu`. Written into `makepkg.archtoo.conf` with `# target=... opt=... pipe=...` comment.
+- **New `--opt-level` / `-O*` option**: Choose optimization level `-O0, -O1, -O2, -O3, -Os, -Oz, -Ofast, -Og`. Examples: `emerge -O2 htop`, `emerge --opt-level=2 htop`, `emerge --opt-level=fast fi[...`
+- `CFLAGS` / `CXXFLAGS` now `-march=<target> -O<level> [-pipe]`, `KCFLAGS` / `KCPPFLAGS` same, `RUSTFLAGS` maps C level to Rust `opt-level` plus `target-cpu`. Written into `makepkg.archtoo.conf` w[...`
 - **Config file support extended**: `~/.config/archtoo/config` now accepts `opt_level=2`, `optimization=2`, `opt=2`, `o=2`, and `pipe=true/false`. CLI overrides config.
 - Completion and help updated for new flags.
 
 ## v2.1.0
 
-- **New `--target` / `--march` / `--cpu` option**: Override `-march` instead of always using `native`. Examples: `emerge --target=skylake htop`, `emerge --target=znver3 firefox`, `emerge --target=x86-64-v3 -U`. Validated to `[A-Za-z0-9._-]` (max 64 chars), rejects shell metacharacters. Shows list via `--target help`.
-- `CFLAGS` / `CXXFLAGS` now `-march=<target> -O3 -pipe`, `KCFLAGS` / `KCPPFLAGS` same, `RUSTFLAGS` → `-C opt-level=3 -C target-cpu=<target>`. Written into `makepkg.archtoo.conf` with `# target=<name>` comment.
-- **Config file support**: `~/.config/archtoo/config` now accepts `target_arch=skylake` (aliases: `target=`, `march=`, `cpu=`). CLI `--target` overrides config file. Version/help output shows active target.
+- **New `--target` / `--march` / `--cpu` option**: Override `-march` instead of always using `native`. Examples: `emerge --target=skylake htop`, `emerge --target=znver3 firefox`, `emerge --target=[...]`.
+- `CFLAGS` / `CXXFLAGS` now `-march=<target> -O3 -pipe`, `KCFLAGS` / `KCPPFLAGS` same, `RUSTFLAGS` → `-C opt-level=3 -C target-cpu=<target>`. Written into `makepkg.archtoo.conf` with `# target=<[...`.
+- **Config file support**: `~/.config/archtoo/config` now accepts `target_arch=skylake` (aliases: `target=`, `march=`, `cpu=`). CLI `--target` overrides config file. Version/help output shows acti[...`.
 - Help text updated, completion list includes `--target`, `--march`, `--cpu`.
 - Build output shows active target: `Compiling with makepkg (-march=skylake -O3 -pipe, -jN)`.
 
@@ -128,7 +128,7 @@
 - **No second sudo prompt after a long build.** v1.4.3 refreshed sudo from a
   helper process, but systems using sudo's `timestamp_type=ppid` gave the
   later `makepkg`/`pacman -U` process a different credential scope. That made
-  package installation request a second password from non-interactive input
+  the package installation request a second password from non-interactive input
   and fail. Archtoo now asks once and re-executes itself as root, while still
   dropping source fetching and compilation back to `SUDO_USER`. Makepkg no
   longer installs through its own nested `sudo`; after compilation Archtoo's
@@ -243,7 +243,7 @@
   build fails. Archtoo now reads the array, skips keys you already have, and
   fetches the rest from `keyserver.ubuntu.com`, falling back to
   `keys.openpgp.org`. Both 40- and 16-character key IDs are handled, in
-  single- and multi-line arrays. The array is parsed with awk rather than by
+  single- and multi-line arrays. The array is parsed with `awk` rather than by
   sourcing the PKGBUILD, so nothing from it executes at that point. Disable
   with `--no-keys`.
 
@@ -259,7 +259,7 @@
   non-sudo run. `makepkg.archtoo.conf` and the rewritten world file were both
   created by root and never handed back, so after any `sudo emerge` a plain
   `emerge <pkg>` would fail with "Cannot write /usr/local/emerge/
-  makepkg.archtoo.conf". Both are now chowned to the build user.
+  makepkg.archtoo.conf". Both are now `chown`ed to the build user.
 - The temporary script used to drop privileges had a fixed name, so two
   concurrent runs could overwrite each other's. It is now per-process.
 - Tool detection used hardcoded `/usr/bin/...` paths, which missed binaries
@@ -337,7 +337,7 @@
 
 - **`makepkg` reinstalled stale packages instead of rebuilding.** Without
   `-f`, `makepkg` finds a leftover `.pkg.tar.zst` in the build directory and
-  installs that rather than compiling ("Er werd al een pakket gebouwd..."). A
+  installs that rather than compiling ("A package has already been built..."). A
   package was therefore never rebuilt with the native flags once an artifact
   existed, and `emerge -U` reinstalled the whole world set without compiling
   anything. Now uses `makepkg -sif`.
@@ -458,7 +458,7 @@ corrupt `/etc/pacman.conf`. Upgrading is recommended for all users.
 
 Initial release.
 
-### Tooling-update 2026-09-24 (geen versiebump — binary unchanged)
-- `c_src/` toegevoegd: 29 C-modules + headers als bron van de waarheid
-- `make regen`: C → gcc → objconv → `tools/strip_asm.pl` → `src/*.asm`; in de smid bewezen 29/29 byte-identiek
-- Provenance-sectie in README: assembly is object-code-geregenereerd **en daarna met de hand geoptimaliseerd**
+### Tooling update 2026-09-24 (no version bump — binary unchanged)
+- `c_src/` added: 29 C modules + headers as the source of truth
+- `make regen`: C → gcc → objconv → `tools/strip_asm.pl` → `src/*.asm`; in the forge, 29/29 proven byte-identical
+- Provenance section in README: assembly was object-code-regenerated **and then hand-optimized**
