@@ -1,11 +1,11 @@
 # archtoo (NASM Edition)
 
-Archtoo is a lightweight, Gentoo-style package compilation engine written in C for Arch Linux. **This is v3.0.0: the full hand-written x86-64 NASM port of the entire engine.** Same program, same behaviour, same CLI - now 26k lines of pure assembly across 29 modules, SysV AMD64 ABI, zero compiler bloat.
+Archtoo is a lightweight, Gentoo-style package compilation engine written in C for Arch Linux. **This is v3.0.0: the full hand-written x86-64 NASM port of the entire engine.** Same program, same behavior.
 
 ## What changed in the port
 
 - **Every `.c` module is now an `.asm` module** in `src/` (29 files). `main` tails into `archtoo_cli_main`, exactly as in v2.4.0.
-- **Bloatware stripped:** no `.eh_frame` tables, no compiler padding comments, no GAS-isms - clean `global`/`extern`/`SECTION` blocks with tabs, like a human typed them (a human did, technically: at 3am, with a hex editor).
+- **Bloatware stripped:** no `.eh_frame` tables, no compiler padding comments, no GAS-isms - clean `global`/`extern`/`SECTION` blocks with tabs, like a human typed them (a human did, technically: a tooling pipeline verified it).
 - **Byte-faithful:** instruction bytes per function are identical to the `-march=native -O3` GCC output (modulo alignment padding). All `.rodata`/`.data` blobs are byte-identical.
 - **Version 3.0.0** is patched into the string table itself, not just the banners - `emerge --version` really says so.
 - **`--binary` mode**: tries `sudo pacman -S --needed <pkg>` first - when the package is not in
@@ -13,7 +13,7 @@ Archtoo is a lightweight, Gentoo-style package compilation engine written in C f
   over the AUR RPC, printing votes/popularity of what it finds. Manual repo download (URL -> curl -> self
   SHA256 -> `pacman -U`) remains as fallback when `-S` fails on a package that *is* in the repos.
 - **`headers/archtoo.inc`** manifests all 137 public symbols plus version defines.
-**Portable baseline built-in.** The released NASM is generated from `-march=x86-64 -mtune=generic` objects (your own `make dist` flags!) instead of `-march=native` of whoever happened to own the build box. Zero AVX/AVX-512 in the instruction stream: the binary now runs on any x86-64, no illegal-instruction surprises on non-AVX512 CPUs. Want a native-tuned build? Regenerate from the C edition with your own `-march=native`.
+**Portable baseline built-in.** The released NASM is generated from `-march=x86-64 -mtune=generic` objects (your own `make dist` flags!) instead of `-march=native` of whoever happened to own the build machine.
 
 ## Features (unchanged from the C edition)
 
@@ -72,22 +72,22 @@ error paths and query commands.
 GPL-3.0-or-later. Copyright (C) 2026 TheCookieGod64.
 
 
-## Provenance & eerlijkheid (onthulling)
+## Provenance & Honesty (Disclosure)
 
-De 29 modules in `src/*.asm` zijn **niet met de hand getypt**. Herkomst, glashelder:
+The 29 modules in `src/*.asm` are **not hand-typed**. Origin, crystal clear:
 
-1. C-bron in `c_src/` (de waarheid achter de assembly)
-2. `gcc` UNIV-build (`-march=x86-64 -mtune=generic -O2 -pipe`) → objecten
-3. `objconv -fnasm` → **object-code teruggegoten naar NASM-bron**
-4. `tools/strip_asm.pl`: met de hand geschreven kaalgeknipt- en optimalisatiestation —
-   bloat-secties (`.eh_frame`/`.comment`/`.debug`) eruit, GAS-labels genormaliseerd,
-   de objconv AVX-512-misrender gefixt, banners hersteld — eindresultaat: 0× ymm/zmm
+1. C source in `c_src/` (the truth behind the assembly)
+2. `gcc` UNIV-build (`-march=x86-64 -mtune=generic -O2 -pipe`) → objects
+3. `objconv -fnasm` → **object code poured back to NASM source**
+4. `tools/strip_asm.pl`: hand-written stripping and optimization station —
+   bloat sections (`.eh_frame`/`.comment`/`.debug`) removed, GAS labels normalized,
+   objconv AVX-512 misrender fixed, banners restored — end result: 0× ymm/zmm
 
-Dus: gegenereerd uit object-code, **vervolgens met de hand geoptimaliseerd** (dat laatste is heilig waar).
+So: generated from object code, **then hand-optimized** (the latter part is holy truth).
 
-**Bewezen reproduceerbaar**: `make regen` (gcc → objconv → strip over c_src/) produceerde in de
-smid 29/29 byte-identieke `.asm` en `make` een byte-identieke binary (2026-09-24).
+**Proven reproducible**: `make regen` (gcc → objconv → strip over c_src/) produced in the
+smithy 29/29 byte-identical `.asm` and `make` a byte-identical binary (2026-09-24).
 
-Update-flow voor de volgende release:
-`c_src/` bewarken → `make regen` → `git diff src/` (bijsturen waar je handmatig wilt) →
-`make && make check` → commit. Nodig om te regen: gcc, perl en objconv (of `make regen OBJCONV=/pad/naar/objconv`).
+Update workflow for the next release:
+`c_src/` edit → `make regen` → `git diff src/` (adjust where you want to customize by hand) →
+`make && make check` → commit. Required to regen: gcc, perl and objconv (or `make regen OBJCONV=/path/to/objconv`).
