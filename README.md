@@ -1,70 +1,70 @@
 # Archtoo Emerge Engine — ARM64 Edition v1.0.0
 
-Handgeschreven **GAS-assembly** (`.s`, AArch64) — de ARM64-tak van de Archtoo-familie.
-Port van de x86-64 NASM-editie v3.0.0, opnieuw gesmeed voor armv8: 29 modules, nul
-compiler-bloatware (`.cfi`/`.loc`/`.ident` eruit geslepen), alleen `as` + `ld` nodig.
+Hand-written **GAS-assembly** (`.s`, AArch64) — the ARM64 branch of the Archtoo family.
+Port of the x86-64 NASM edition v3.0.0, re-forged for armv8: 29 modules, zero
+compiler bloatware (`.cfi`/`.loc`/`.ident` stripped), `as` + `ld` only.
 
-> Waarom geen NASM op ARM? NASM kent geen AArch64-back-end. Deze editie gebruikt daarom
-> GNU-assembler-syntax — zelfde principe, zelfde nul-bloatware-ritueel, andere heilige tekst.
+> Why not NASM on ARM? NASM has no AArch64 back-end. This edition uses
+> GNU assembler syntax instead — same principle, same zero-bloatware ritual, different holy text.
 
-## Specificaties
+## Specifications
 
 | | |
 |---|---|
-| ISA-baseline | **armv8.0-A** (FP/ASIMD zoals élke Linux-ARM64-CPU: Pi3/4/5, RK33xx, Snapdragon, Apple M) |
+| ISA baseline | **armv8.0-A** (FP/ASIMD like every Linux-ARM64 CPU: Pi3/4/5, RK33xx, Snapdragon, Apple M) |
 | Modules | 29 × `src/*.s` (GAS) |
 | Link | direct `ld` → libc, `-z noexecstack`, interp `/lib/ld-linux-aarch64.so.1` |
-| Versie | **v1.0.0** — de ARM-tak begint opnieuw, onafhankelijk van de x86-v3.x-tellingen |
-| Licenties | GPL-3.0-only (code) + CKL (docs) |
+| Version | **v1.0.0** — the ARM branch starts fresh, independent of x86 v3.x counts |
+| Licenses | GPL-3.0-only (code) + CKL (docs) |
 
-## Werking
+## Operation
 
-Identiek aan de x86-editie: pacman-first, AUR via `aur_rpc`, PKGBUILD-fetch, makepkg-aanroep
-met `SUDO_UID/GID`, sha256-verificatie, transacties met backup/restore, `--binary` repo-first mode.
+Identical to the x86 edition: pacman-first, AUR via `aur_rpc`, PKGBUILD-fetch, makepkg call
+with `SUDO_UID/GID`, sha256 verification, transactions with backup/restore, `--binary` repo-first mode.
 
-## Bouwen
+## Building
 
 ```bash
-# Op x86-64 (cross): gereedschap first
+# On x86-64 (cross): tooling first
 sudo pacman -S aarch64-linux-gnu-gcc         # Arch   (apt: gcc-aarch64-linux-gnu)
-make && make check                            # check draait onder qemu als het kan
+make && make check                            # check runs under qemu if available
 
-# Op native ARM64
+# On native ARM64
 make AS=as LD=ld SYSROOT=/usr && sudo make install
 ```
 
-## Testen via qemu op een x86-host (optioneel)
+## Testing via qemu on an x86 host (optional)
 
 ```bash
 sudo pacman -S qemu-user-static              # Arch
 qemu-aarch64-static -L /usr/aarch64-linux-gnu ./bin/emerge --version
 ```
 
-## Structuur
+## Structure
 
 ```
 archtoo/
 ├── Makefile          # as + ld flow, VERSION 1.0.0
-├── src/*.s           # 29 GAS-modules
+├── src/*.s           # 29 GAS modules
 ├── README.md  CHANGELOG.md  LICENSE  LICENSE.CKL  .gitignore
 ```
 
-Geen `headers/`-map nodig: GAS externals hoeven geen declaraties — `ld` lost alles op.
+No `headers/` directory needed: GAS externals don't need declarations — `ld` resolves everything.
 
 
-## Provenance & eerlijkheid (onthulling)
+## Provenance & Honesty (Disclosure)
 
-De 29 modules in `src/*.s` zijn **niet met de hand getypt**. Herkomst:
+The 29 modules in `src/*.s` are **not hand-typed**. Origin:
 
-1. C-bron in `c_src/` (met `headers/`, version.h = 1.0.0)
-2. `aarch64-linux-gnu-gcc -S` (armv8-A, -O2, geen unwind-tables) → GAS-assembly
-3. `tools/strip_gcc_asm.pl`: kaalgeknipt-station — `.cfi_*`/`.loc`/`.file`/`.size`/`.ident`-bloat eruit,
-   met de hand nagelopen op netheid en leesbaarheid
+1. C source in `c_src/` (with `headers/`, version.h = 1.0.0)
+2. `aarch64-linux-gnu-gcc -S` (armv8-A, -O2, no unwind-tables) → GAS assembly
+3. `tools/strip_gcc_asm.pl`: stripping station — `.cfi_*`/`.loc`/`.file`/`.size`/`.ident` bloat removed,
+   hand-reviewed for cleanliness and readability
 
-Op deze tak géén objconv (dat is het gereedschap van de x86-editie); GAS is hier de standaard —
-dezelfde keuze als de Linux-kernel zelf op arm64 maakt.
+On this branch no objconv (that's the x86 edition's tool); GAS is the standard here —
+the same choice the Linux kernel itself makes on arm64.
 
-**Bewezen reproduceerbaar**: `make regen` produceerde 29/29 byte-identieke `.s` en `make` een
-byte-identieke binary (smid-verificatie 2026-09-24).
+**Proven reproducible**: `make regen` produced 29/29 byte-identical `.s` and `make` a
+byte-identical binary (smithy-verification 2026-09-24).
 
-Update-flow: `c_src/` bewarken → `make regen` → `git diff src/` → `make && make check` → commit.
+Update workflow: `c_src/` edit → `make regen` → `git diff src/` → `make && make check` → commit.
