@@ -98,7 +98,7 @@ count_cmd_lines:
 	.string	"/usr/local/emerge/world"
 	.align	3
 .LC7:
-	.string	"1.0.0"
+	.string	"1.1.0"
 	.align	3
 .LC8:
 	.string	"Archtoo Emerge Engine"
@@ -246,6 +246,3 @@ cmd_stats_v2:
 	ret
 	.section	.note.GNU-stack,"",@progbits
 	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128
-	.aeabi_attribute Tag_Feature_BTI, 0
-	.aeabi_attribute Tag_Feature_PAC, 0
-	.aeabi_attribute Tag_Feature_GCS, 0

@@ -1,5 +1,16 @@
 # Changelog — Archtoo Emerge Engine, ARM64 Edition
 
+## v1.1.0 — --raw flag + JSON hardening (GAS/AArch64)
+
+### Added
+- `--raw "FLAGS"` (`--raw=FLAGS`, config key `raw = ...`): appended to generated CFLAGS/CXXFLAGS
+  and LDFLAGS of every source build; plain option tokens only.
+
+### Fixed
+- `parse_json_string`: truncation guards (same as x86 v3.1.0).
+- Regen strip filter widened: `.eabi_attribute`/`.aeabi_attribute` lines are dropped so gcc
+  output assembles cleanly with current binutils on this and older distros.
+
 ## v1.0.0 — 2026-09-21 — ARM64 Edition, eerste release
 
 Eerste zelfstandige publicatie van de ARM64-tak: de volledige Emerge Engine

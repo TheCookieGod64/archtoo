@@ -362,9 +362,7 @@ int compile_package(const char *pkg) {
                "fetch and extract it again.\n" COLOR_RESET);
     {
         char cflags_disp[256];
-        char pipe_str[16];
-        xsnprintf(pipe_str, sizeof(pipe_str), "%s", get_use_pipe() ? " -pipe" : "");
-        xsnprintf(cflags_disp, sizeof(cflags_disp), "-march=%s -O%s%s", get_target_arch(), get_opt_level(), pipe_str);
+        render_build_flags(cflags_disp, sizeof(cflags_disp));
         printf(COLOR_BLUE ">>> Compiling with makepkg (%s, -j%ld)%s...\n" COLOR_RESET,
                cflags_disp, get_jobs(), reuse_sources ? " [reusing sources]" : "");
     }

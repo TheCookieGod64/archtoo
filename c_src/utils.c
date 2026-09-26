@@ -170,6 +170,57 @@ const char *get_opt_level(void) {
     return g_opt_level;
 }
 
+/* --raw: raw compiler/linker flags straight from the user. Only plain option
+   tokens are allowed (no shell metacharacters): these strings end up inside a
+   double-quoted makepkg.conf that the build shell re-sources. */
+#define RAW_FLAGS_MAX 192
+static char g_raw_flags[RAW_FLAGS_MAX + 1];
+
+int valid_raw_flags(const char *s) {
+    if (!s || !*s)
+        return 0;
+    if (strlen(s) > RAW_FLAGS_MAX)
+        return 0;
+    const char *p = s;
+    while (*p == ' ')
+        p++;
+    if (*p != '-')
+        return 0;
+    for (const char *q = s; *q; q++) {
+        unsigned char c = (unsigned char)*q;
+        if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '/' ||
+            c == '=' || c == '+' || c == ',' || c == ':' || c == '@')
+            continue;
+        if (c == ' ') {
+            if (q[1] == ' ')
+                return 0;
+            continue;
+        }
+        return 0;
+    }
+    if (s[strlen(s) - 1] == ' ')
+        return 0;
+    return 1;
+}
+
+void set_raw_flags(const char *v) {
+    xsnprintf(g_raw_flags, sizeof(g_raw_flags), "%s", v ? v : "");
+}
+
+const char *get_raw_flags(void) {
+    return g_raw_flags;
+}
+
+void render_build_flags(char *out, size_t n) {
+    char opt[16], pipe_part[16];
+    xsnprintf(opt, sizeof(opt), "%s", get_opt_level());
+    xsnprintf(pipe_part, sizeof(pipe_part), "%s", get_use_pipe() ? " -pipe" : "");
+    if (g_raw_flags[0])
+        xsnprintf(out, n, "-march=%s -O%s%s %s", get_target_arch(), opt, pipe_part, g_raw_flags);
+    else
+        xsnprintf(out, n, "-march=%s -O%s%s", get_target_arch(), opt, pipe_part);
+}
+
 void print_known_opt_levels(void) {
     printf(COLOR_CYAN "Known --opt-level values:\n" COLOR_RESET);
     printf("  0      -O0 no optimization (debug)\n");
@@ -657,12 +708,14 @@ int write_makepkg_conf(char *path_out, size_t n) {
     char cflags[256];
     char cxxflags[256];
     char rustflags[256];
-    char pipe_part[16];
     char opt[16];
-    xsnprintf(pipe_part, sizeof(pipe_part), "%s", get_use_pipe() ? " -pipe" : "");
     xsnprintf(opt, sizeof(opt), "%s", get_opt_level());
-    xsnprintf(cflags, sizeof(cflags), "-march=%s -O%s%s", get_target_arch(), opt, pipe_part);
-    xsnprintf(cxxflags, sizeof(cxxflags), "-march=%s -O%s%s", get_target_arch(), opt, pipe_part);
+    render_build_flags(cflags, sizeof(cflags));
+    render_build_flags(cxxflags, sizeof(cxxflags));
+    char ldextra[RAW_FLAGS_MAX + 8];
+    ldextra[0] = '\0';
+    if (g_raw_flags[0])
+        xsnprintf(ldextra, sizeof(ldextra), " %s", g_raw_flags);
     /* Map C opt level to Rust opt level: 0->0,1->1,2->2,3->3,s/z->s, fast->3, g->1 */
     const char *rust_opt = "3";
     if (strcmp(opt, "0") == 0) rust_opt = "0";
@@ -684,10 +737,10 @@ int write_makepkg_conf(char *path_out, size_t n) {
             "source /etc/makepkg.conf\n"
             "CFLAGS=\"%s\"\n"
             "CXXFLAGS=\"%s\"\n"
-            "LDFLAGS=\"${LDFLAGS}\"\n"
+            "LDFLAGS=\"${LDFLAGS}%s\"\n"
             "RUSTFLAGS=\"%s\"\n"
             "MAKEFLAGS=\"-j%ld\"\n",
-            get_target_arch(), opt, get_use_pipe(), cflags, cxxflags, rustflags, get_jobs());
+            get_target_arch(), opt, get_use_pipe(), cflags, cxxflags, ldextra, rustflags, get_jobs());
     fclose(f);
     fix_owner(path_out);
     return 1;

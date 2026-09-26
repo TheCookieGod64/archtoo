@@ -163,4 +163,11 @@ void fix_owner(const char *path);
 /* True if the command is resolvable on PATH. */
 int have_cmd(const char *name);
 
+
+/* --raw: user-supplied raw compiler/linker flags (CFLAGS/CXXFLAGS/LDFLAGS). */
+int valid_raw_flags(const char *s);
+void set_raw_flags(const char *v);
+const char *get_raw_flags(void);
+void render_build_flags(char *out, size_t n);
+
 #endif

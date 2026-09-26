@@ -51,7 +51,7 @@ regen:
 	  m=$$(basename $$c .c); \
 	  $(CC) -std=gnu11 -O2 -pipe -march=armv8-a -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-ident \
 	     -Ic_src/headers -S $$c -o build/regen/$$m.s.raw || { echo "GEREED: $(CC) faalde op $$c"; exit 1; }; \
-	  perl -ne 'next if /^\s*\#|^\s*\.cfi|^\s*\.file|^\s*\.loc|^\s*\.size|^\s*\.ident|^\s*$$/; print' \
+	  perl -ne 'next if /^\s*\#|^\s*\.cfi|^\s*\.file|^\s*\.loc|^\s*\.size|^\s*\.ident|^\s*\.eabi_attribute|^\s*\.aeabi_attribute|^\s*$$/; print' \
 	     build/regen/$$m.s.raw > src/$$m.s || { echo "GEREED: strip faalde op $$m"; exit 1; }; \
 	  echo "  -> src/$$m.s"; \
 	done

@@ -139,135 +139,138 @@ cmd_completion_v2:
 	.string	"--jobs"
 	.align	3
 .LC29:
-	.string	"--target"
+	.string	"--raw"
 	.align	3
 .LC30:
-	.string	"--march"
+	.string	"--target"
 	.align	3
 .LC31:
-	.string	"--cpu"
+	.string	"--march"
 	.align	3
 .LC32:
-	.string	"--opt-level"
+	.string	"--cpu"
 	.align	3
 .LC33:
-	.string	"--opt"
+	.string	"--opt-level"
 	.align	3
 .LC34:
-	.string	"--optimization"
+	.string	"--opt"
 	.align	3
 .LC35:
-	.string	"--pipe"
+	.string	"--optimization"
 	.align	3
 .LC36:
-	.string	"--no-pipe"
+	.string	"--pipe"
 	.align	3
 .LC37:
-	.string	"--gentoo-chroot"
+	.string	"--no-pipe"
 	.align	3
 .LC38:
-	.string	"--imitation"
+	.string	"--gentoo-chroot"
 	.align	3
 .LC39:
-	.string	"--portage-imitation"
+	.string	"--imitation"
 	.align	3
 .LC40:
-	.string	"--gentoo-imitation"
+	.string	"--portage-imitation"
 	.align	3
 .LC41:
-	.string	"--no-gentoo-chroot"
+	.string	"--gentoo-imitation"
 	.align	3
 .LC42:
-	.string	"--no-imitation"
+	.string	"--no-gentoo-chroot"
 	.align	3
 .LC43:
-	.string	"--chroot-path"
+	.string	"--no-imitation"
 	.align	3
 .LC44:
-	.string	"--binary"
+	.string	"--chroot-path"
 	.align	3
 .LC45:
-	.string	"--use-binary"
+	.string	"--binary"
 	.align	3
 .LC46:
-	.string	"--use-bin"
+	.string	"--use-binary"
 	.align	3
 .LC47:
-	.string	"--bin"
+	.string	"--use-bin"
 	.align	3
 .LC48:
-	.string	"--prebuilt"
+	.string	"--bin"
 	.align	3
 .LC49:
-	.string	"--use-prebuilt"
+	.string	"--prebuilt"
 	.align	3
 .LC50:
-	.string	"--no-build"
+	.string	"--use-prebuilt"
 	.align	3
 .LC51:
-	.string	"--no-compile"
+	.string	"--no-build"
 	.align	3
 .LC52:
-	.string	"--no-binary"
+	.string	"--no-compile"
 	.align	3
 .LC53:
-	.string	"--no-use-binary"
+	.string	"--no-binary"
 	.align	3
 .LC54:
-	.string	"--no-bin"
+	.string	"--no-use-binary"
 	.align	3
 .LC55:
-	.string	"--resume"
+	.string	"--no-bin"
 	.align	3
 .LC56:
-	.string	"--no-keys"
+	.string	"--resume"
 	.align	3
 .LC57:
-	.string	"--no-inhibit"
+	.string	"--no-keys"
 	.align	3
 .LC58:
-	.string	"--no-sync"
+	.string	"--no-inhibit"
 	.align	3
 .LC59:
-	.string	"--no-aur-sync"
+	.string	"--no-sync"
 	.align	3
 .LC60:
-	.string	"--command-guide"
+	.string	"--no-aur-sync"
 	.align	3
 .LC61:
-	.string	"--orphans"
+	.string	"--command-guide"
 	.align	3
 .LC62:
-	.string	"--clean"
+	.string	"--orphans"
 	.align	3
 .LC63:
-	.string	"--stats"
+	.string	"--clean"
 	.align	3
 .LC64:
-	.string	"--news"
+	.string	"--stats"
 	.align	3
 .LC65:
-	.string	"--complete"
+	.string	"--news"
 	.align	3
 .LC66:
-	.string	"--devel"
+	.string	"--complete"
 	.align	3
 .LC67:
-	.string	"--providers"
+	.string	"--devel"
 	.align	3
 .LC68:
-	.string	"--deps"
+	.string	"--providers"
 	.align	3
 .LC69:
-	.string	"--review"
+	.string	"--deps"
 	.align	3
 .LC70:
-	.string	"--unmerge"
+	.string	"--review"
 	.align	3
 .LC71:
-	.string	"--deselect"
+	.string	"--unmerge"
 	.align	3
 .LC72:
+	.string	"--deselect"
+	.align	3
+.LC73:
 	.string	"--update"
 	.section	.data.rel.ro.local,"aw"
 	.align	4
@@ -346,9 +349,7 @@ flags.0:
 	.xword	.LC70
 	.xword	.LC71
 	.xword	.LC72
+	.xword	.LC73
 	.xword	0
 	.section	.note.GNU-stack,"",@progbits
 	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128
-	.aeabi_attribute Tag_Feature_BTI, 0
-	.aeabi_attribute Tag_Feature_PAC, 0
-	.aeabi_attribute Tag_Feature_GCS, 0

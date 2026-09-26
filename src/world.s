@@ -290,7 +290,7 @@ remove_from_world:
 	.string	"\033[1;35m\n=========================================================="
 	.align	3
 .LC15:
-	.string	"1.0.0"
+	.string	"1.1.0"
 	.align	3
 .LC16:
 	.string	"   ARCHTOO WORLD UPDATE v%s\n"
@@ -645,6 +645,3 @@ cmd_world_update:
 	b	.L52
 	.section	.note.GNU-stack,"",@progbits
 	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128
-	.aeabi_attribute Tag_Feature_BTI, 0
-	.aeabi_attribute Tag_Feature_PAC, 0
-	.aeabi_attribute Tag_Feature_GCS, 0

@@ -534,6 +534,3 @@ g_explicit:
 	.zero	4
 	.section	.note.GNU-stack,"",@progbits
 	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128
-	.aeabi_attribute Tag_Feature_BTI, 0
-	.aeabi_attribute Tag_Feature_PAC, 0
-	.aeabi_attribute Tag_Feature_GCS, 0

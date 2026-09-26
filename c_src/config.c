@@ -120,6 +120,9 @@ int config_load(archtoo_config_t *config, char *error, size_t error_size) {
             if (!valid_target_arch(value)) goto invalid;
             if (strlen(value) >= sizeof(config->target_arch)) goto invalid;
             snprintf(config->target_arch, sizeof(config->target_arch), "%s", value);
+        } else if (strcmp(key,"raw")==0 || strcmp(key,"raw_flags")==0) {
+            if (!valid_raw_flags(value)) goto invalid;
+            set_raw_flags(value);
         } else if (strcmp(key,"opt_level")==0 || strcmp(key,"opt")==0 ||
                    strcmp(key,"optimization")==0 || strcmp(key,"o")==0) {
             if (!valid_opt_level(value)) goto invalid;
