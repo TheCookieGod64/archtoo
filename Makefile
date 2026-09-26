@@ -1,5 +1,5 @@
 # Keep in sync with headers/archtoo.inc
-VERSION     = 3.0.0
+VERSION     = 3.1.0
 
 NASM        ?= nasm
 NASFLAGS    = -f elf64 -Iheaders/
@@ -53,7 +53,7 @@ dist: $(TARGET)
 
 # ---- regeneratie: BOEM C -> obj -> objconv -> strip -> src/*.asm (byte-idem geverifieerd) ----
 CC      := cc
-UNIV_CFLAGS := -march=x86-64 -mtune=generic -O2 -pipe
+UNIV_CFLAGS := -march=x86-64 -mtune=generic -O2 -pipe -fno-jump-tables  # objconv kan geen .text.unlikely-labels in jump-tables resolven -> tables verbieden
 OBJCONV ?= objconv
 
 regen:

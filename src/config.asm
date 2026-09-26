@@ -25,6 +25,8 @@ extern set_interactive
 extern memcpy
 extern valid_gentoo_chroot_path
 extern valid_opt_level
+extern set_raw_flags
+extern valid_raw_flags
 extern strerror
 extern ferror
 extern valid_target_arch
@@ -315,7 +317,7 @@ loc_017:  lea     rsi, [rel str_LC14]
 	call    fopen
 	mov     r14, rax
 	test    rax, rax
-	je      loc_046
+	je      loc_045
 	xor     r13d, r13d
 loc_018:  mov     rdx, r14
 	mov     esi, 1024
@@ -417,32 +419,32 @@ loc_019:  lea     rsi, [rel str_LC17]
 	mov     rdi, rbp
 	call    strcmp
 	test    eax, eax
-	je      loc_042
+	je      loc_043
 	lea     rsi, [rel str_LC32]
 	mov     rdi, rbp
 	call    strcmp
 	test    eax, eax
-	je      loc_042
+	je      loc_043
 	lea     rsi, [rel str_LC33]
 	mov     rdi, rbp
 	call    strcmp
 	test    eax, eax
-	je      loc_045
+	je      loc_043
 	lea     rsi, [rel str_LC34]
 	mov     rdi, rbp
 	call    strcmp
 	test    eax, eax
-	je      loc_045
+	je      loc_043
 	lea     rsi, [rel str_LC35]
 	mov     rdi, rbp
 	call    strcmp
 	test    eax, eax
-	je      loc_047
+	je      loc_046
 	lea     rsi, [rel str_LC36]
 	mov     rdi, rbp
 	call    strcmp
 	test    eax, eax
-	je      loc_047
+	je      loc_046
 	lea     rsi, [rel str_LC37]
 	mov     rdi, rbp
 	call    strcmp
@@ -462,27 +464,27 @@ loc_019:  lea     rsi, [rel str_LC17]
 	mov     rdi, rbp
 	call    strcmp
 	test    eax, eax
-	je      loc_049
+	je      loc_047
 	lea     rsi, [rel str_LC41]
 	mov     rdi, rbp
 	call    strcmp
 	test    eax, eax
-	je      loc_049
+	je      loc_047
 	lea     rsi, [rel str_LC42]
 	mov     rdi, rbp
 	call    strcmp
 	test    eax, eax
-	je      loc_020
+	je      loc_049
 	lea     rsi, [rel str_LC43]
 	mov     rdi, rbp
 	call    strcmp
 	test    eax, eax
-	jz      loc_020
+	je      loc_049
 	lea     rsi, [rel str_LC44]
 	mov     rdi, rbp
 	call    strcmp
 	test    eax, eax
-	jz      loc_020
+	je      loc_020
 	lea     rsi, [rel str_LC45]
 	mov     rdi, rbp
 	call    strcmp
@@ -507,6 +509,16 @@ loc_019:  lea     rsi, [rel str_LC17]
 	mov     rdi, rbp
 	call    strcmp
 	test    eax, eax
+	jz      loc_020
+	lea     rsi, [rel str_LC50]
+	mov     rdi, rbp
+	call    strcmp
+	test    eax, eax
+	jz      loc_020
+	lea     rsi, [rel str_LC51]
+	mov     rdi, rbp
+	call    strcmp
+	test    eax, eax
 	jne     loc_048
 loc_020:  lea     rsi, [rsp+0x18]
 	mov     rdi, rbx
@@ -518,9 +530,9 @@ loc_020:  lea     rsi, [rsp+0x18]
 	mov     dword [r12+0x3B4], eax
 	jmp     loc_018
 
-; Filling space: 0x5
+; Filling space: 0x7
 ; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
+;       db 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00
 
 ALIGN   8
 loc_021:  mov     rsi, r12
@@ -532,7 +544,7 @@ loc_022:  mov     rsi, qword [rsp]
 	mov     r9, rbx
 	mov     r8, r13
 	mov     rcx, rbp
-	lea     rdx, [rel str_LC51]
+	lea     rdx, [rel str_LC53]
 	mov     rdi, r15
 	xor     eax, eax
 	call    error_format
@@ -729,13 +741,21 @@ loc_041:  call    __errno_location
 	mov     edi, dword [rax]
 	call    strerror
 	mov     rsi, qword [rsp]
-	lea     rdx, [rel str_LC52]
+	lea     rdx, [rel str_LC54]
 	mov     rdi, r15
 	mov     rcx, rax
 	xor     eax, eax
 	jmp     loc_040
 
 loc_042:  mov     rdi, rbx
+	call    valid_raw_flags
+	test    eax, eax
+	je      loc_022
+	mov     rdi, rbx
+	call    set_raw_flags
+	jmp     loc_018
+
+loc_043:  mov     rdi, rbx
 	call    valid_opt_level
 	test    eax, eax
 	je      loc_022
@@ -743,16 +763,15 @@ loc_042:  mov     rdi, rbx
 	call    strlen
 	cmp     rax, 16
 	ja      loc_022
-	movzx   eax, byte [rbx]
-	cmp     al, 45
-	jnz     loc_043
-	movzx   eax, byte [rbx+0x1]
-	add     rbx, 1
-loc_043:  and     eax, 0x0FFFFFFDF
+	cmp     byte [rbx], 45
+	lea     rax, [rbx+0x1]
 	lea     rdi, [r12+0x194]
 	mov     esi, 16
-	cmp     al, 79
+	cmove   rbx, rax
 	lea     rdx, [rel str_LC24]
+	movzx   eax, byte [rbx]
+	and     eax, 0x0FFFFFFDF
+	cmp     al, 79
 	sete    al
 	movzx   eax, al
 	lea     rcx, [rbx+rax]
@@ -767,17 +786,7 @@ loc_044:  mov     qword [rsp+0x838], rbx
 	mov     qword [rsp+0x858], r14
 	mov     qword [rsp+0x860], r15
 	call    __stack_chk_fail
-loc_045:  lea     rsi, [rsp+0x18]
-	mov     rdi, rbx
-	call    parse_switch
-	test    eax, eax
-	je      loc_022
-	mov     dword [r12+0x1A8], 1
-	mov     eax, dword [rsp+0x18]
-	mov     dword [r12+0x1A4], eax
-	jmp     loc_018
-
-loc_046:  call    __errno_location
+loc_045:  call    __errno_location
 	mov     edi, dword [rax]
 	cmp     edi, 2
 	je      loc_038
@@ -789,6 +798,16 @@ loc_046:  call    __errno_location
 	xor     eax, eax
 	call    error_format
 	jmp     loc_024
+
+loc_046:  lea     rsi, [rsp+0x18]
+	mov     rdi, rbx
+	call    parse_switch
+	test    eax, eax
+	je      loc_022
+	mov     dword [r12+0x1A8], 1
+	mov     eax, dword [rsp+0x18]
+	mov     dword [r12+0x1A4], eax
+	jmp     loc_018
 
 loc_047:  lea     rsi, [rsp+0x18]
 	mov     rdi, rbx
@@ -804,7 +823,7 @@ loc_048:  mov     rsi, qword [rsp]
 	mov     r8, rbp
 	mov     rcx, r13
 	mov     rdi, r15
-	lea     rdx, [rel str_LC50]
+	lea     rdx, [rel str_LC52]
 	xor     eax, eax
 	call    error_format
 	jmp     loc_023
@@ -822,10 +841,10 @@ loc_049:
 	call    snprintf
 	jmp     loc_018
 
-; Filling space: 0x9
-; Filler type: Multi-byte NOP
-;       db 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00
-;       db 0x00
+; Filling space: 0x0D
+; Filler type: NOP with prefixes
+;       db 0x66, 0x90, 0x66, 0x66, 0x2E, 0x0F, 0x1F, 0x84
+;       db 0x00, 0x00, 0x00, 0x00, 0x00
 
 ALIGN   16
 
@@ -1078,87 +1097,94 @@ str_LC28:
 	db 0x63, 0x70, 0x75, 0x00
 
 str_LC29:
+	db 0x72, 0x61, 0x77, 0x00
+
+str_LC30:
+	db 0x72, 0x61, 0x77, 0x5F, 0x66, 0x6C, 0x61, 0x67
+	db 0x73, 0x00
+
+str_LC31:
 	db 0x6F, 0x70, 0x74, 0x5F, 0x6C, 0x65, 0x76, 0x65
 	db 0x6C, 0x00
 
-str_LC30:
+str_LC32:
 	db 0x6F, 0x70, 0x74, 0x00
 
-str_LC31:
+str_LC33:
 	db 0x6F, 0x70, 0x74, 0x69, 0x6D, 0x69, 0x7A, 0x61
 	db 0x74, 0x69, 0x6F, 0x6E, 0x00
 
-str_LC32:
+str_LC34:
 	db 0x6F, 0x00
 
-str_LC33:
+str_LC35:
 	db 0x70, 0x69, 0x70, 0x65, 0x00
 
-str_LC34:
+str_LC36:
 	db 0x75, 0x73, 0x65, 0x5F, 0x70, 0x69, 0x70, 0x65
 	db 0x00
 
-str_LC35:
+str_LC37:
 	db 0x67, 0x65, 0x6E, 0x74, 0x6F, 0x6F, 0x5F, 0x63
 	db 0x68, 0x72, 0x6F, 0x6F, 0x74, 0x00
 
-str_LC36:
+str_LC38:
 	db 0x70, 0x6F, 0x72, 0x74, 0x61, 0x67, 0x65, 0x5F
 	db 0x63, 0x68, 0x72, 0x6F, 0x6F, 0x74, 0x00
 
-str_LC37:
+str_LC39:
 	db 0x69, 0x6D, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6F
 	db 0x6E, 0x00
 
-str_LC38:
+str_LC40:
 	db 0x70, 0x6F, 0x72, 0x74, 0x61, 0x67, 0x65, 0x5F
 	db 0x69, 0x6D, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6F
 	db 0x6E, 0x00
 
-str_LC39:
+str_LC41:
 	db 0x67, 0x65, 0x6E, 0x74, 0x6F, 0x6F, 0x5F, 0x69
 	db 0x6D, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6F, 0x6E
 	db 0x00
 
-str_LC40:
+str_LC42:
 	db 0x67, 0x65, 0x6E, 0x74, 0x6F, 0x6F, 0x5F, 0x63
 	db 0x68, 0x72, 0x6F, 0x6F, 0x74, 0x5F, 0x70, 0x61
 	db 0x74, 0x68, 0x00
 
-str_LC41:
+str_LC43:
 	db 0x63, 0x68, 0x72, 0x6F, 0x6F, 0x74, 0x5F, 0x70
 	db 0x61, 0x74, 0x68, 0x00
 
-str_LC42:
+str_LC44:
 	db 0x62, 0x69, 0x6E, 0x61, 0x72, 0x79, 0x00
 
-str_LC43:
+str_LC45:
 	db 0x75, 0x73, 0x65, 0x5F, 0x62, 0x69, 0x6E, 0x61
 	db 0x72, 0x79, 0x00
 
-str_LC44:
+str_LC46:
 	db 0x75, 0x73, 0x65, 0x5F, 0x62, 0x69, 0x6E, 0x00
 
-str_LC45:
+str_LC47:
 	db 0x62, 0x69, 0x6E, 0x00
 
-str_LC46:
+str_LC48:
 	db 0x70, 0x72, 0x65, 0x62, 0x75, 0x69, 0x6C, 0x74
 	db 0x00
 
-str_LC47:
+str_LC49:
 	db 0x75, 0x73, 0x65, 0x5F, 0x70, 0x72, 0x65, 0x62
 	db 0x75, 0x69, 0x6C, 0x74, 0x00
 
-str_LC48:
+str_LC50:
 	db 0x6E, 0x6F, 0x5F, 0x62, 0x75, 0x69, 0x6C, 0x64
 	db 0x00
 
-str_LC49:
+str_LC51:
 	db 0x6E, 0x6F, 0x2D, 0x62, 0x75, 0x69, 0x6C, 0x64
 	db 0x00
 
-str_LC52:
+str_LC54:
 	db 0x65, 0x72, 0x72, 0x6F, 0x72, 0x20, 0x72, 0x65
 	db 0x61, 0x64, 0x69, 0x6E, 0x67, 0x20, 0x63, 0x6F
 	db 0x6E, 0x66, 0x69, 0x67, 0x3A, 0x20, 0x25, 0x73
@@ -1174,14 +1200,14 @@ str_LC13:
 	db 0x20, 0x63, 0x6F, 0x6E, 0x66, 0x69, 0x67, 0x20
 	db 0x70, 0x61, 0x74, 0x68, 0x00, 0x00, 0x00, 0x00
 
-str_LC50:
+str_LC52:
 	db 0x75, 0x6E, 0x6B, 0x6E, 0x6F, 0x77, 0x6E, 0x20
 	db 0x63, 0x6F, 0x6E, 0x66, 0x69, 0x67, 0x20, 0x6B
 	db 0x65, 0x79, 0x20, 0x6F, 0x6E, 0x20, 0x6C, 0x69
 	db 0x6E, 0x65, 0x20, 0x25, 0x6C, 0x75, 0x3A, 0x20
 	db 0x25, 0x73, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 
-str_LC51:
+str_LC53:
 	db 0x69, 0x6E, 0x76, 0x61, 0x6C, 0x69, 0x64, 0x20
 	db 0x76, 0x61, 0x6C, 0x75, 0x65, 0x20, 0x66, 0x6F
 	db 0x72, 0x20, 0x25, 0x73, 0x20, 0x6F, 0x6E, 0x20

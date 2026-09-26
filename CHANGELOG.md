@@ -1,5 +1,21 @@
 # Changelog
 
+## v3.1.0 — --raw flag + AUR-binary hunt hardening
+
+### Added
+- `--raw "FLAGS"` (`--raw=FLAGS`, config key `raw = ...`): raw compiler options appended to the
+  generated CFLAGS/CXXFLAGS and to LDFLAGS of every source build, e.g.
+  `emerge --raw "-march=native -fuse-ld=mold" pkg`. Only plain option tokens are accepted (no
+  shell metacharacters) because the string lands in a re-sourced makepkg.conf. RUSTFLAGS untouched.
+
+### Fixed
+- NASM regen pipeline: objconv could not resolve jump-table entries pointing at cold
+  `.text.unlikely` labels; they were anchored to the nearest global with a constant offset and
+  broke after link-time relocation — SIGSEGV while parsing AUR descriptions containing `\u`
+  escapes (seen with gzdoom-bin). Regeneration now uses `-fno-jump-tables`.
+- `parse_json_string`: hardened against truncated JSON (curl read cap): a trailing backslash no
+  longer reads past the buffer and the output index is bounded by capacity.
+
 ## v3.0.0 - NASM Edition, generic (portable) build
 
 - **Complete hand-written x86-64 NASM port**: 28 C modules -> 29 `.asm` files in `src/`

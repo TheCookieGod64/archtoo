@@ -104,9 +104,10 @@ static char *parse_json_string(const char **cursor) {
     out = malloc(capacity);
     if (!out) return NULL;
     p++;
-    while (*p && *p != '"') {
+    while (*p && *p != '"' && used + 8 < capacity) {
         unsigned char c = (unsigned char)*p++;
         if (c == '\\') {
+            if (!*p) { out[used++] = '\\'; break; }
             c = (unsigned char)*p++;
             switch (c) {
             case 'n': c = '\n'; break; case 'r': c = '\r'; break;
