@@ -80,8 +80,12 @@ int cmd_local_build_v2(const char *directory) {
 
     printf(COLOR_BLUE ">>> Building local PKGBUILD in %s\n" COLOR_RESET,
            directory);
-    xsnprintf(cmd, sizeof(cmd), "cd %s && makepkg -f%s", quoted,
-              use_noconfirm() ? " --noconfirm" : "");
+    char mpextra[RAW_FLAGS_MAX + 2];
+    mpextra[0] = '\0';
+    if (get_makepkg_raw()[0])
+        xsnprintf(mpextra, sizeof(mpextra), " %s", get_makepkg_raw());
+    xsnprintf(cmd, sizeof(cmd), "cd %s && makepkg -f%s%s", quoted,
+              use_noconfirm() ? " --noconfirm" : "", mpextra);
     if (run_as_user(cmd, NULL) != 0) {
         fprintf(stderr, COLOR_RED "[-] Local build failed.\n" COLOR_RESET);
         return 0;

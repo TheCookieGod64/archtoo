@@ -34,6 +34,7 @@ global valid_opt_level: function
 global get_opt_level: function
 global valid_raw_flags: function
 global get_raw_flags: function
+global get_makepkg_raw: function
 global print_known_opt_levels: function
 global set_use_pipe: function
 global get_use_pipe: function
@@ -46,6 +47,7 @@ global xsnprintf: function
 global set_target_arch: function
 global set_opt_level: function
 global set_raw_flags: function
+global set_makepkg_raw: function
 global render_build_flags: function
 global run_cmd_quiet: function
 global fopen_nofollow: function
@@ -756,6 +758,16 @@ loc_032:  mov     edx, ebx
 ALIGN   16
 get_raw_flags:; Function begin
 	lea     rax, [rel g_raw_flags]
+	ret
+
+; Filling space: 0x8
+; Filler type: Multi-byte NOP
+;       db 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00
+
+ALIGN   16
+
+get_makepkg_raw:; Function begin
+	lea     rax, [rel g_makepkg_raw]
 	ret
 
 ; Filling space: 0x8
@@ -1602,6 +1614,23 @@ set_raw_flags:; Function begin
 	cmovne  rax, rdi
 	lea     rdx, [rel str_LC42]
 	lea     rdi, [rel g_raw_flags]
+	mov     rcx, rax
+	xor     eax, eax
+	jmp     xsnprintf
+
+; Filling space: 0x5
+; Filler type: Multi-byte NOP
+;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
+
+ALIGN   8
+
+set_makepkg_raw:; Function begin
+	test    rdi, rdi
+	lea     rax, [rel str_LC43]
+	mov     esi, 193
+	cmovne  rax, rdi
+	lea     rdx, [rel str_LC42]
+	lea     rdi, [rel g_makepkg_raw]
 	mov     rcx, rax
 	xor     eax, eax
 	jmp     xsnprintf
@@ -3558,18 +3587,21 @@ g_gentoo_chroot:
 g_use_binary:
 	resd    6                                       ; 0008
 
+g_makepkg_raw:
+	resb    224                                     ; 0020
+
 g_raw_flags:
-	resb    196                                     ; 0020
+	resb    196                                     ; 0100
 
 g_interactive:
-	resd    1                                       ; 00E4
+	resd    1                                       ; 01C4
 
-g_resume: resd  2                                       ; 00E8
+g_resume: resd  2                                       ; 01C8
 
-g_jobs: resq    1                                       ; 00F0
+g_jobs: resq    1                                       ; 01D0
 
 g_noconfirm:
-	resd    1                                       ; 00F8
+	resd    1                                       ; 01D8
 
 SECTION .rodata.str1.1 align=1 noexec
 

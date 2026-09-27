@@ -173,7 +173,6 @@ const char *get_opt_level(void) {
 /* --raw: raw compiler/linker flags straight from the user. Only plain option
    tokens are allowed (no shell metacharacters): these strings end up inside a
    double-quoted makepkg.conf that the build shell re-sources. */
-#define RAW_FLAGS_MAX 192
 static char g_raw_flags[RAW_FLAGS_MAX + 1];
 
 int valid_raw_flags(const char *s) {
@@ -209,6 +208,18 @@ void set_raw_flags(const char *v) {
 
 const char *get_raw_flags(void) {
     return g_raw_flags;
+}
+
+/* makepkg_raw: same guard as --raw (plain option tokens only, validated by
+   the caller); this one goes to makepkg's own command line, not to CC. */
+static char g_makepkg_raw[RAW_FLAGS_MAX + 1];
+
+void set_makepkg_raw(const char *v) {
+    xsnprintf(g_makepkg_raw, sizeof(g_makepkg_raw), "%s", v ? v : "");
+}
+
+const char *get_makepkg_raw(void) {
+    return g_makepkg_raw;
 }
 
 void render_build_flags(char *out, size_t n) {
