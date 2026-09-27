@@ -58,6 +58,8 @@ static void print_usage(void) {
     printf("  -O0,-O1,-O2,-O3,-Os,-Ofast,-Og,-Oz  Short forms\n");
     printf("  --raw \"FLAGS\"          Extra raw flags appended to CFLAGS/CXXFLAGS/LDFLAGS\n");
     printf("                         e.g. --raw \"-march=native -fuse-ld=mold\" (plain options only)\n");
+    printf("  makepkg_raw (config)   Raw options passed to makepkg itself,\n");
+    printf("                         e.g. makepkg_raw = \"--nocheck\" (plain options only)\n");
     printf("  --pipe                 Enable -pipe (default)\n");
     printf("  --no-pipe              Disable -pipe\n");
     printf("  --gentoo-chroot        Enable SUPER HARD Portage imitation via Gentoo chroot\n");
@@ -93,11 +95,12 @@ int archtoo_cli_main(int argc, char *argv[]) {
     load_user_config();
 
     if (argc < 2) {
-        if (strcmp(get_target_arch(), "native") != 0 || strcmp(get_opt_level(), "3") != 0 || !get_use_pipe() || get_gentoo_chroot() || get_raw_flags()[0]) {
-            printf(COLOR_CYAN "Current config: target=%s opt=-O%s pipe=%s chroot=%s binary=%s path=%s raw=%s\n" COLOR_RESET,
+        if (strcmp(get_target_arch(), "native") != 0 || strcmp(get_opt_level(), "3") != 0 || !get_use_pipe() || get_gentoo_chroot() || get_raw_flags()[0] || get_makepkg_raw()[0]) {
+            printf(COLOR_CYAN "Current config: target=%s opt=-O%s pipe=%s chroot=%s binary=%s path=%s raw=%s makepkg=%s\n" COLOR_RESET,
                    get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no",
                    get_gentoo_chroot() ? "on" : "off", get_use_binary() ? "on" : "off",
-                   get_gentoo_chroot_path(), get_raw_flags()[0] ? get_raw_flags() : "none");
+                   get_gentoo_chroot_path(), get_raw_flags()[0] ? get_raw_flags() : "none",
+                   get_makepkg_raw()[0] ? get_makepkg_raw() : "none");
         }
         print_usage();
         return 1;
@@ -115,10 +118,11 @@ int archtoo_cli_main(int argc, char *argv[]) {
 
     if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
         print_usage();
-        if (strcmp(get_target_arch(), "native") != 0 || strcmp(get_opt_level(), "3") != 0 || get_raw_flags()[0]) {
-            printf(COLOR_CYAN "\nActive config: target=%s opt=-O%s pipe=%s raw=%s\n" COLOR_RESET,
+        if (strcmp(get_target_arch(), "native") != 0 || strcmp(get_opt_level(), "3") != 0 || get_raw_flags()[0] || get_makepkg_raw()[0]) {
+            printf(COLOR_CYAN "\nActive config: target=%s opt=-O%s pipe=%s raw=%s makepkg=%s\n" COLOR_RESET,
                    get_target_arch(), get_opt_level(), get_use_pipe() ? "yes" : "no",
-                   get_raw_flags()[0] ? get_raw_flags() : "none");
+                   get_raw_flags()[0] ? get_raw_flags() : "none",
+                   get_makepkg_raw()[0] ? get_makepkg_raw() : "none");
         }
         return 0;
     }

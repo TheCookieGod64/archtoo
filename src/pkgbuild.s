@@ -181,9 +181,12 @@ cmd_get_pkgbuild_v2:
 	.string	"\033[1;34m>>> Building local PKGBUILD in %s\n\033[0m"
 	.align	3
 .LC16:
-	.string	"cd %s && makepkg -f%s"
+	.string	" %s"
 	.align	3
 .LC17:
+	.string	"cd %s && makepkg -f%s%s"
+	.align	3
+.LC18:
 	.string	"\033[1;31m[-] Local build failed.\n\033[0m"
 	.text
 	.align	2
@@ -191,7 +194,7 @@ cmd_get_pkgbuild_v2:
 	.global	cmd_local_build_v2
 	.type	cmd_local_build_v2, %function
 cmd_local_build_v2:
-	mov	x12, 4320
+	mov	x12, 4528
 	sub	sp, sp, x12
 	stp	x29, x30, [sp]
 	mov	x29, sp
@@ -199,7 +202,7 @@ cmd_local_build_v2:
 	str	x19, [sp, 16]
 	mov	x19, x0
 	ldrb	w1, [x0]
-	cbz	w1, .L48
+	cbz	w1, .L52
 	mov	w1, 10
 	bl	strchr
 	cbnz	x0, .L29
@@ -222,11 +225,11 @@ cmd_local_build_v2:
 .L25:
 	ldp	x29, x30, [sp]
 	mov	w0, w3
-	mov	x12, 4320
+	mov	x12, 4528
 	add	sp, sp, x12
 	ret
 	.p2align 2,,3
-.L48:
+.L52:
 	ldr	x19, [sp, 16]
 .L26:
 	mov	x2, 49
@@ -242,52 +245,58 @@ cmd_local_build_v2:
 .L30:
 	mov	x0, x19
 	bl	dir_exists
-	cbz	w0, .L49
+	cbz	w0, .L53
 	mov	x3, x19
 	adrp	x2, .LC2
 	add	x2, x2, :lo12:.LC2
 	mov	x1, 1200
-	add	x0, sp, 1072
+	add	x0, sp, 1280
 	bl	xsnprintf
-	add	x0, sp, 1072
+	add	x0, sp, 1280
 	bl	file_exists
-	cbz	w0, .L50
-	add	x1, sp, 48
+	cbz	w0, .L54
+	add	x1, sp, 256
 	mov	x0, x19
 	mov	x2, 1024
 	bl	shell_quote
 	mov	w3, w0
-	cbz	w0, .L46
+	cbz	w0, .L50
 	mov	x1, x19
 	adrp	x0, .LC15
 	add	x0, x0, :lo12:.LC15
 	bl	printf
+	strb	wzr, [sp, 56]
+	bl	get_makepkg_raw
+	ldrb	w0, [x0]
+	cbnz	w0, .L55
+.L34:
 	bl	use_noconfirm
-	cbz	w0, .L35
+	cbz	w0, .L36
 	adrp	x4, .LC10
 	add	x4, x4, :lo12:.LC10
-.L34:
-	add	x3, sp, 48
-	adrp	x2, .LC16
-	add	x2, x2, :lo12:.LC16
+.L35:
+	add	x3, sp, 256
+	add	x5, sp, 56
+	adrp	x2, .LC17
+	add	x2, x2, :lo12:.LC17
 	mov	x1, 2048
-	add	x0, sp, 2272
+	add	x0, sp, 2480
 	bl	xsnprintf
-	add	x0, sp, 2272
+	add	x0, sp, 2480
 	mov	x1, 0
 	bl	run_as_user
 	mov	w3, 1
-	cbnz	w0, .L51
-.L46:
+	cbnz	w0, .L56
+.L50:
 	ldr	x19, [sp, 16]
 	b	.L25
 	.p2align 2,,3
-.L50:
+.L54:
 	adrp	x1, .LC14
 	mov	x2, x19
 	add	x1, x1, :lo12:.LC14
 	str	w0, [sp, 44]
-.L47:
+.L51:
 	adrp	x0, :got:stderr
 	ldr	x0, [x0, :got_lo12:stderr]
 	ldr	x0, [x0]
@@ -295,28 +304,37 @@ cmd_local_build_v2:
 	ldr	x19, [sp, 16]
 	ldr	w3, [sp, 44]
 	b	.L25
-.L51:
+.L56:
 	adrp	x0, :got:stderr
 	ldr	x0, [x0, :got_lo12:stderr]
 	mov	x2, 35
 	mov	x1, 1
 	ldr	x3, [x0]
-	adrp	x0, .LC17
-	add	x0, x0, :lo12:.LC17
+	adrp	x0, .LC18
+	add	x0, x0, :lo12:.LC18
 	bl	fwrite
 	ldr	x19, [sp, 16]
 	b	.L31
 	.p2align 2,,3
-.L49:
+.L53:
 	adrp	x1, .LC13
 	mov	x2, x19
 	add	x1, x1, :lo12:.LC13
 	str	w0, [sp, 44]
-	b	.L47
+	b	.L51
 	.p2align 2,,3
-.L35:
+.L36:
 	adrp	x4, .LC0
 	add	x4, x4, :lo12:.LC0
+	b	.L35
+.L55:
+	bl	get_makepkg_raw
+	mov	x3, x0
+	adrp	x2, .LC16
+	add	x0, sp, 56
+	add	x2, x2, :lo12:.LC16
+	mov	x1, 194
+	bl	xsnprintf
 	b	.L34
 	.section	.note.GNU-stack,"",@progbits
 	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128

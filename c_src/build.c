@@ -376,9 +376,13 @@ int compile_package(const char *pkg) {
     /* Do not pass -i: makepkg would invoke sudo from the unprivileged build
        process, which has a separate sudo credential scope. Archtoo installs
        the finished archives itself as root immediately afterwards. */
-    xsnprintf(makepkg_cmd, sizeof(makepkg_cmd), "makepkg -f%s --config '%s'%s",
+    char mpextra[RAW_FLAGS_MAX + 2];
+    mpextra[0] = '\0';
+    if (get_makepkg_raw()[0])
+        xsnprintf(mpextra, sizeof(mpextra), " %s", get_makepkg_raw());
+    xsnprintf(makepkg_cmd, sizeof(makepkg_cmd), "makepkg -f%s --config '%s'%s%s",
              reuse_sources ? "e" : "", conf,
-             use_noconfirm() ? " --noconfirm" : "");
+             use_noconfirm() ? " --noconfirm" : "", mpextra);
 
     /* Multi-hour builds are routinely lost to idle suspend. Hold the machine
        awake for exactly as long as the compile runs. */

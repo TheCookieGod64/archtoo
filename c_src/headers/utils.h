@@ -168,6 +168,13 @@ int have_cmd(const char *name);
 int valid_raw_flags(const char *s);
 void set_raw_flags(const char *v);
 const char *get_raw_flags(void);
+
+/* makepkg_raw (config key): raw option tokens passed straight to makepkg. */
+#ifndef RAW_FLAGS_MAX
+#define RAW_FLAGS_MAX 192
+#endif
+void set_makepkg_raw(const char *v);
+const char *get_makepkg_raw(void);
 void render_build_flags(char *out, size_t n);
 
 #endif

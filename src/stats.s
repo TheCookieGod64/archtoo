@@ -98,7 +98,7 @@ count_cmd_lines:
 	.string	"/usr/local/emerge/world"
 	.align	3
 .LC7:
-	.string	"1.1.0"
+	.string	"1.2.0"
 	.align	3
 .LC8:
 	.string	"Archtoo Emerge Engine"

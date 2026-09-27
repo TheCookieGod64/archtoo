@@ -10,6 +10,7 @@
 #include "../headers/utils.h"
 #include "../headers/config.h"
 #include "../headers/colors.h"
+#include "../headers/gentoo_chroot.h"
 
 void unlock_pacman_pkg(const char *pkg) {
     char esc[320];
@@ -65,6 +66,18 @@ int cmd_unmerge(const char *pkg) {
     if (!valid_pkgname(pkg)) {
         fprintf(stderr, COLOR_RED "[-] Invalid package name: '%s'\n" COLOR_RESET, pkg);
         return 0;
+    }
+
+    if (gentoo_chroot_manifest_exists(pkg)) {
+        printf(COLOR_BLUE ">>> [1/2] Imitation package: removing %s via chroot-world manifest...\n" COLOR_RESET, pkg);
+        if (!gentoo_chroot_unmerge(pkg)) {
+            fprintf(stderr, COLOR_RED "[-] Chroot unmerge failed.\n" COLOR_RESET);
+            return 0;
+        }
+        printf(COLOR_BLUE ">>> [2/2] Cleaning world entry...\n" COLOR_RESET);
+        remove_from_world(pkg);
+        printf(COLOR_GREEN "[+] %s successfully unmerged (chroot vdb left intact).\n" COLOR_RESET, pkg);
+        return 1;
     }
 
     printf(COLOR_BLUE ">>> [1/3] Unmerging %s via pacman...\n" COLOR_RESET, pkg);

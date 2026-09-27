@@ -17,6 +17,7 @@
 #include "../headers/utils.h"
 #include "../headers/colors.h"
 #include "../headers/build.h"
+#include "../headers/world.h"
 
 static volatile sig_atomic_t g_chroot_interrupted = 0;
 static char g_chroot_path_store[512] = {0};
@@ -345,6 +346,206 @@ int gentoo_chroot_run_portage(const char *chroot_path, const char *pkg, int jobs
     return 0;
 }
 
+/* ── Imitatie-merge: haal de artefacten die Portage in de chroot bouwde naar
+   de host terug. Portage's eigen CONTENTS-manifest in /var/db/pkg bepaalt
+   wat er bestaat; wij kopieren enkel de /usr-boom naar /usr/local (nooit /etc,
+   nooit /var/db: imitatie mag een draaiende host nooit breken) en schrijven
+   een omgekeerd manifest zodat `emerge -C` netjes kan opruimen. ─────────── */
+
+static void chroot_manifest_path(char *out, size_t n, const char *pkg) {
+    xsnprintf(out, n, "%s/chroot-world/%s", EMERGE_DIR, pkg);
+}
+
+int gentoo_chroot_manifest_exists(const char *pkg) {
+    if (!pkg || !valid_pkgname(pkg)) return 0;
+    char p[640];
+    chroot_manifest_path(p, sizeof(p), pkg);
+    return file_exists(p);
+}
+
+static int chroot_map_path(const char *in, char *out, size_t n) {
+    if (strncmp(in, "/usr/", 5) != 0)
+        return 0;
+    xsnprintf(out, n, "/usr/local%s", in + 4);
+    return 1;
+}
+
+int gentoo_chroot_install_artifacts(const char *chroot_path, const char *pkg) {
+    char cmd[1024];
+    xsnprintf(cmd, sizeof(cmd),
+        "ls -1d '%s'/var/db/pkg/*/'%s'-[0-9]* 2>/dev/null | sort -V | tail -n1",
+        chroot_path, pkg);
+    char *cpv = NULL;
+    if (run_cmd_capture(cmd, &cpv) != 0 || !cpv || !*cpv) {
+        free(cpv);
+        fprintf(stderr, COLOR_YELLOW
+                "[!] No merged package found in the chroot database for '%s'; "
+                "nothing was installed on the host.\n" COLOR_RESET, pkg);
+        return 0;
+    }
+    size_t l = strlen(cpv);
+    while (l && (cpv[l-1] == '\n' || cpv[l-1] == '\r')) cpv[--l] = '\0';
+
+    char contents[1400];
+    xsnprintf(contents, sizeof(contents), "%s/CONTENTS", cpv);
+    FILE *f = fopen(contents, "r");
+    if (!f) {
+        fprintf(stderr, COLOR_RED "[-] Chroot package %s has no CONTENTS manifest\n" COLOR_RESET, cpv);
+        free(cpv);
+        return 0;
+    }
+
+    char world_dir[640], script[640], manpath[640], manTmp[648];
+    xsnprintf(world_dir, sizeof(world_dir), "%s/chroot-world", EMERGE_DIR);
+    xsnprintf(manpath, sizeof(manpath), "%s", world_dir); /* dir; file path below */
+    chroot_manifest_path(manpath, sizeof(manpath), pkg);
+    xsnprintf(manTmp, sizeof(manTmp), "%s.tmp.%ld", manpath, (long)getpid());
+    xsnprintf(script, sizeof(script), "%s/.chroot-merge-%ld.sh", EMERGE_DIR, (long)getpid());
+
+    char mkdir_cmd[768];
+    xsnprintf(mkdir_cmd, sizeof(mkdir_cmd), "%smkdir -p '%s'", priv_prefix(), world_dir);
+    run_cmd(mkdir_cmd);
+
+    FILE *sc = fopen(script, "w");
+    FILE *man = fopen(manTmp, "w");
+    if (!sc || !man) {
+        if (sc) fclose(sc);
+        if (man) fclose(man);
+        fclose(f); free(cpv);
+        fprintf(stderr, COLOR_RED "[-] Cannot write chroot merge script\n" COLOR_RESET);
+        return 0;
+    }
+
+    char line[1024];
+    int copied = 0, linked = 0, dirs = 0, skipped = 0;
+    while (fgets(line, sizeof(line), f)) {
+        char path[1024];
+        int type = -1; /* 0 obj, 1 sym, 2 dir */
+        char symtgt[512]; symtgt[0] = '\0';
+        if (strncmp(line, "obj ", 4) == 0) {
+            type = 0;
+            if (sscanf(line + 4, "%1023s", path) != 1) continue;
+        } else if (strncmp(line, "dir ", 4) == 0) {
+            type = 2;
+            if (sscanf(line + 4, "%1023s", path) != 1) continue;
+        } else if (strncmp(line, "sym ", 4) == 0) {
+            type = 1;
+            char *dash = strstr(line + 4, "->");
+            if (!dash) continue;
+            size_t plen = (size_t)(dash - (line + 4));
+            while (plen && line[4 + plen - 1] == ' ') plen--;
+            if (plen >= sizeof(path)) continue;
+            memcpy(path, line + 4, plen);
+            path[plen] = '\0';
+            char *t = dash + 2;
+            while (*t == ' ') t++;
+            size_t tl = 0;
+            while (t[tl] && t[tl] != ' ' && t[tl] != '\n' && tl + 1 < sizeof(symtgt)) {
+                symtgt[tl] = t[tl]; tl++;
+            }
+            symtgt[tl] = '\0';
+        } else continue;
+        if (path[0] != '/') continue;
+
+        char dst[1152];
+        if (!chroot_map_path(path, dst, sizeof(dst))) { skipped++; continue; }
+
+        char qsrc[2600], qdst[2400], qpar[2400], qtgt[2600];
+        char srcfull[1300];
+        xsnprintf(srcfull, sizeof(srcfull), "%s%s", chroot_path, path);
+        if (!shell_quote(srcfull, qsrc, sizeof(qsrc)) || !shell_quote(dst, qdst, sizeof(qdst)))
+            continue;
+        char parent[1152];
+        size_t dl = strlen(dst);
+        while (dl && dst[dl-1] != '/') dl--;
+        if (dl > 1) { xsnprintf(parent, sizeof(parent), "%.*s", (int)dl, dst); }
+        else xsnprintf(parent, sizeof(parent), "/");
+        if (!shell_quote(parent, qpar, sizeof(qpar))) continue;
+
+        if (type == 0) {
+            fprintf(sc, "install -d %s && cp -a %s %s\n", qpar, qsrc, qdst);
+            fprintf(man, "obj %s\n", dst);
+            copied++;
+        } else if (type == 1) {
+            if (!shell_quote(symtgt, qtgt, sizeof(qtgt))) continue;
+            fprintf(sc, "install -d %s && ln -sfn %s %s\n", qpar, qtgt, qdst);
+            fprintf(man, "sym %s\n", dst);
+            linked++;
+        } else {
+            fprintf(sc, "install -d %s\n", qdst);
+            fprintf(man, "dir %s\n", dst);
+            dirs++;
+        }
+    }
+    fclose(f);
+    fclose(sc);
+    fclose(man);
+    free(cpv);
+
+    char runc[1400];
+    char qscript[1600];
+    if (!shell_quote(script, qscript, sizeof(qscript))) { unlink(manTmp); unlink(script); return 0; }
+    xsnprintf(runc, sizeof(runc), "%ssh %s", priv_prefix(), qscript);
+    int rc = run_cmd(runc);
+    unlink(script);
+    if (rc != 0) {
+        fprintf(stderr, COLOR_RED "[-] Imitation merge failed (exit %d); manifest discarded\n" COLOR_RESET, rc);
+        unlink(manTmp);
+        return 0;
+    }
+    unlink(manpath);
+    if (rename(manTmp, manpath) != 0)
+        fprintf(stderr, COLOR_YELLOW "[!] Could not register manifest %s\n" COLOR_RESET, manpath);
+    printf(COLOR_GREEN "[+] Imitation merge: %d file(s), %d link(s), %d dir(s) installed under /usr/local "
+           "(%d chroot-only entries skipped)\n" COLOR_RESET, copied, linked, dirs, skipped);
+    add_to_world(pkg);
+    return 1;
+}
+
+int gentoo_chroot_unmerge(const char *pkg) {
+    if (!pkg || !valid_pkgname(pkg)) return 0;
+    char manpath[640];
+    chroot_manifest_path(manpath, sizeof(manpath), pkg);
+    FILE *f = fopen(manpath, "r");
+    if (!f) return 0;
+    char script[640];
+    xsnprintf(script, sizeof(script), "%s/.chroot-unmerge-%ld.sh", EMERGE_DIR, (long)getpid());
+    FILE *sc = fopen(script, "w");
+    if (!sc) { fclose(f); return 0; }
+    char line[1152];
+    int removed = 0;
+    while (fgets(line, sizeof(line), f)) {
+        char type[8], dst[1100];
+        if (sscanf(line, "%7s %1100[^\n]", type, dst) != 2) continue;
+        size_t dl = strlen(dst);
+        while (dl && (dst[dl-1] == '\n' || dst[dl-1] == '\r')) dst[--dl] = '\0';
+        if (strncmp(dst, "/usr/local", 10) != 0 || dl < 12) continue; /* veiligheid: alleen onze prefix */
+        char qdst[2600];
+        if (!shell_quote(dst, qdst, sizeof(qdst))) continue;
+        if (type[0] == 'd')
+            fprintf(sc, "rmdir --ignore-fail-on-non-empty -p %s 2>/dev/null; true\n", qdst);
+        else
+            fprintf(sc, "rm -f %s\n", qdst);
+        removed++;
+    }
+    fclose(f);
+    fclose(sc);
+    char runc[1400], qscript[1600];
+    if (!shell_quote(script, qscript, sizeof(qscript))) { unlink(script); return 0; }
+    xsnprintf(runc, sizeof(runc), "%ssh %s", priv_prefix(), qscript);
+    int rc = run_cmd(runc);
+    unlink(script);
+    if (rc != 0) {
+        fprintf(stderr, COLOR_RED "[-] Chroot manifest removal failed (exit %d)\n" COLOR_RESET, rc);
+        return 0;
+    }
+    char rmman[768];
+    xsnprintf(rmman, sizeof(rmman), "%srm -f '%s'", priv_prefix(), manpath);
+    run_cmd(rmman);
+    printf(COLOR_GREEN "[+] Removed %d manifest entr(ies) from /usr/local\n" COLOR_RESET, removed);
+    return 1;
+}
+
 int cmd_gentoo_imitation_build(const char *pkg) {
     if (!valid_pkgname(pkg)) {
         fprintf(stderr, COLOR_RED "[-] Invalid package name: '%s'\n" COLOR_RESET, pkg);
@@ -370,24 +571,8 @@ int cmd_gentoo_imitation_build(const char *pkg) {
 
     int portage_rc = gentoo_chroot_run_portage(chroot_path, pkg, (int)get_jobs());
 
-    if (portage_rc == 0) {
-        printf(COLOR_BLUE ">>> Copying artifacts...\n" COLOR_RESET);
-        char cmd[2048];
-        xsnprintf(cmd, sizeof(cmd),
-            "%s"
-            "ls '%s/%s/' 2>/dev/null; "
-            "echo '>>> Binary backup currently at %s/%s'; "
-            "mkdir -p '%s/var/cache/binpkgs' 2>/dev/null; "
-            "cp -a '%s/%s/'*.pkg.tar.* '%s/var/cache/binpkgs/' 2>/dev/null; "
-            "echo '>>> Copied Arch binaries into Gentoo chroot binpkgs (imitation)'; true",
-            priv_prefix(),
-            BUILD_DIR, pkg,
-            BUILD_DIR, pkg,
-            chroot_path,
-            BUILD_DIR, pkg, chroot_path
-        );
-        run_cmd(cmd);
-    }
+    if (portage_rc == 0 && !gentoo_chroot_install_artifacts(chroot_path, pkg))
+        portage_rc = 1;   /* geen artefacten -> via het normale pad als falen rapporteren */
 
     gentoo_chroot_unmount(chroot_path);
 

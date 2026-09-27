@@ -1,15 +1,58 @@
 # Changelog — Archtoo Emerge Engine, ARM64 Edition
 
-## v1.1.0 — --raw flag + JSON hardening (GAS/AArch64)
+## v1.2.0 — makepkg_raw: raw options for makepkg itself
 
 ### Added
-- `--raw "FLAGS"` (`--raw=FLAGS`, config key `raw = ...`): appended to generated CFLAGS/CXXFLAGS
-  and LDFLAGS of every source build; plain option tokens only.
+- `makepkg_raw = --flag --flag` (alias key `makepkg_flags`) in
+  `~/.config/archtoo/config`: plain option tokens passed straight to every `makepkg`
+  run the engine starts (source builds and `emerge -B` local builds). Typical use:
+  `makepkg_raw = --nocheck` to skip slow check() phases globally (e.g. zstd's test
+  suite) without editing anyone's PKGBUILD; upgrades keep working because upstream
+  PKGBUILDs are still fetched fresh. The same guard as `--raw` applies: plain
+  tokens only, no shell metacharacters, <= 192 chars; lines that fail validation
+  are rejected as invalid config and never reach a shell.
+
+## v1.1.1 — Gentoo chroot imitation: real artifact installation
+
+### Changed
+- `--imitation` merges now really install onto the host: after Portage finishes, the engine
+  locates the freshly merged CPV under the chroot's `/var/db/pkg`, parses its Portage `CONTENTS`
+  manifest and replays it on the host through a hardened `install -d` / `cp -a` / `ln -sfn`
+  script (symlinks keep the relative target from CONTENTS). The whole `/usr/**` tree maps onto
+  `/usr/local/**`; `/etc`, `/var` and other prefixes are never copied — the imitation cannot
+  clobber the live host (skipped entries are counted and reported).
+
+### Added
+- A reverse manifest `/usr/local/emerge/chroot-world/<pkg>` is written for every imitation merge
+  (one `obj|sym|dir <host path>` line per installed entry) and the package is registered in `world`.
+- `emerge -C <pkg>` now understands chroot-world packages: every manifest entry is removed
+  (`rm -f` for files and symlinks, `rmdir -p --ignore-fail-on-non-empty` for dirs), the entry is
+  deselected from `world` and the manifest is deleted. The chroot's own vdb is left untouched.
+  A path guard refuses manifest lines outside `/usr/local/`.
 
 ### Fixed
-- `parse_json_string`: truncation guards (same as x86 v3.1.0).
-- Regen strip filter widened: `.eabi_attribute`/`.aeabi_attribute` lines are dropped so gcc
-  output assembles cleanly with current binutils on this and older distros.
+- Imitation merges no longer report success while installing nothing: the old fake
+  "Copying artifacts" echo is replaced by the real copy stage; a failure there fails the emerge
+  with a non-zero exit.
+
+## v1.1.0 — --raw flag + AUR-binary-jacht hardening
+
+### Added
+- `--raw "FLAGS"` (`--raw=FLAGS`, config key `raw = ...`): raw compiler options
+  appended to the generated CFLAGS/CXXFLAGS and to LDFLAGS of every source build,
+  e.g. `emerge --raw "-march=native -fuse-ld=mold" pkg`. Only plain option tokens
+  are accepted (no shell metacharacters) because the string lands in a re-sourced
+  makepkg.conf. RUSTFLAGS are untouched by design.
+
+### Fixed
+- GAS/AArch64 regen pipeline: objconv could not resolve jump-table entries pointing at
+  cold `.text.unlikely` labels; those entries were anchored to the nearest global
+  with a constant offset and broke once the linker relocated sections — causing a
+  SIGSEGV whenever dense switches ran real-world data (observed while parsing AUR
+  descriptions containing `\u` escapes). Regeneration now uses `-fno-jump-tables`.
+- `parse_json_string`: hardened against truncated JSON (curl read cap): a
+  backslash at end-of-buffer no longer reads past the string, and the output
+  index is bounded by capacity.
 
 ## v1.0.0 — 2026-09-21 — ARM64 Edition, eerste release
 

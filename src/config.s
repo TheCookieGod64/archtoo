@@ -286,75 +286,81 @@ config_defaults:
 	.string	"raw_flags"
 	.align	3
 .LC32:
-	.string	"opt_level"
+	.string	"makepkg_raw"
 	.align	3
 .LC33:
-	.string	"opt"
+	.string	"makepkg_flags"
 	.align	3
 .LC34:
-	.string	"optimization"
+	.string	"opt_level"
 	.align	3
 .LC35:
-	.string	"o"
+	.string	"opt"
 	.align	3
 .LC36:
-	.string	"pipe"
+	.string	"optimization"
 	.align	3
 .LC37:
-	.string	"use_pipe"
+	.string	"o"
 	.align	3
 .LC38:
-	.string	"gentoo_chroot"
+	.string	"pipe"
 	.align	3
 .LC39:
-	.string	"portage_chroot"
+	.string	"use_pipe"
 	.align	3
 .LC40:
-	.string	"imitation"
+	.string	"gentoo_chroot"
 	.align	3
 .LC41:
-	.string	"portage_imitation"
+	.string	"portage_chroot"
 	.align	3
 .LC42:
-	.string	"gentoo_imitation"
+	.string	"imitation"
 	.align	3
 .LC43:
-	.string	"gentoo_chroot_path"
+	.string	"portage_imitation"
 	.align	3
 .LC44:
-	.string	"chroot_path"
+	.string	"gentoo_imitation"
 	.align	3
 .LC45:
-	.string	"binary"
+	.string	"gentoo_chroot_path"
 	.align	3
 .LC46:
-	.string	"use_binary"
+	.string	"chroot_path"
 	.align	3
 .LC47:
-	.string	"use_bin"
+	.string	"binary"
 	.align	3
 .LC48:
-	.string	"bin"
+	.string	"use_binary"
 	.align	3
 .LC49:
-	.string	"prebuilt"
+	.string	"use_bin"
 	.align	3
 .LC50:
-	.string	"use_prebuilt"
+	.string	"bin"
 	.align	3
 .LC51:
-	.string	"no_build"
+	.string	"prebuilt"
 	.align	3
 .LC52:
-	.string	"no-build"
+	.string	"use_prebuilt"
 	.align	3
 .LC53:
-	.string	"unknown config key on line %lu: %s"
+	.string	"no_build"
 	.align	3
 .LC54:
-	.string	"invalid value for %s on line %lu: %s"
+	.string	"no-build"
 	.align	3
 .LC55:
+	.string	"unknown config key on line %lu: %s"
+	.align	3
+.LC56:
+	.string	"invalid value for %s on line %lu: %s"
+	.align	3
+.LC57:
 	.string	"error reading config: %s"
 	.text
 	.align	2
@@ -362,7 +368,7 @@ config_defaults:
 	.global	config_load
 	.type	config_load, %function
 config_load:
-	cbz	x0, .L195
+	cbz	x0, .L203
 	sub	sp, sp, #2176
 	stp	x29, x30, [sp]
 	mov	x29, sp
@@ -373,7 +379,7 @@ config_load:
 	mov	x25, x1
 	bl	config_defaults.part.0
 	bl	build_user
-	cbz	x0, .L202
+	cbz	x0, .L210
 	stp	x21, x22, [sp, 32]
 	stp	x23, x24, [sp, 48]
 	str	x27, [sp, 80]
@@ -383,12 +389,12 @@ config_load:
 	add	x0, x0, :lo12:.LC11
 	bl	getenv
 	mov	x21, x0
-	cbz	x19, .L199
+	cbz	x19, .L207
 	ldr	x3, [x19, 32]
-	cbz	x3, .L199
+	cbz	x3, .L207
 	cbz	x0, .L51
 	ldrb	w0, [x0]
-	cbnz	w0, .L203
+	cbnz	w0, .L211
 .L51:
 	add	x19, sp, 128
 	adrp	x2, .LC13
@@ -402,7 +408,7 @@ config_load:
 	add	x1, x1, :lo12:.LC15
 	bl	fopen
 	mov	x23, x0
-	cbz	x0, .L204
+	cbz	x0, .L212
 	adrp	x24, .LC18
 	adrp	x0, .LC19
 	add	x24, x24, :lo12:.LC18
@@ -413,7 +419,7 @@ config_load:
 	add	x0, sp, 1152
 	mov	w1, 1024
 	bl	fgets
-	cbz	x0, .L205
+	cbz	x0, .L213
 	add	x0, sp, 1152
 	bl	trim
 	ldrb	w1, [x0]
@@ -424,7 +430,7 @@ config_load:
 	beq	.L54
 	mov	w1, 61
 	bl	strchr
-	cbz	x0, .L206
+	cbz	x0, .L214
 	strb	wzr, [x0], 1
 	bl	trim
 	mov	x19, x0
@@ -443,16 +449,16 @@ config_load:
 	mov	x1, x24
 	mov	x0, x22
 	bl	strcmp
-	cbz	w0, .L207
+	cbz	w0, .L215
 	mov	x1, x27
 	mov	x0, x22
 	bl	strcmp
-	cbz	w0, .L208
+	cbz	w0, .L216
 	adrp	x1, .LC20
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC20
 	bl	strcmp
-	cbz	w0, .L209
+	cbz	w0, .L217
 	adrp	x1, .LC21
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC21
@@ -467,7 +473,7 @@ config_load:
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC23
 	bl	strcmp
-	cbz	w0, .L210
+	cbz	w0, .L218
 	adrp	x1, .LC26
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC26
@@ -512,57 +518,57 @@ config_load:
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC34
 	bl	strcmp
-	cbz	w0, .L71
+	cbz	w0, .L73
 	adrp	x1, .LC35
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC35
 	bl	strcmp
-	cbz	w0, .L71
+	cbz	w0, .L73
 	adrp	x1, .LC36
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC36
 	bl	strcmp
-	cbz	w0, .L75
+	cbz	w0, .L73
 	adrp	x1, .LC37
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC37
 	bl	strcmp
-	cbz	w0, .L75
+	cbz	w0, .L73
 	adrp	x1, .LC38
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC38
 	bl	strcmp
-	cbz	w0, .L78
+	cbz	w0, .L77
 	adrp	x1, .LC39
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC39
 	bl	strcmp
-	cbz	w0, .L78
+	cbz	w0, .L77
 	adrp	x1, .LC40
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC40
 	bl	strcmp
-	cbz	w0, .L78
+	cbz	w0, .L80
 	adrp	x1, .LC41
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC41
 	bl	strcmp
-	cbz	w0, .L78
+	cbz	w0, .L80
 	adrp	x1, .LC42
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC42
 	bl	strcmp
-	cbz	w0, .L78
+	cbz	w0, .L80
 	adrp	x1, .LC43
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC43
 	bl	strcmp
-	cbz	w0, .L81
+	cbz	w0, .L80
 	adrp	x1, .LC44
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC44
 	bl	strcmp
-	cbz	w0, .L81
+	cbz	w0, .L80
 	adrp	x1, .LC45
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC45
@@ -577,33 +583,43 @@ config_load:
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC47
 	bl	strcmp
-	cbz	w0, .L83
+	cbz	w0, .L85
 	adrp	x1, .LC48
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC48
 	bl	strcmp
-	cbz	w0, .L83
+	cbz	w0, .L85
 	adrp	x1, .LC49
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC49
 	bl	strcmp
-	cbz	w0, .L83
+	cbz	w0, .L85
 	adrp	x1, .LC50
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC50
 	bl	strcmp
-	cbz	w0, .L83
+	cbz	w0, .L85
 	adrp	x1, .LC51
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC51
 	bl	strcmp
-	cbz	w0, .L83
+	cbz	w0, .L85
 	adrp	x1, .LC52
 	mov	x0, x22
 	add	x1, x1, :lo12:.LC52
 	bl	strcmp
-	cbnz	w0, .L84
-.L83:
+	cbz	w0, .L85
+	adrp	x1, .LC53
+	mov	x0, x22
+	add	x1, x1, :lo12:.LC53
+	bl	strcmp
+	cbz	w0, .L85
+	adrp	x1, .LC54
+	mov	x0, x22
+	add	x1, x1, :lo12:.LC54
+	bl	strcmp
+	cbnz	w0, .L86
+.L85:
 	add	x1, sp, 120
 	mov	x0, x19
 	bl	parse_switch
@@ -614,7 +630,7 @@ config_load:
 	str	w0, [x20, 952]
 	b	.L54
 	.p2align 2,,3
-.L202:
+.L210:
 	adrp	x0, .LC11
 	add	x0, x0, :lo12:.LC11
 	bl	getenv
@@ -633,25 +649,25 @@ config_load:
 	add	sp, sp, 2176
 	ret
 	.p2align 2,,3
-.L195:
+.L203:
 	mov	w0, 0
 	ret
 	.p2align 2,,3
-.L207:
+.L215:
 	mov	x1, x20
 	mov	x0, x19
 	bl	parse_switch
 	cbnz	w0, .L54
 .L61:
-	adrp	x2, .LC54
+	adrp	x2, .LC56
 	mov	x5, x19
 	mov	x4, x21
 	mov	x3, x22
-	add	x2, x2, :lo12:.LC54
+	add	x2, x2, :lo12:.LC56
 	mov	x1, x26
 	mov	x0, x25
 	bl	error_format
-.L200:
+.L208:
 	mov	x0, x23
 	bl	fclose
 	ldr	x27, [sp, 80]
@@ -666,26 +682,26 @@ config_load:
 	cbz	w0, .L61
 	b	.L54
 	.p2align 2,,3
-.L208:
+.L216:
 	add	x1, x20, 4
 	mov	x0, x19
 	bl	parse_switch
 	cbz	w0, .L61
 	b	.L54
 	.p2align 2,,3
-.L203:
+.L211:
 	bl	geteuid
 	cbnz	w0, .L50
 	ldr	x3, [x19, 32]
 	b	.L51
 	.p2align 2,,3
-.L199:
+.L207:
 	ldr	x27, [sp, 80]
 	ldp	x21, x22, [sp, 32]
 	ldp	x23, x24, [sp, 48]
 	b	.L48
 	.p2align 2,,3
-.L209:
+.L217:
 	bl	__errno_location
 	mov	x3, x0
 	add	x1, sp, 120
@@ -707,7 +723,7 @@ config_load:
 	str	x0, [x20, 8]
 	b	.L54
 	.p2align 2,,3
-.L210:
+.L218:
 	adrp	x1, .LC24
 	mov	x0, x19
 	add	x1, x1, :lo12:.LC24
@@ -752,10 +768,10 @@ config_load:
 	bl	snprintf
 	b	.L54
 	.p2align 2,,3
-.L205:
+.L213:
 	mov	x0, x23
 	bl	ferror
-	cbnz	w0, .L211
+	cbnz	w0, .L219
 	mov	x0, x23
 	bl	fclose
 .L55:
@@ -765,23 +781,23 @@ config_load:
 	ldp	x23, x24, [sp, 48]
 	b	.L45
 	.p2align 2,,3
-.L206:
+.L214:
 	adrp	x2, .LC17
 	mov	x3, x21
 	add	x2, x2, :lo12:.LC17
-.L201:
+.L209:
 	mov	x1, x26
 	mov	x0, x25
 	bl	error_format
-	b	.L200
-.L211:
+	b	.L208
+.L219:
 	bl	__errno_location
 	ldr	w0, [x0]
 	bl	strerror
 	mov	x3, x0
-	adrp	x2, .LC55
-	add	x2, x2, :lo12:.LC55
-	b	.L201
+	adrp	x2, .LC57
+	add	x2, x2, :lo12:.LC57
+	b	.L209
 .L69:
 	mov	x0, x19
 	bl	valid_raw_flags
@@ -790,6 +806,13 @@ config_load:
 	bl	set_raw_flags
 	b	.L54
 .L71:
+	mov	x0, x19
+	bl	valid_raw_flags
+	cbz	w0, .L61
+	mov	x0, x19
+	bl	set_makepkg_raw
+	b	.L54
+.L73:
 	mov	x0, x19
 	bl	valid_opt_level
 	cbz	w0, .L61
@@ -811,7 +834,7 @@ config_load:
 	cinc	x3, x19, eq
 	bl	snprintf
 	b	.L54
-.L204:
+.L212:
 	bl	__errno_location
 	ldr	w0, [x0]
 	cmp	w0, 2
@@ -827,26 +850,7 @@ config_load:
 	ldp	x21, x22, [sp, 32]
 	ldp	x23, x24, [sp, 48]
 	b	.L46
-.L75:
-	add	x1, sp, 120
-	mov	x0, x19
-	bl	parse_switch
-	cbz	w0, .L61
-	ldr	w0, [sp, 120]
-	str	w0, [x20, 420]
-	mov	w0, 1
-	str	w0, [x20, 424]
-	b	.L54
-.L84:
-	mov	x4, x22
-	mov	x3, x21
-	mov	x1, x26
-	mov	x0, x25
-	adrp	x2, .LC53
-	add	x2, x2, :lo12:.LC53
-	bl	error_format
-	b	.L200
-.L81:
+.L83:
 	mov	x0, x19
 	bl	valid_gentoo_chroot_path
 	cbz	w0, .L61
@@ -857,7 +861,16 @@ config_load:
 	add	x2, x2, :lo12:.LC25
 	bl	snprintf
 	b	.L54
-.L78:
+.L86:
+	mov	x4, x22
+	mov	x3, x21
+	mov	x1, x26
+	mov	x0, x25
+	adrp	x2, .LC55
+	add	x2, x2, :lo12:.LC55
+	bl	error_format
+	b	.L208
+.L80:
 	add	x1, sp, 120
 	mov	x0, x19
 	bl	parse_switch
@@ -866,12 +879,22 @@ config_load:
 	str	w0, [x20, 428]
 	str	w0, [x20, 432]
 	b	.L54
+.L77:
+	add	x1, sp, 120
+	mov	x0, x19
+	bl	parse_switch
+	cbz	w0, .L61
+	ldr	w0, [sp, 120]
+	str	w0, [x20, 420]
+	mov	w0, 1
+	str	w0, [x20, 424]
+	b	.L54
 	.align	2
 	.p2align 5,,15
 	.global	config_apply
 	.type	config_apply, %function
 config_apply:
-	cbz	x0, .L241
+	cbz	x0, .L249
 	stp	x29, x30, [sp, -32]!
 	adrp	x3, .LANCHOR1
 	mov	x1, x0
@@ -893,69 +916,69 @@ config_apply:
 	ldr	w0, [x19, 16]
 	bl	guide_set_policy
 	ldrb	w0, [x19, 276]
-	cbnz	w0, .L244
+	cbnz	w0, .L252
 	ldrb	w0, [x19, 404]
-	cbnz	w0, .L245
-.L215:
+	cbnz	w0, .L253
+.L223:
 	ldr	w0, [x19, 424]
-	cbnz	w0, .L246
-.L216:
+	cbnz	w0, .L254
+.L224:
 	ldr	w0, [x19, 428]
-	cbnz	w0, .L247
-.L217:
+	cbnz	w0, .L255
+.L225:
 	ldrb	w0, [x19, 436]
-	cbnz	w0, .L248
-.L218:
+	cbnz	w0, .L256
+.L226:
 	ldr	w0, [x19, 952]
-	cbnz	w0, .L249
-.L212:
+	cbnz	w0, .L257
+.L220:
 	ldr	x19, [sp, 16]
 	ldp	x29, x30, [sp], 32
 	ret
 	.p2align 2,,3
-.L249:
+.L257:
 	ldr	w0, [x19, 948]
 	ldr	x19, [sp, 16]
 	ldp	x29, x30, [sp], 32
 	b	set_use_binary
 	.p2align 2,,3
-.L248:
+.L256:
 	add	x0, x19, 436
 	bl	set_gentoo_chroot_path
 	ldr	w0, [x19, 952]
-	cbz	w0, .L212
-	b	.L249
+	cbz	w0, .L220
+	b	.L257
 	.p2align 2,,3
-.L247:
+.L255:
 	bl	set_gentoo_chroot
 	ldr	w0, [x19, 432]
 	bl	set_portage_imitation
 	ldrb	w0, [x19, 436]
-	cbz	w0, .L218
-	b	.L248
+	cbz	w0, .L226
+	b	.L256
 	.p2align 2,,3
-.L246:
+.L254:
 	ldr	w0, [x19, 420]
 	bl	set_use_pipe
 	ldr	w0, [x19, 428]
-	cbz	w0, .L217
-	b	.L247
+	cbz	w0, .L225
+	b	.L255
 	.p2align 2,,3
-.L245:
+.L253:
 	add	x0, x19, 404
 	bl	set_opt_level
 	ldr	w0, [x19, 424]
-	cbz	w0, .L216
-	b	.L246
+	cbz	w0, .L224
+	b	.L254
 	.p2align 2,,3
-.L244:
+.L252:
 	add	x0, x19, 276
 	bl	set_target_arch
 	ldrb	w0, [x19, 404]
-	cbz	w0, .L215
-	b	.L245
+	cbz	w0, .L223
+	b	.L253
 	.p2align 2,,3
-.L241:
+.L249:
 	ret
 	.align	2
 	.p2align 5,,15
@@ -965,11 +988,11 @@ config_current:
 	adrp	x1, .LANCHOR1
 	add	x0, x1, :lo12:.LANCHOR1
 	ldr	w2, [x0, 960]
-	cbz	w2, .L256
+	cbz	w2, .L264
 	add	x0, x1, :lo12:.LANCHOR1
 	ret
 	.p2align 2,,3
-.L256:
+.L264:
 	stp	x29, x30, [sp, -32]!
 	mov	x29, sp
 	str	x0, [sp, 24]

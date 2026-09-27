@@ -290,7 +290,7 @@ remove_from_world:
 	.string	"\033[1;35m\n=========================================================="
 	.align	3
 .LC15:
-	.string	"1.1.0"
+	.string	"1.2.0"
 	.align	3
 .LC16:
 	.string	"   ARCHTOO WORLD UPDATE v%s\n"

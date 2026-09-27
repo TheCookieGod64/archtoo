@@ -31,4 +31,7 @@ int gentoo_chroot_run_portage(const char *chroot_path, const char *pkg, int jobs
    Returns 1 on success, 0 on failure. */
 int cmd_gentoo_imitation_build(const char *pkg);
 
+int gentoo_chroot_install_artifacts(const char *chroot_path, const char *pkg);
+int gentoo_chroot_unmerge(const char *pkg);
+int gentoo_chroot_manifest_exists(const char *pkg);
 #endif
