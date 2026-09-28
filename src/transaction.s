@@ -1,43 +1,65 @@
-	.arch armv8-a
+	.arch armv7-a
+	.fpu neon
 	.text
-	.section	.rodata.str1.8,"aMS",@progbits,1
-	.align	3
-.LC0:
-	.string	"/var/lib/pacman/db.lck"
-	.align	3
-.LC1:
-	.string	"\033[1;31m[-] pacman database is locked (/var/lib/pacman/db.lck).\n    Another pacman/emerge transaction is running, or a previous\n    one was interrupted. Remove the lock only if you are sure\n    nothing else is using pacman.\n\033[0m"
-	.align	3
-.LC2:
-	.string	"\033[1;32m[+] pacman database is not locked.\n\033[0m"
-	.text
+	.section	.rodata.str1.4,"aMS",%progbits,1
 	.align	2
-	.p2align 5,,15
+.LC0:
+	.ascii	"/var/lib/pacman/db.lck\000"
+	.align	2
+.LC1:
+	.ascii	"\033[1;31m[-] pacman database is locked (/var/lib/p"
+	.ascii	"acman/db.lck).\012    Another pacman/emerge transac"
+	.ascii	"tion is running, or a previous\012    one was inter"
+	.ascii	"rupted. Remove the lock only if you are sure\012   "
+	.ascii	" nothing else is using pacman.\012\033[0m\000"
+	.align	2
+.LC2:
+	.ascii	"\033[1;32m[+] pacman database is not locked.\012\033"
+	.ascii	"[0m\000"
+	.text
+	.align	1
+	.p2align 2,,3
 	.global	cmd_transaction_check_v2
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	cmd_transaction_check_v2, %function
 cmd_transaction_check_v2:
-	stp	x29, x30, [sp, -16]!
-	adrp	x0, .LC0
-	add	x0, x0, :lo12:.LC0
-	mov	x29, sp
-	bl	file_exists
-	cbnz	w0, .L6
-	adrp	x0, .LC2
-	add	x0, x0, :lo12:.LC2
-	bl	printf
-	mov	w0, 1
-	ldp	x29, x30, [sp], 16
-	ret
-	.p2align 2,,3
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	ldr	r0, .L7
+	push	{r4, lr}
+	ldr	r4, .L7+4
+.LPIC0:
+	add	r0, pc
+.LPIC1:
+	add	r4, pc
+	bl	file_exists(PLT)
+	cbnz	r0, .L6
+	ldr	r0, .L7+8
+.LPIC3:
+	add	r0, pc
+	bl	printf(PLT)
+	movs	r0, #1
+	pop	{r4, pc}
 .L6:
-	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
-	mov	x2, 227
-	mov	x1, 1
-	adrp	x0, .LC1
-	add	x0, x0, :lo12:.LC1
-	ldr	x3, [x3]
-	bl	fwrite
-	mov	w0, 0
-	ldp	x29, x30, [sp], 16
-	ret
-	.section	.note.GNU-stack,"",@progbits
+	ldr	r3, .L7+12
+	movs	r2, #227
+	ldr	r0, .L7+16
+	movs	r1, #1
+.LPIC2:
+	add	r0, pc
+	ldr	r3, [r4, r3]
+	ldr	r3, [r3]
+	bl	fwrite(PLT)
+	movs	r0, #0
+	pop	{r4, pc}
+.L8:
+	.align	2
+.L7:
+	.word	.LC0-(.LPIC0+4)
+	.word	_GLOBAL_OFFSET_TABLE_-(.LPIC1+4)
+	.word	.LC2-(.LPIC3+4)
+	.word	stderr(GOT)
+	.word	.LC1-(.LPIC2+4)
+	.section	.note.GNU-stack,"",%progbits

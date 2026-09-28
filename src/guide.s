@@ -1,501 +1,642 @@
-	.arch armv8-a
+	.arch armv7-a
+	.fpu neon
 	.text
-	.section	.rodata.str1.8,"aMS",@progbits,1
-	.align	3
-.LC0:
-	.string	"%s"
-	.align	3
-.LC1:
-	.string	"XDG_STATE_HOME"
-	.align	3
-.LC2:
-	.string	"%s/archtoo"
-	.align	3
-.LC3:
-	.string	"%s/.local/state/archtoo"
-	.align	3
-.LC4:
-	.string	"%s/command-guide-seen"
-	.text
+	.section	.rodata.str1.4,"aMS",%progbits,1
 	.align	2
-	.p2align 5,,15
+.LC0:
+	.ascii	"%s\000"
+	.align	2
+.LC1:
+	.ascii	"XDG_STATE_HOME\000"
+	.align	2
+.LC2:
+	.ascii	"%s/archtoo\000"
+	.align	2
+.LC3:
+	.ascii	"%s/.local/state/archtoo\000"
+	.align	2
+.LC4:
+	.ascii	"%s/command-guide-seen\000"
+	.text
+	.align	1
+	.p2align 2,,3
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	state_paths.constprop.0, %function
 state_paths.constprop.0:
-	sub	sp, sp, #816
-	stp	x29, x30, [sp]
-	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	mov	x20, x1
-	stp	x21, x22, [sp, 32]
-	mov	x21, x0
-	bl	build_user
-	cbz	x0, .L4
-	bl	getpwnam
-	cbz	x0, .L4
-	ldr	x3, [x0, 32]
-	cbz	x3, .L4
-	adrp	x2, .LC0
-	add	x2, x2, :lo12:.LC0
-	mov	x1, 768
-	add	x22, sp, 48
-	mov	x0, x22
-	bl	xsnprintf
-	adrp	x0, .LC1
-	add	x0, x0, :lo12:.LC1
-	bl	getenv
-	mov	x19, x0
-	cbz	x0, .L5
-	ldrb	w0, [x0]
-	cbnz	w0, .L24
+	@ args = 0, pretend = 0, frame = 768
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, lr}
+	mov	r6, r0
+	mov	r5, r1
+	sub	sp, sp, #772
+	bl	build_user(PLT)
+	cbz	r0, .L4
+	bl	getpwnam(PLT)
+	cbz	r0, .L4
+	ldr	r3, [r0, #20]
+	cbz	r3, .L4
+	ldr	r2, .L25
+	mov	r1, #768
+	mov	r0, sp
+	mov	r7, sp
+.LPIC0:
+	add	r2, pc
+	bl	xsnprintf(PLT)
+	ldr	r0, .L25+4
+.LPIC1:
+	add	r0, pc
+	bl	getenv(PLT)
+	mov	r4, r0
+	cbz	r0, .L5
+	ldrb	r3, [r0]	@ zero_extendqisi2
+	cbnz	r3, .L24
 .L5:
-	adrp	x2, .LC3
-	mov	x3, x22
-	add	x2, x2, :lo12:.LC3
-	mov	x0, x21
-	mov	x1, 1024
-	bl	xsnprintf
+	ldr	r2, .L25+8
+	mov	r3, r7
+	mov	r1, #1024
+	mov	r0, r6
+.LPIC3:
+	add	r2, pc
+	bl	xsnprintf(PLT)
 .L6:
-	mov	x3, x21
-	mov	x0, x20
-	mov	x1, 1200
-	adrp	x2, .LC4
-	add	x2, x2, :lo12:.LC4
-	bl	xsnprintf
-	ldp	x29, x30, [sp]
-	mov	w0, 1
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	add	sp, sp, 816
-	ret
-	.p2align 2,,3
+	ldr	r2, .L25+12
+	mov	r3, r6
+	mov	r1, #1200
+	mov	r0, r5
+.LPIC4:
+	add	r2, pc
+	bl	xsnprintf(PLT)
+	movs	r0, #1
+	add	sp, sp, #772
+	@ sp needed
+	pop	{r4, r5, r6, r7, pc}
 .L4:
-	ldp	x29, x30, [sp]
-	mov	w0, 0
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	add	sp, sp, 816
-	ret
-	.p2align 2,,3
+	movs	r0, #0
+	add	sp, sp, #772
+	@ sp needed
+	pop	{r4, r5, r6, r7, pc}
 .L24:
-	bl	geteuid
-	cbz	w0, .L5
-	mov	x3, x19
-	mov	x0, x21
-	adrp	x2, .LC2
-	mov	x1, 1024
-	add	x2, x2, :lo12:.LC2
-	bl	xsnprintf
+	bl	geteuid(PLT)
+	cmp	r0, #0
+	beq	.L5
+	ldr	r2, .L25+16
+	mov	r3, r4
+	mov	r1, #1024
+	mov	r0, r6
+.LPIC2:
+	add	r2, pc
+	bl	xsnprintf(PLT)
 	b	.L6
-	.section	.rodata.str1.8
-	.align	3
-.LC5:
-	.string	"first-run"
-	.align	3
-.LC6:
-	.string	"always"
-	.align	3
-.LC7:
-	.string	"never"
-	.text
+.L26:
 	.align	2
-	.p2align 5,,15
+.L25:
+	.word	.LC0-(.LPIC0+4)
+	.word	.LC1-(.LPIC1+4)
+	.word	.LC3-(.LPIC3+4)
+	.word	.LC4-(.LPIC4+4)
+	.word	.LC2-(.LPIC2+4)
+	.section	.rodata.str1.4
+	.align	2
+.LC5:
+	.ascii	"first-run\000"
+	.align	2
+.LC6:
+	.ascii	"always\000"
+	.align	2
+.LC7:
+	.ascii	"never\000"
+	.text
+	.align	1
+	.p2align 2,,3
 	.global	guide_policy_parse
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	guide_policy_parse, %function
 guide_policy_parse:
-	cmp	x0, 0
-	ccmp	x1, 0, 4, ne
-	beq	.L30
-	stp	x29, x30, [sp, -32]!
-	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	mov	x19, x1
-	mov	x20, x0
-	adrp	x1, .LC5
-	add	x1, x1, :lo12:.LC5
-	bl	strcmp
-	cbnz	w0, .L27
-	str	wzr, [x19]
-.L28:
-	mov	w0, 1
-.L25:
-	ldp	x19, x20, [sp, 16]
-	ldp	x29, x30, [sp], 32
-	ret
-	.p2align 2,,3
-.L27:
-	adrp	x1, .LC6
-	mov	x0, x20
-	add	x1, x1, :lo12:.LC6
-	bl	strcmp
-	cbz	w0, .L36
-	mov	x0, x20
-	adrp	x1, .LC7
-	add	x1, x1, :lo12:.LC7
-	bl	strcmp
-	mov	w1, w0
-	mov	w0, 0
-	cbnz	w1, .L25
-	mov	w0, 2
-	str	w0, [x19]
-	b	.L28
-	.p2align 2,,3
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	cmp	r1, #0
+	it	ne
+	cmpne	r0, #0
+	push	{r4, r5, r6, lr}
+	itte	eq
+	moveq	r0, #0
+	moveq	r6, #1
+	movne	r6, #0
+	beq	.L27
+	mov	r4, r1
+	ldr	r1, .L36
+	mov	r5, r0
+.LPIC5:
+	add	r1, pc
+	bl	strcmp(PLT)
+	cbnz	r0, .L29
+	str	r0, [r4]
 .L30:
-	mov	w0, 0
-	ret
-	.p2align 2,,3
-.L36:
-	mov	w0, 1
-	str	w0, [x19]
-	b	.L28
+	movs	r0, #1
+.L27:
+	pop	{r4, r5, r6, pc}
+.L29:
+	ldr	r1, .L36+4
+	mov	r0, r5
+.LPIC6:
+	add	r1, pc
+	bl	strcmp(PLT)
+	cbz	r0, .L35
+	ldr	r1, .L36+8
+	mov	r0, r5
+.LPIC7:
+	add	r1, pc
+	bl	strcmp(PLT)
+	cbnz	r0, .L33
+	movs	r3, #2
+	str	r3, [r4]
+	b	.L30
+.L35:
+	movs	r3, #1
+	str	r3, [r4]
+	b	.L30
+.L33:
+	mov	r0, r6
+	pop	{r4, r5, r6, pc}
+.L37:
 	.align	2
-	.p2align 5,,15
+.L36:
+	.word	.LC5-(.LPIC5+4)
+	.word	.LC6-(.LPIC6+4)
+	.word	.LC7-(.LPIC7+4)
+	.align	1
+	.p2align 2,,3
 	.global	guide_policy_name
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	guide_policy_name, %function
 guide_policy_name:
-	cmp	w0, 1
-	beq	.L39
-	cmp	w0, 2
-	adrp	x1, .LC5
-	adrp	x0, .LC7
-	add	x1, x1, :lo12:.LC5
-	add	x0, x0, :lo12:.LC7
-	csel	x0, x0, x1, eq
-	ret
-	.p2align 2,,3
-.L39:
-	adrp	x0, .LC6
-	add	x0, x0, :lo12:.LC6
-	ret
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	@ link register save eliminated.
+	cmp	r0, #1
+	beq	.L40
+	cmp	r0, #2
+	beq	.L41
+	ldr	r0, .L42
+.LPIC8:
+	add	r0, pc
+	bx	lr
+.L41:
+	ldr	r0, .L42+4
+.LPIC10:
+	add	r0, pc
+	bx	lr
+.L40:
+	ldr	r0, .L42+8
+.LPIC9:
+	add	r0, pc
+	bx	lr
+.L43:
 	.align	2
-	.p2align 5,,15
+.L42:
+	.word	.LC5-(.LPIC8+4)
+	.word	.LC7-(.LPIC10+4)
+	.word	.LC6-(.LPIC9+4)
+	.align	1
+	.p2align 2,,3
 	.global	guide_set_policy
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	guide_set_policy, %function
 guide_set_policy:
-	adrp	x1, .LANCHOR0
-	str	w0, [x1, #:lo12:.LANCHOR0]
-	ret
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	@ link register save eliminated.
+	ldr	r3, .L45
+.LPIC11:
+	add	r3, pc
+	str	r0, [r3]
+	bx	lr
+.L46:
 	.align	2
-	.p2align 5,,15
+.L45:
+	.word	.LANCHOR0-(.LPIC11+4)
+	.align	1
+	.p2align 2,,3
 	.global	guide_get_policy
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	guide_get_policy, %function
 guide_get_policy:
-	adrp	x0, .LANCHOR0
-	ldr	w0, [x0, #:lo12:.LANCHOR0]
-	ret
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	@ link register save eliminated.
+	ldr	r3, .L48
+.LPIC12:
+	add	r3, pc
+	ldr	r0, [r3]
+	bx	lr
+.L49:
 	.align	2
-	.p2align 5,,15
+.L48:
+	.word	.LANCHOR0-(.LPIC12+4)
+	.align	1
+	.p2align 2,,3
 	.global	guide_request_explicit
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	guide_request_explicit, %function
 guide_request_explicit:
-	adrp	x0, .LANCHOR0+4
-	mov	w1, 1
-	str	w1, [x0, #:lo12:.LANCHOR0+4]
-	ret
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	@ link register save eliminated.
+	ldr	r3, .L51
+	movs	r2, #1
+.LPIC13:
+	add	r3, pc
+	str	r2, [r3, #4]
+	bx	lr
+.L52:
 	.align	2
-	.p2align 5,,15
+.L51:
+	.word	.LANCHOR0-(.LPIC13+4)
+	.align	1
+	.p2align 2,,3
 	.global	guide_should_show
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	guide_should_show, %function
 guide_should_show:
-	adrp	x1, .LANCHOR0
-	add	x0, x1, :lo12:.LANCHOR0
-	ldr	w0, [x0, 4]
-	cbnz	w0, .L58
-	ldr	w1, [x1, #:lo12:.LANCHOR0]
-	cmp	w1, 1
-	beq	.L58
-	cmp	w1, 2
-	beq	.L59
-	sub	sp, sp, #2256
-	add	x0, sp, 32
-	stp	x29, x30, [sp]
-	mov	x29, sp
-	str	x19, [sp, 16]
-	add	x19, sp, 1056
-	mov	x1, x19
-	bl	state_paths.constprop.0
-	cbnz	w0, .L62
-	ldr	x19, [sp, 16]
-	mov	w0, 1
-	ldp	x29, x30, [sp]
-	add	sp, sp, 2256
-	ret
-	.p2align 2,,3
-.L58:
-	mov	w0, 1
-.L59:
-	ret
-	.p2align 2,,3
-.L62:
-	mov	x0, x19
-	mov	w1, 0
-	bl	access
-	cmp	w0, 0
-	ldr	x19, [sp, 16]
-	cset	w0, ne
-	ldp	x29, x30, [sp]
-	add	sp, sp, 2256
-	ret
-	.section	.rodata.str1.8
-	.align	3
-.LC8:
-	.string	"\033[1;36m\nWelcome to Archtoo.\n\n\033[0m"
-	.align	3
-.LC9:
-	.string	"Archtoo uses its own command interface. It does not copy pacman's"
-	.align	3
-.LC10:
-	.string	"option meanings and never invokes an external AUR helper.\n"
-	.align	3
-.LC11:
-	.string	"Common commands:\n"
-	.align	3
-.LC12:
-	.string	"  emerge -S query          Search repositories and the AUR"
-	.align	3
-.LC13:
-	.string	"  emerge -I package        Install a package"
-	.align	3
-.LC14:
-	.string	"  emerge -U                Upgrade repository and AUR packages"
-	.align	3
-.LC15:
-	.string	"  emerge -Q package        Query an installed package"
-	.align	3
-.LC16:
-	.string	"  emerge -A package        Show available package information"
-	.align	3
-.LC17:
-	.string	"  emerge -C package        Remove a package"
-	.align	3
-.LC18:
-	.string	"  emerge -G package        Download its PKGBUILD"
-	.align	3
-.LC19:
-	.string	"  emerge --help            Show every command\n"
-	.align	3
-.LC20:
-	.string	"This guide follows the '%s' display policy. Run\n"
-	.align	3
-.LC21:
-	.string	"'emerge --command-guide' to display it explicitly.\n"
-	.text
+	@ args = 0, pretend = 0, frame = 2224
+	@ frame_needed = 0, uses_anonymous_args = 0
+	ldr	r3, .L68
+	push	{r4, r5, lr}
+.LPIC14:
+	add	r3, pc
+	subw	sp, sp, #2228
+	ldr	r4, [r3, #4]
+	cbnz	r4, .L56
+	ldr	r3, [r3]
+	cmp	r3, #1
+	beq	.L56
+	cmp	r3, #2
+	beq	.L53
+	add	r5, sp, #1024
+	mov	r0, sp
+	mov	r1, r5
+	bl	state_paths.constprop.0(PLT)
+	cbnz	r0, .L67
+.L56:
+	movs	r4, #1
+.L53:
+	mov	r0, r4
+	addw	sp, sp, #2228
+	@ sp needed
+	pop	{r4, r5, pc}
+.L67:
+	mov	r1, r4
+	mov	r0, r5
+	bl	access(PLT)
+	subs	r4, r0, #0
+	it	ne
+	movne	r4, #1
+	mov	r0, r4
+	addw	sp, sp, #2228
+	@ sp needed
+	pop	{r4, r5, pc}
+.L69:
 	.align	2
-	.p2align 5,,15
+.L68:
+	.word	.LANCHOR0-(.LPIC14+4)
+	.section	.rodata.str1.4
+	.align	2
+.LC8:
+	.ascii	"\033[1;36m\012Welcome to Archtoo.\012\012\033[0m\000"
+	.align	2
+.LC9:
+	.ascii	"Archtoo uses its own command interface. It does not"
+	.ascii	" copy pacman's\000"
+	.align	2
+.LC10:
+	.ascii	"option meanings and never invokes an external AUR h"
+	.ascii	"elper.\012\000"
+	.align	2
+.LC11:
+	.ascii	"Common commands:\012\000"
+	.align	2
+.LC12:
+	.ascii	"  emerge -S query          Search repositories and "
+	.ascii	"the AUR\000"
+	.align	2
+.LC13:
+	.ascii	"  emerge -I package        Install a package\000"
+	.align	2
+.LC14:
+	.ascii	"  emerge -U                Upgrade repository and A"
+	.ascii	"UR packages\000"
+	.align	2
+.LC15:
+	.ascii	"  emerge -Q package        Query an installed packa"
+	.ascii	"ge\000"
+	.align	2
+.LC16:
+	.ascii	"  emerge -A package        Show available package i"
+	.ascii	"nformation\000"
+	.align	2
+.LC17:
+	.ascii	"  emerge -C package        Remove a package\000"
+	.align	2
+.LC18:
+	.ascii	"  emerge -G package        Download its PKGBUILD\000"
+	.align	2
+.LC19:
+	.ascii	"  emerge --help            Show every command\012\000"
+	.align	2
+.LC20:
+	.ascii	"This guide follows the '%s' display policy. Run\012"
+	.ascii	"\000"
+	.align	2
+.LC21:
+	.ascii	"'emerge --command-guide' to display it explicitly.\012"
+	.ascii	"\000"
+	.text
+	.align	1
+	.p2align 2,,3
 	.global	guide_print
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	guide_print, %function
 guide_print:
-	stp	x29, x30, [sp, -16]!
-	adrp	x0, .LC8
-	add	x0, x0, :lo12:.LC8
-	mov	x29, sp
-	bl	printf
-	adrp	x0, .LC9
-	add	x0, x0, :lo12:.LC9
-	bl	puts
-	adrp	x0, .LC10
-	add	x0, x0, :lo12:.LC10
-	bl	puts
-	adrp	x0, .LC11
-	add	x0, x0, :lo12:.LC11
-	bl	puts
-	adrp	x0, .LC12
-	add	x0, x0, :lo12:.LC12
-	bl	puts
-	adrp	x0, .LC13
-	add	x0, x0, :lo12:.LC13
-	bl	puts
-	adrp	x0, .LC14
-	add	x0, x0, :lo12:.LC14
-	bl	puts
-	adrp	x0, .LC15
-	add	x0, x0, :lo12:.LC15
-	bl	puts
-	adrp	x0, .LC16
-	add	x0, x0, :lo12:.LC16
-	bl	puts
-	adrp	x0, .LC17
-	add	x0, x0, :lo12:.LC17
-	bl	puts
-	adrp	x0, .LC18
-	add	x0, x0, :lo12:.LC18
-	bl	puts
-	adrp	x0, .LC19
-	add	x0, x0, :lo12:.LC19
-	bl	puts
-	adrp	x0, .LANCHOR0
-	ldr	w0, [x0, #:lo12:.LANCHOR0]
-	cmp	w0, 1
-	beq	.L65
-	cmp	w0, 2
-	adrp	x1, .LC7
-	adrp	x0, .LC5
-	add	x1, x1, :lo12:.LC7
-	add	x0, x0, :lo12:.LC5
-	csel	x1, x1, x0, eq
-	adrp	x0, .LC20
-	add	x0, x0, :lo12:.LC20
-	bl	printf
-	ldp	x29, x30, [sp], 16
-	adrp	x0, .LC21
-	add	x0, x0, :lo12:.LC21
-	b	puts
-	.p2align 2,,3
-.L65:
-	adrp	x1, .LC6
-	adrp	x0, .LC20
-	add	x1, x1, :lo12:.LC6
-	add	x0, x0, :lo12:.LC20
-	bl	printf
-	ldp	x29, x30, [sp], 16
-	adrp	x0, .LC21
-	add	x0, x0, :lo12:.LC21
-	b	puts
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	ldr	r0, .L76
+	push	{r3, lr}
+.LPIC19:
+	add	r0, pc
+	bl	printf(PLT)
+	ldr	r0, .L76+4
+.LPIC20:
+	add	r0, pc
+	bl	puts(PLT)
+	ldr	r0, .L76+8
+.LPIC21:
+	add	r0, pc
+	bl	puts(PLT)
+	ldr	r0, .L76+12
+.LPIC22:
+	add	r0, pc
+	bl	puts(PLT)
+	ldr	r0, .L76+16
+.LPIC23:
+	add	r0, pc
+	bl	puts(PLT)
+	ldr	r0, .L76+20
+.LPIC24:
+	add	r0, pc
+	bl	puts(PLT)
+	ldr	r0, .L76+24
+.LPIC25:
+	add	r0, pc
+	bl	puts(PLT)
+	ldr	r0, .L76+28
+.LPIC26:
+	add	r0, pc
+	bl	puts(PLT)
+	ldr	r0, .L76+32
+.LPIC27:
+	add	r0, pc
+	bl	puts(PLT)
+	ldr	r0, .L76+36
+.LPIC28:
+	add	r0, pc
+	bl	puts(PLT)
+	ldr	r0, .L76+40
+.LPIC29:
+	add	r0, pc
+	bl	puts(PLT)
+	ldr	r0, .L76+44
+.LPIC30:
+	add	r0, pc
+	bl	puts(PLT)
+	ldr	r3, .L76+48
+.LPIC31:
+	add	r3, pc
+	ldr	r3, [r3]
+	cmp	r3, #1
+	beq	.L72
+	cmp	r3, #2
+	bne	.L75
+	ldr	r1, .L76+52
+.LPIC18:
+	add	r1, pc
+.L71:
+	ldr	r0, .L76+56
+.LPIC32:
+	add	r0, pc
+	bl	printf(PLT)
+	ldr	r0, .L76+60
+	pop	{r3, lr}
+.LPIC33:
+	add	r0, pc
+	b	puts(PLT)
+.L75:
+	ldr	r1, .L76+64
+.LPIC16:
+	add	r1, pc
+	b	.L71
+.L72:
+	ldr	r1, .L76+68
+.LPIC17:
+	add	r1, pc
+	b	.L71
+.L77:
 	.align	2
-	.p2align 5,,15
+.L76:
+	.word	.LC8-(.LPIC19+4)
+	.word	.LC9-(.LPIC20+4)
+	.word	.LC10-(.LPIC21+4)
+	.word	.LC11-(.LPIC22+4)
+	.word	.LC12-(.LPIC23+4)
+	.word	.LC13-(.LPIC24+4)
+	.word	.LC14-(.LPIC25+4)
+	.word	.LC15-(.LPIC26+4)
+	.word	.LC16-(.LPIC27+4)
+	.word	.LC17-(.LPIC28+4)
+	.word	.LC18-(.LPIC29+4)
+	.word	.LC19-(.LPIC30+4)
+	.word	.LANCHOR0-(.LPIC31+4)
+	.word	.LC7-(.LPIC18+4)
+	.word	.LC20-(.LPIC32+4)
+	.word	.LC21-(.LPIC33+4)
+	.word	.LC5-(.LPIC16+4)
+	.word	.LC6-(.LPIC17+4)
+	.align	1
+	.p2align 2,,3
 	.global	guide_mark_seen
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	guide_mark_seen, %function
 guide_mark_seen:
-	sub	sp, sp, #3296
-	adrp	x0, .LANCHOR0
-	add	x1, x0, :lo12:.LANCHOR0
-	stp	x29, x30, [sp]
-	mov	x29, sp
-	ldr	w0, [x0, #:lo12:.LANCHOR0]
-	stp	x19, x20, [sp, 16]
-	ldr	w19, [x1, 4]
-	orr	w19, w19, w0
-	cbz	w19, .L85
-	mov	w19, 1
-.L68:
-	ldp	x29, x30, [sp]
-	mov	w0, w19
-	ldp	x19, x20, [sp, 16]
-	add	sp, sp, 3296
-	ret
-	.p2align 2,,3
-.L85:
-	add	x20, sp, 48
-	stp	x21, x22, [sp, 32]
-	add	x21, sp, 2096
-	mov	x1, x21
-	mov	x0, x20
-	bl	state_paths.constprop.0
-	cbnz	w0, .L86
+	@ args = 0, pretend = 0, frame = 3248
+	@ frame_needed = 0, uses_anonymous_args = 0
+	ldr	r3, .L93
+	push	{r4, r5, r6, r7, lr}
+.LPIC34:
+	add	r3, pc
+	subw	sp, sp, #3252
+	ldrd	r4, r0, [r3]
+	orrs	r4, r4, r0
+	it	ne
+	movne	r4, #1
+	beq	.L92
+.L78:
+	mov	r0, r4
+	addw	sp, sp, #3252
+	@ sp needed
+	pop	{r4, r5, r6, r7, pc}
+.L92:
+	add	r6, sp, #2048
+	mov	r0, sp
+	mov	r1, r6
+	mov	r5, sp
+	bl	state_paths.constprop.0(PLT)
+	cmp	r0, #0
+	beq	.L78
+	ldr	r2, .L93+4
+	add	r7, sp, #1024
+	mov	r3, sp
+	mov	r1, #1024
+.LPIC36:
+	add	r2, pc
+	mov	r0, r7
+	bl	xsnprintf(PLT)
+	movs	r1, #47
+	mov	r0, r7
+	bl	strrchr(PLT)
+	mov	r3, r0
+	cbz	r0, .L84
+	mov	r0, r7
+	mov	r1, #448
+	strb	r4, [r3]
+	bl	mkdir(PLT)
+	cbz	r0, .L84
+	bl	__errno_location(PLT)
+	ldr	r3, [r0]
+	cmp	r3, #17
+	bne	.L78
 .L84:
-	ldp	x21, x22, [sp, 32]
-	mov	w0, w19
-	ldp	x29, x30, [sp]
-	ldp	x19, x20, [sp, 16]
-	add	sp, sp, 3296
-	ret
-	.p2align 2,,3
+	mov	r1, #448
+	mov	r0, r5
+	bl	mkdir(PLT)
+	cbz	r0, .L83
+	bl	__errno_location(PLT)
+	ldr	r3, [r0]
+	cmp	r3, #17
+	bne	.L78
+.L83:
+	mov	r2, #384
+	mov	r0, r6
+	movw	r1, #32961
+	bl	open64(PLT)
+	subs	r5, r0, #0
+	bge	.L86
+	bl	__errno_location(PLT)
+	ldr	r4, [r0]
+	sub	r4, #17
+	clz	r4, r4
+	lsrs	r4, r4, #5
+	b	.L78
 .L86:
-	mov	x3, x20
-	adrp	x2, .LC0
-	add	x2, x2, :lo12:.LC0
-	add	x22, sp, 1072
-	mov	x1, 1024
-	mov	x0, x22
-	bl	xsnprintf
-	mov	x0, x22
-	mov	w1, 47
-	bl	strrchr
-	cbz	x0, .L74
-	strb	wzr, [x0]
-	mov	w1, 448
-	mov	x0, x22
-	bl	mkdir
-	cbz	w0, .L74
-	bl	__errno_location
-	ldr	w0, [x0]
-	cmp	w0, 17
-	bne	.L84
-.L74:
-	mov	x0, x20
-	mov	w1, 448
-	bl	mkdir
-	cbz	w0, .L73
-	bl	__errno_location
-	ldr	w0, [x0]
-	cmp	w0, 17
-	bne	.L84
-.L73:
-	mov	x0, x21
-	mov	w2, 384
-	mov	w1, 32961
-	bl	open
-	mov	w19, w0
-	tbz	w0, #31, .L76
-	bl	__errno_location
-	ldr	w0, [x0]
-	ldp	x21, x22, [sp, 32]
-	cmp	w0, 17
-	cset	w19, eq
-	b	.L68
-	.p2align 2,,3
-.L76:
-	adrp	x1, .LANCHOR1
-	add	x1, x1, :lo12:.LANCHOR1
-	mov	x2, 33
-	bl	write
-	mov	x20, x0
-	bl	__errno_location
-	mov	x1, x0
-	mov	w0, w19
-	mov	x19, x1
-	ldr	w21, [x1]
-	bl	close
-	str	w21, [x19]
-	cmp	x20, 33
-	cset	w19, eq
-	ldp	x21, x22, [sp, 32]
-	b	.L68
-	.section	.rodata.str1.8
-	.align	3
-.LC22:
-	.string	"\033[1;33m[!] Could not record command-guide state; it may appear again.\n\033[0m"
-	.text
+	ldr	r1, .L93+8
+	movs	r2, #33
+.LPIC37:
+	add	r1, pc
+	bl	write(PLT)
+	mov	r4, r0
+	bl	__errno_location(PLT)
+	mov	r3, r0
+	sub	r4, #33
+	mov	r0, r5
+	mov	r5, r3
+	clz	r4, r4
+	ldr	r6, [r3]
+	bl	close(PLT)
+	lsrs	r4, r4, #5
+	str	r6, [r5]
+	b	.L78
+.L94:
 	.align	2
-	.p2align 5,,15
+.L93:
+	.word	.LANCHOR0-(.LPIC34+4)
+	.word	.LC0-(.LPIC36+4)
+	.word	.LANCHOR1-(.LPIC37+4)
+	.section	.rodata.str1.4
+	.align	2
+.LC22:
+	.ascii	"\033[1;33m[!] Could not record command-guide state;"
+	.ascii	" it may appear again.\012\033[0m\000"
+	.text
+	.align	1
+	.p2align 2,,3
 	.global	guide_maybe_show
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	guide_maybe_show, %function
 guide_maybe_show:
-	stp	x29, x30, [sp, -16]!
-	mov	x29, sp
-	bl	guide_should_show
-	cbnz	w0, .L92
-.L89:
-	mov	w0, 1
-	ldp	x29, x30, [sp], 16
-	ret
-	.p2align 2,,3
-.L92:
-	bl	guide_print
-	bl	guide_mark_seen
-	cbnz	w0, .L89
-	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
-	mov	x2, 74
-	mov	x1, 1
-	adrp	x0, .LC22
-	add	x0, x0, :lo12:.LC22
-	ldr	x3, [x3]
-	bl	fwrite
-	mov	w0, 1
-	ldp	x29, x30, [sp], 16
-	ret
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, lr}
+	ldr	r4, .L101
+.LPIC38:
+	add	r4, pc
+	bl	guide_should_show(PLT)
+	cbnz	r0, .L100
+.L97:
+	movs	r0, #1
+	pop	{r4, pc}
+.L100:
+	bl	guide_print(PLT)
+	bl	guide_mark_seen(PLT)
+	cmp	r0, #0
+	bne	.L97
+	ldr	r3, .L101+4
+	movs	r2, #74
+	ldr	r0, .L101+8
+	movs	r1, #1
+.LPIC39:
+	add	r0, pc
+	ldr	r3, [r4, r3]
+	ldr	r3, [r3]
+	bl	fwrite(PLT)
+	movs	r0, #1
+	pop	{r4, pc}
+.L102:
+	.align	2
+.L101:
+	.word	_GLOBAL_OFFSET_TABLE_-(.LPIC38+4)
+	.word	stderr(GOT)
+	.word	.LC22-(.LPIC39+4)
 	.section	.rodata
-	.align	4
+	.align	3
 	.set	.LANCHOR1,. + 0
 	.type	text.0, %object
 text.0:
-	.string	"Archtoo command guide displayed.\n"
+	.ascii	"Archtoo command guide displayed.\012\000"
 	.bss
 	.align	2
 	.set	.LANCHOR0,. + 0
 	.type	g_policy, %object
 g_policy:
-	.zero	4
+	.space	4
 	.type	g_explicit, %object
 g_explicit:
-	.zero	4
-	.section	.note.GNU-stack,"",@progbits
+	.space	4
+	.section	.note.GNU-stack,"",%progbits

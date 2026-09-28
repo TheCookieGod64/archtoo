@@ -1,725 +1,906 @@
-	.arch armv8-a
+	.arch armv7-a
+	.fpu neon
 	.text
-	.section	.rodata.str1.8,"aMS",@progbits,1
-	.align	3
-.LC0:
-	.string	"?"
-	.align	3
-.LC1:
-	.string	""
-	.align	3
-.LC2:
-	.string	"\033[1;32m    aur/%s  %s  (\342\227\206%ld %.2f) %s\n\033[0m"
-	.text
+	.section	.rodata.str1.4,"aMS",%progbits,1
 	.align	2
-	.p2align 5,,15
+.LC0:
+	.ascii	"?\000"
+	.align	2
+.LC1:
+	.ascii	"\000"
+	.align	2
+.LC2:
+	.ascii	"\033[1;32m    aur/%s  %s  (\342\227\206%ld %.2f) %s"
+	.ascii	"\012\033[0m\000"
+	.text
+	.align	1
+	.p2align 2,,3
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	aur_has_exact, %function
 aur_has_exact:
-	movi	v31.4s, 0
-	stp	x29, x30, [sp, -336]!
-	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	add	x19, sp, 80
-	stp	x21, x22, [sp, 32]
-	mov	x22, x0
-	stp	x23, x24, [sp, 48]
-	add	x23, sp, 64
-	stp	xzr, xzr, [sp, 64]
-	stp	q31, q31, [x19]
-	stp	q31, q31, [x19, 32]
-	stp	q31, q31, [x19, 64]
-	stp	q31, q31, [x19, 96]
-	stp	q31, q31, [x19, 128]
-	stp	q31, q31, [x19, 160]
-	stp	q31, q31, [x19, 192]
-	stp	q31, q31, [x19, 224]
-	bl	config_current
-	mov	x3, x19
-	add	x0, x0, 20
-	mov	x2, x23
-	mov	x1, x22
-	mov	x4, 256
-	bl	aur_rpc_info
-	mov	w19, w0
-	cbz	w0, .L1
-	ldr	x24, [sp, 72]
-	cbz	x24, .L8
-	ldr	x19, [sp, 64]
-	mov	x21, 0
-	.p2align 5,,15
+	@ args = 0, pretend = 0, frame = 264
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, r8, r9, lr}
+	mov	r5, #256
+	mov	r2, r5
+	sub	sp, sp, #284
+	movs	r1, #0
+	add	r4, sp, #24
+	mov	r8, r0
+	mov	r0, r4
+	add	r9, sp, #16
+	bl	memset(PLT)
+	vmov.i32	d16, #0  @ v8qi
+	vstr	d16, [sp, #16]
+	bl	config_current(PLT)
+	mov	r3, r4
+	adds	r0, r0, #16
+	mov	r2, r9
+	mov	r1, r8
+	str	r5, [sp]
+	bl	aur_rpc_info(PLT)
+	mov	r6, r0
+	cbz	r0, .L1
+	ldr	r6, [r9, #4]
+	cbz	r6, .L3
+	ldr	r4, [r9]
+	movs	r7, #0
 .L7:
-	ldr	x20, [x19]
-	mov	x1, x22
-	mov	x0, x20
-	cbz	x20, .L4
-	bl	strcmp
-	cbnz	w0, .L4
-	ldp	x2, x4, [x19, 16]
-	adrp	x0, .LC0
-	ldr	x3, [x19, 48]
-	add	x0, x0, :lo12:.LC0
-	ldr	d0, [x19, 56]
-	mov	w19, 1
-	mov	x1, x20
-	cmp	x2, 0
-	csel	x2, x0, x2, eq
-	cmp	x4, 0
-	adrp	x0, .LC1
-	add	x0, x0, :lo12:.LC1
-	csel	x4, x0, x4, eq
-	adrp	x0, .LC2
-	add	x0, x0, :lo12:.LC2
-	bl	printf
+	ldr	r5, [r4]
+	mov	r1, r8
+	mov	r0, r5
+	cbz	r5, .L4
+	bl	strcmp(PLT)
+	cbnz	r0, .L4
+	ldr	r2, [r4, #8]
+	cbz	r2, .L19
+.L5:
+	ldr	r6, [r4, #12]
+	ldr	r3, [r4, #24]
+	vldr.64	d16, [r4, #32]
+	cbz	r6, .L20
+.L6:
+	str	r6, [sp, #8]
+	movs	r6, #1
+	ldr	r0, .L21
+	mov	r1, r5
+	vstr.64	d16, [sp]
+.LPIC2:
+	add	r0, pc
+	bl	printf(PLT)
 .L3:
-	mov	x0, x23
-	bl	aur_response_destroy
+	mov	r0, r9
+	bl	aur_response_destroy(PLT)
 .L1:
-	ldp	x21, x22, [sp, 32]
-	mov	w0, w19
-	ldp	x19, x20, [sp, 16]
-	ldp	x23, x24, [sp, 48]
-	ldp	x29, x30, [sp], 336
-	ret
-	.p2align 2,,3
+	mov	r0, r6
+	add	sp, sp, #284
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, pc}
 .L4:
-	add	x21, x21, 1
-	add	x19, x19, 152
-	cmp	x21, x24
+	adds	r7, r7, #1
+	adds	r4, r4, #88
+	cmp	r7, r6
 	bne	.L7
-.L8:
-	mov	w19, 0
+	movs	r6, #0
 	b	.L3
-	.section	.rodata.str1.8
-	.align	3
-.LC3:
-	.string	"\033[1;31m[-] Invalid package name: '%s'\n\033[0m"
-	.align	3
-.LC4:
-	.string	"\033[1;33m>>> Binary mode: repo first, then yay-style AUR binary search (long flag only)\n\033[0m"
-	.align	3
-.LC5:
-	.string	"\033[1;34m>>> [1/2] Trying official repo binary via pacman -S --needed %s...\n\033[0m"
-	.align	3
-.LC6:
-	.string	"%spacman -S --needed --noconfirm '%s' 2>&1"
-	.align	3
-.LC7:
-	.string	"pacman -Si '%s' >/dev/null 2>&1"
-	.align	3
-.LC8:
-	.string	"\033[1;32m[+] %s installed from the official repo (pacman -S). No world/lock needed: pacman owns it.\n\033[0m"
-	.align	3
-.LC9:
-	.string	"\033[1;33m[!] Against Gentoo principles, but boring-fast like yay\n\033[0m"
-	.align	3
-.LC10:
-	.string	"\033[1;33m[!] %s is in the repos but pacman -S failed (rc=%d); trying manual download route...\n\033[0m"
-	.align	3
-.LC11:
-	.string	"pacman -Sp --noconfirm '%s' 2>/dev/null | head -n1"
-	.align	3
-.LC12:
-	.string	"\033[1;31m[-] Could not get binary URL for %s\n\033[0m"
-	.align	3
-.LC13:
-	.string	"http"
-	.align	3
-.LC14:
-	.string	"\033[1;31m[-] Invalid URL: '%s'\n\033[0m"
-	.align	3
-.LC15:
-	.string	"\033[1;32m[+] Binary URL: %s\n\033[0m"
-	.align	3
-.LC16:
-	.string	"/tmp/archtoo-bin-%s-%ld.pkg.tar.zst"
-	.align	3
-.LC17:
-	.string	"curl -fL -o '%s' '%s' 2>&1 || wget -O '%s' '%s' 2>&1"
-	.align	3
-.LC18:
-	.string	"\033[1;34m>>> Downloading binary package...\n\033[0m"
-	.align	3
-.LC19:
-	.string	"\033[1;31m[-] Failed to download binary for %s\n\033[0m"
-	.align	3
-.LC20:
-	.string	"rm -f '%s'"
-	.align	3
-.LC21:
-	.string	"\033[1;34m>>> Checking SHA256 (self implementation, no external program)...\n\033[0m"
-	.align	3
-.LC22:
-	.string	"\033[1;31m[-] Could not compute SHA256 for %s\n\033[0m"
-	.align	3
-.LC23:
-	.string	"SHA256 check failed, try again?"
-	.align	3
-.LC24:
-	.string	"\033[1;33m[!] Retrying download...\n\033[0m"
-	.align	3
-.LC25:
-	.string	"\033[1;32m[+] SHA256(%s) = %s\n\033[0m"
-	.align	3
-.LC26:
-	.string	"\033[1;31m[-] Downloaded file too small or invalid (%ld bytes)\n\033[0m"
-	.align	3
-.LC27:
-	.string	"Delete and try again?"
-	.align	3
-.LC28:
-	.string	"\033[1;34m>>> Installing binary package with pacman -U...\n\033[0m"
-	.align	3
-.LC29:
-	.string	"pacman -U --noconfirm '%s' 2>&1"
-	.align	3
-.LC30:
-	.string	"\033[1;31m[-] Binary install failed for %s (exit %d)\n\033[0m"
-	.align	3
-.LC31:
-	.string	"Binary install failed, try again?"
-	.align	3
-.LC32:
-	.string	"\033[1;32m[+] Binary package %s installed successfully\n\033[0m"
-	.align	3
-.LC33:
-	.string	"\033[1;33m[!] Against Gentoo principles, but fast like yay\n\033[0m"
-	.align	3
-.LC34:
-	.string	"\033[1;33m[!] %s not in official repos \342\206\222 searching AUR for a prebuilt binary (like yay)...\n\033[0m"
-	.align	3
-.LC35:
-	.string	"\033[1;32m[+] %s is itself the prebuilt AUR variant (makepkg only repackages the upstream binary) - going straight there\n\033[0m"
-	.align	3
-.LC36:
-	.string	"%s"
-	.align	3
-.LC37:
-	.string	"%s%s"
-	.align	3
-.LC38:
-	.string	"\033[1;32m[+] Prebuilt AUR variant found: %s (upstream binary, makepkg only repackages it - no compiling)\n\033[0m"
-	.align	3
-.LC39:
-	.string	"\033[1;34m>>> --binary: installing %s instead of %s (that is the whole point of --binary)\n\033[0m"
-	.align	3
-.LC40:
-	.string	"\033[1;33m[!] %s exists in AUR but only as a source build; no -bin variant found (yay would compile it)\n\033[0m"
-	.align	3
-.LC41:
-	.string	"\033[1;31m[-] %s: not in official repos and nothing in AUR either - no binary to find\n\033[0m"
-	.text
+.L20:
+	ldr	r6, .L21+4
+.LPIC1:
+	add	r6, pc
+	b	.L6
+.L19:
+	ldr	r2, .L21+8
+.LPIC0:
+	add	r2, pc
+	b	.L5
+.L22:
 	.align	2
-	.p2align 5,,15
+.L21:
+	.word	.LC2-(.LPIC2+4)
+	.word	.LC1-(.LPIC1+4)
+	.word	.LC0-(.LPIC0+4)
+	.section	.rodata.str1.4
+	.align	2
+.LC3:
+	.ascii	"\033[1;31m[-] Invalid package name: '%s'\012\033[0m"
+	.ascii	"\000"
+	.align	2
+.LC4:
+	.ascii	"\033[1;33m>>> Binary mode: repo first, then yay-sty"
+	.ascii	"le AUR binary search (long flag only)\012\033[0m\000"
+	.align	2
+.LC5:
+	.ascii	"\033[1;34m>>> [1/2] Trying official repo binary via"
+	.ascii	" pacman -S --needed %s...\012\033[0m\000"
+	.align	2
+.LC6:
+	.ascii	"%spacman -S --needed --noconfirm '%s' 2>&1\000"
+	.align	2
+.LC7:
+	.ascii	"pacman -Si '%s' >/dev/null 2>&1\000"
+	.align	2
+.LC8:
+	.ascii	"\033[1;32m[+] %s installed from the official repo ("
+	.ascii	"pacman -S). No world/lock needed: pacman owns it.\012"
+	.ascii	"\033[0m\000"
+	.align	2
+.LC9:
+	.ascii	"\033[1;33m[!] Against Gentoo principles, but boring"
+	.ascii	"-fast like yay\012\033[0m\000"
+	.align	2
+.LC10:
+	.ascii	"\033[1;33m[!] %s is in the repos but pacman -S fail"
+	.ascii	"ed (rc=%d); trying manual download route...\012\033"
+	.ascii	"[0m\000"
+	.align	2
+.LC11:
+	.ascii	"pacman -Sp --noconfirm '%s' 2>/dev/null | head -n1\000"
+	.align	2
+.LC12:
+	.ascii	"\033[1;31m[-] Could not get binary URL for %s\012\033"
+	.ascii	"[0m\000"
+	.align	2
+.LC13:
+	.ascii	"http\000"
+	.align	2
+.LC14:
+	.ascii	"\033[1;31m[-] Invalid URL: '%s'\012\033[0m\000"
+	.align	2
+.LC15:
+	.ascii	"\033[1;32m[+] Binary URL: %s\012\033[0m\000"
+	.align	2
+.LC16:
+	.ascii	"/tmp/archtoo-bin-%s-%ld.pkg.tar.zst\000"
+	.align	2
+.LC17:
+	.ascii	"curl -fL -o '%s' '%s' 2>&1 || wget -O '%s' '%s' 2>&"
+	.ascii	"1\000"
+	.align	2
+.LC18:
+	.ascii	"\033[1;34m>>> Downloading binary package...\012\033"
+	.ascii	"[0m\000"
+	.align	2
+.LC19:
+	.ascii	"\033[1;31m[-] Failed to download binary for %s\012\033"
+	.ascii	"[0m\000"
+	.align	2
+.LC20:
+	.ascii	"rm -f '%s'\000"
+	.align	2
+.LC21:
+	.ascii	"\033[1;34m>>> Checking SHA256 (self implementation,"
+	.ascii	" no external program)...\012\033[0m\000"
+	.align	2
+.LC22:
+	.ascii	"\033[1;31m[-] Could not compute SHA256 for %s\012\033"
+	.ascii	"[0m\000"
+	.align	2
+.LC23:
+	.ascii	"SHA256 check failed, try again?\000"
+	.align	2
+.LC24:
+	.ascii	"\033[1;33m[!] Retrying download...\012\033[0m\000"
+	.align	2
+.LC25:
+	.ascii	"\033[1;32m[+] SHA256(%s) = %s\012\033[0m\000"
+	.align	2
+.LC26:
+	.ascii	"\033[1;31m[-] Downloaded file too small or invalid "
+	.ascii	"(%ld bytes)\012\033[0m\000"
+	.align	2
+.LC27:
+	.ascii	"Delete and try again?\000"
+	.align	2
+.LC28:
+	.ascii	"\033[1;34m>>> Installing binary package with pacman"
+	.ascii	" -U...\012\033[0m\000"
+	.align	2
+.LC29:
+	.ascii	"pacman -U --noconfirm '%s' 2>&1\000"
+	.align	2
+.LC30:
+	.ascii	"\033[1;31m[-] Binary install failed for %s (exit %d"
+	.ascii	")\012\033[0m\000"
+	.align	2
+.LC31:
+	.ascii	"Binary install failed, try again?\000"
+	.align	2
+.LC32:
+	.ascii	"\033[1;32m[+] Binary package %s installed successfu"
+	.ascii	"lly\012\033[0m\000"
+	.align	2
+.LC33:
+	.ascii	"\033[1;33m[!] Against Gentoo principles, but fast l"
+	.ascii	"ike yay\012\033[0m\000"
+	.align	2
+.LC34:
+	.ascii	"\033[1;33m[!] %s not in official repos \342\206\222"
+	.ascii	" searching AUR for a prebuilt binary (like yay)...\012"
+	.ascii	"\033[0m\000"
+	.align	2
+.LC35:
+	.ascii	"\033[1;32m[+] %s is itself the prebuilt AUR variant"
+	.ascii	" (makepkg only repackages the upstream binary) - go"
+	.ascii	"ing straight there\012\033[0m\000"
+	.align	2
+.LC36:
+	.ascii	"%s\000"
+	.align	2
+.LC37:
+	.ascii	"%s%s\000"
+	.align	2
+.LC38:
+	.ascii	"\033[1;32m[+] Prebuilt AUR variant found: %s (upstr"
+	.ascii	"eam binary, makepkg only repackages it - no compili"
+	.ascii	"ng)\012\033[0m\000"
+	.align	2
+.LC39:
+	.ascii	"\033[1;34m>>> --binary: installing %s instead of %s"
+	.ascii	" (that is the whole point of --binary)\012\033[0m\000"
+	.align	2
+.LC40:
+	.ascii	"\033[1;33m[!] %s exists in AUR but only as a source"
+	.ascii	" build; no -bin variant found (yay would compile it"
+	.ascii	")\012\033[0m\000"
+	.align	2
+.LC41:
+	.ascii	"\033[1;31m[-] %s: not in official repos and nothing"
+	.ascii	" in AUR either - no binary to find\012\033[0m\000"
+	.text
+	.align	1
+	.p2align 2,,3
 	.global	cmd_binary_install
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	cmd_binary_install, %function
 cmd_binary_install:
-	mov	x12, 5888
-	sub	sp, sp, x12
-	stp	x29, x30, [sp]
-	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	mov	x19, x0
-	stp	x21, x22, [sp, 32]
-	mov	x22, x1
-	stp	x23, x24, [sp, 48]
-	mov	x23, x2
-	str	x25, [sp, 64]
-	bl	valid_pkgname
-	cbz	w0, .L103
-	adrp	x0, .LC4
-	add	x0, x0, :lo12:.LC4
-	bl	printf
-	add	x20, sp, 1408
-	mov	x1, x19
-	adrp	x0, .LC5
-	add	x0, x0, :lo12:.LC5
-	bl	printf
-	str	xzr, [sp, 80]
-	bl	priv_prefix
-	mov	x3, x0
-	mov	x4, x19
-	adrp	x2, .LC6
-	add	x2, x2, :lo12:.LC6
-	mov	x1, 700
-	mov	x0, x20
-	bl	xsnprintf
-	mov	x0, x20
-	add	x1, sp, 80
-	bl	run_cmd_capture
-	mov	w24, w0
-	ldr	x0, [sp, 80]
-	cbz	x0, .L22
-	ldrb	w1, [x0]
-	cbnz	w1, .L104
-.L22:
-	bl	free
-	str	xzr, [sp, 80]
-	cbz	w24, .L97
-.L109:
-	add	x21, sp, 3840
-	adrp	x20, .LC7
-.L23:
-	add	x2, x20, :lo12:.LC7
-	mov	x3, x19
-	mov	x1, 600
-	mov	x0, x21
-	bl	xsnprintf
-	mov	x0, x21
-	bl	run_cmd_quiet
-	mov	w25, w0
-	cbnz	w0, .L25
-	mov	w2, w24
-	mov	x1, x19
-	adrp	x0, .LC10
-	add	x0, x0, :lo12:.LC10
-	bl	printf
-	add	x20, sp, 2112
-	mov	x3, x19
-	adrp	x2, .LC11
-	add	x2, x2, :lo12:.LC11
-	mov	x1, 700
-	mov	x0, x20
-	str	xzr, [sp, 88]
-	bl	xsnprintf
-	mov	x0, x20
-	add	x1, sp, 88
-	bl	run_cmd_capture
-	cbnz	w0, .L26
-	ldr	x20, [sp, 88]
-	cbz	x20, .L26
-	ldrb	w24, [x20]
-	cbz	w24, .L26
-	mov	x0, x20
-	mov	w1, 10
-	bl	strchr
-	cbz	x0, .L29
-	strb	wzr, [x0]
-	ldr	x20, [sp, 88]
-	ldrb	w24, [x20]
-.L29:
-	mov	x1, 9728
-	movk	x1, 0x1, lsl 32
-	b	.L30
-	.p2align 2,,3
-.L34:
-	ldrb	w24, [x20, 1]!
-.L30:
-	cmp	w24, 32
-	bhi	.L105
-	lsr	x0, x1, x24
-	tbnz	x0, 0, .L34
-	mov	x0, x20
-	bl	strlen
-	mov	x3, x0
-	cbz	x0, .L35
-.L32:
-	mov	x0, 9728
-	movk	x0, 0x1, lsl 32
-	.p2align 5,,15
-.L36:
-	sub	x3, x3, #1
-	ldrb	w4, [x20, x3]
-	cmp	w4, 32
-	bhi	.L37
-	lsr	x4, x0, x4
-	tbz	x4, 0, .L37
-	strb	wzr, [x20, x3]
-	cbnz	x3, .L36
-.L37:
-	ldrb	w24, [x20]
-.L35:
-	cbz	w24, .L39
-.L33:
-	adrp	x1, .LC13
-	mov	x0, x20
-	add	x1, x1, :lo12:.LC13
-	mov	x2, 4
-	bl	strncmp
-	cbz	w0, .L40
-.L39:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x20
-	adrp	x1, .LC14
-	add	x1, x1, :lo12:.LC14
-	ldr	x0, [x0]
-	bl	fprintf
-	ldr	x0, [sp, 88]
-	bl	free
-	b	.L19
-	.p2align 2,,3
-.L97:
-	mov	x3, x19
-	adrp	x20, .LC7
-	add	x2, x20, :lo12:.LC7
-	add	x21, sp, 3840
-	mov	x1, 600
-	mov	x0, x21
-	bl	xsnprintf
-	mov	x0, x21
-	bl	run_cmd_quiet
-	cbnz	w0, .L23
-	mov	x1, x19
-	adrp	x0, .LC8
-	add	x0, x0, :lo12:.LC8
-	bl	printf
-	adrp	x0, .LC9
-	mov	w25, 1
-	add	x0, x0, :lo12:.LC9
-	bl	printf
-	b	.L19
-	.p2align 2,,3
-.L103:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	adrp	x1, .LC3
-	mov	x2, x19
-	add	x1, x1, :lo12:.LC3
-	ldr	x0, [x0]
-	bl	fprintf
-.L21:
-	mov	w25, 0
-.L19:
-	ldp	x29, x30, [sp]
-	mov	w0, w25
-	ldr	x25, [sp, 64]
-	mov	x12, 5888
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	ldp	x23, x24, [sp, 48]
-	add	sp, sp, x12
-	ret
-	.p2align 2,,3
-.L25:
-	mov	x1, x19
-	adrp	x0, .LC34
-	add	x0, x0, :lo12:.LC34
-	bl	printf
-	mov	x0, x19
-	adrp	x25, .LANCHOR0
-	bl	strlen
-	mov	x24, x0
-	add	x25, x25, :lo12:.LANCHOR0
-	mov	x0, 4
-	mov	x20, 0
-	sub	x2, x24, x0
-	cmp	x0, x24
-	bcs	.L50
-.L106:
-	ldr	x1, [x25]
-	add	x0, x19, x2
-	bl	strcasecmp
-	cbz	w0, .L51
-.L50:
-	add	x20, x20, 1
-	cmp	x20, 4
-	beq	.L60
-.L107:
-	ldr	x0, [x25, 8]!
-	bl	strlen
-	sub	x2, x24, x0
-	cmp	x0, x24
-	bcc	.L106
-	add	x20, x20, 1
-	cmp	x20, 4
-	bne	.L107
-.L60:
-	adrp	x25, sfx.1
-	adrp	x24, .LC37
-	add	x25, x25, :lo12:sfx.1
-	add	x24, x24, :lo12:.LC37
-	mov	x20, 0
-.L52:
-	ldr	x4, [x25, x20, lsl 3]
-	mov	x3, x19
-	mov	x2, x24
-	mov	x1, 300
-	mov	x0, x21
-	add	x20, x20, 1
-	bl	xsnprintf
-	mov	x0, x21
-	bl	aur_has_exact
-	cbnz	w0, .L108
-	cmp	x20, 4
-	bne	.L52
-.L59:
-	mov	x0, x19
-	bl	aur_has_exact
-	mov	x1, x19
-	cbz	w0, .L57
-	adrp	x0, .LC40
-	add	x0, x0, :lo12:.LC40
-	bl	printf
-	b	.L21
-	.p2align 2,,3
-.L104:
-	adrp	x1, :got:stdout;ldr	x1, [x1, :got_lo12:stdout]
-	ldr	x1, [x1]
-	bl	fputs
-	ldr	x0, [sp, 80]
-	bl	free
-	str	xzr, [sp, 80]
-	cbz	w24, .L97
-	b	.L109
-	.p2align 2,,3
-.L57:
-	adrp	x0, .LC41
-	add	x0, x0, :lo12:.LC41
-	bl	printf
-	b	.L21
-	.p2align 2,,3
+	@ args = 0, pretend = 0, frame = 5792
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+	mov	r4, r0
+	ldr	r9, .L117
+	sub	sp, sp, #5792
+	sub	sp, sp, #20
+.LPIC4:
+	add	r9, pc
+	strd	r1, r2, [sp, #20]
+	bl	valid_pkgname(PLT)
+	cmp	r0, #0
+	beq	.L109
+	ldr	r0, .L117+4
+	add	r8, sp, #1712
+	subw	r5, r8, #1676
+	add	r6, sp, #1336
+.LPIC5:
+	add	r0, pc
+	add	r10, sp, #48
+	bl	printf(PLT)
+	ldr	r0, .L117+8
+	mov	r1, r4
+.LPIC6:
+	add	r0, pc
+	bl	printf(PLT)
+	movs	r3, #0
+	str	r3, [r5]
+	bl	priv_prefix(PLT)
+	ldr	r2, .L117+12
+	mov	r3, r0
+	mov	r1, #700
+	mov	r0, r6
+.LPIC7:
+	add	r2, pc
+	str	r4, [sp]
+	bl	xsnprintf(PLT)
+	mov	r0, r6
+	mov	r1, r5
+	bl	run_cmd_capture(PLT)
+	mov	r7, r0
+	ldr	r0, [r5]
+	cbz	r0, .L26
+	ldrb	r3, [r0]	@ zero_extendqisi2
+	cmp	r3, #0
+	bne	.L110
 .L26:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x19
-	adrp	x1, .LC12
-	add	x1, x1, :lo12:.LC12
-	ldr	x0, [x0]
-	bl	fprintf
-	ldr	x0, [sp, 88]
-	bl	free
-	b	.L19
-	.p2align 2,,3
-.L51:
-	mov	x0, x19
-	bl	aur_has_exact
-	cbz	w0, .L59
-	mov	x1, x19
-	adrp	x0, .LC35
-	add	x0, x0, :lo12:.LC35
-	bl	printf
-	cmp	x22, 0
-	mov	x3, x19
-	ccmp	x23, 0, 4, ne
-	bne	.L99
+	bl	free(PLT)
+	subw	r3, r8, #1676
+	movs	r2, #0
+	add	r6, sp, #3760
+	str	r2, [r3]
+	cbnz	r7, .L27
+	ldr	r2, .L117+16
+	mov	r3, r4
+	mov	r1, #600
+	mov	r0, r6
+.LPIC8:
+	add	r2, pc
+	bl	xsnprintf(PLT)
+	mov	r0, r6
+	bl	run_cmd_quiet(PLT)
+	cmp	r0, #0
+	beq	.L111
+.L27:
+	ldr	r2, .L117+20
+	mov	r3, r4
+	mov	r1, #600
+	mov	r0, r6
+.LPIC11:
+	add	r2, pc
+	bl	xsnprintf(PLT)
+	mov	r0, r6
+	bl	run_cmd_quiet(PLT)
+	mov	r5, r0
+	cmp	r0, #0
+	beq	.L112
+	ldr	r0, .L117+24
+	mov	r1, r4
+.LPIC39:
+	add	r0, pc
+	bl	printf(PLT)
+	mov	r0, r4
+	bl	strlen(PLT)
+	ldr	r2, .L117+28
+	mov	r5, r0
+	movs	r3, #4
+.LPIC40:
+	add	r2, pc
+	subs	r0, r5, r3
+	add	r7, r2, #16
+	add	r8, r2, #4
+	add	r0, r0, r4
+	cmp	r3, r5
+	bcs	.L54
+.L113:
+	ldr	r1, [r2]
+	bl	strcasecmp(PLT)
+	cmp	r0, #0
+	beq	.L55
 .L54:
-	mov	w25, 2
-	b	.L19
-	.p2align 2,,3
-.L105:
-	mov	x0, x20
-	bl	strlen
-	mov	x3, x0
-	cbnz	x0, .L32
-	b	.L33
-	.p2align 2,,3
-.L108:
-	mov	x1, x21
-	adrp	x0, .LC38
-	add	x0, x0, :lo12:.LC38
-	bl	printf
-	mov	x2, x19
-	mov	x1, x21
-	adrp	x0, .LC39
-	add	x0, x0, :lo12:.LC39
-	bl	printf
-	cmp	x22, 0
-	ccmp	x23, 0, 4, ne
-	beq	.L54
-	mov	x3, x21
-.L99:
-	mov	x1, x23
-	mov	x0, x22
-	adrp	x2, .LC36
-	mov	w25, 2
-	add	x2, x2, :lo12:.LC36
-	bl	xsnprintf
-	b	.L19
-	.p2align 2,,3
+	cmp	r8, r7
+	beq	.L56
+.L114:
+	ldr	r0, [r8]
+	bl	strlen(PLT)
+	mov	r3, r0
+	mov	r2, r8
+	subs	r0, r5, r3
+	add	r8, r2, #4
+	add	r0, r0, r4
+	cmp	r3, r5
+	bcc	.L113
+	cmp	r8, r7
+	bne	.L114
+.L56:
+	ldr	r5, .L117+32
+	ldr	r7, .L117+36
+.LPIC49:
+	add	r5, pc
+.LPIC43:
+	add	r7, pc
+	add	r8, r5, #16
+.L61:
+	ldr	r3, [r5], #4
+	mov	r2, r7
+	str	r3, [sp]
+	mov	r1, #300
+	mov	r3, r4
+	mov	r0, r6
+	bl	xsnprintf(PLT)
+	mov	r0, r6
+	bl	aur_has_exact(PLT)
+	cmp	r0, #0
+	bne	.L115
+	cmp	r5, r8
+	bne	.L61
+.L65:
+	mov	r0, r4
+	bl	aur_has_exact(PLT)
+	cmp	r0, #0
+	beq	.L62
+	ldr	r0, .L117+40
+	mov	r1, r4
+.LPIC47:
+	add	r0, pc
+	bl	printf(PLT)
+	b	.L25
+.L112:
+	ldr	r0, .L117+44
+	mov	r2, r7
+	mov	r1, r4
+	sub	fp, r8, #1672
+.LPIC12:
+	add	r0, pc
+	addw	r7, sp, #2036
+	bl	printf(PLT)
+	ldr	r2, .L117+48
+	mov	r1, #700
+	mov	r3, r4
+.LPIC13:
+	add	r2, pc
+	mov	r0, r7
+	str	r5, [fp]
+	bl	xsnprintf(PLT)
+	mov	r0, r7
+	sub	r1, r10, #8
+	bl	run_cmd_capture(PLT)
+	cmp	r0, #0
+	bne	.L30
+	ldr	r7, [fp]
+	cmp	r7, #0
+	beq	.L30
+	ldrb	r2, [r7]	@ zero_extendqisi2
+	cmp	r2, #0
+	beq	.L30
+	movs	r1, #10
+	mov	r0, r7
+	str	r2, [sp, #28]
+	bl	strchr(PLT)
+	ldr	r2, [sp, #28]
+	cbz	r0, .L33
+	strb	r5, [r0]
+	ldr	r7, [fp]
+	ldrb	r2, [r7]	@ zero_extendqisi2
+.L33:
+	movs	r1, #19
+	movt	r1, 128
+	b	.L34
+.L36:
+	ldrb	r2, [r7, #1]!	@ zero_extendqisi2
+.L34:
+	sub	r3, r2, #9
+	uxtb	r3, r3
+	cmp	r3, #23
+	bhi	.L35
+	lsr	r3, r1, r3
+	lsls	r2, r3, #31
+	bmi	.L36
+	mov	r0, r7
+	bl	strlen(PLT)
+	cbz	r0, .L63
+.L38:
+	subs	r0, r0, #1
+	movs	r1, #19
+	movt	r1, 128
+	adds	r2, r7, r0
+	mov	ip, #0
+	rsb	r0, r7, #1
 .L40:
-	mov	x1, x20
-	adrp	x0, .LC15
-	add	x0, x0, :lo12:.LC15
-	bl	printf
-	add	x24, sp, 296
-	bl	getpid
-	sxtw	x4, w0
-	mov	x3, x19
-	mov	x1, 512
-	mov	x0, x24
-	adrp	x2, .LC16
-	add	x2, x2, :lo12:.LC16
-	bl	xsnprintf
-	mov	x6, x20
-	mov	x4, x20
-	mov	x5, x24
-	mov	x3, x24
-	adrp	x2, .LC17
-	add	x2, x2, :lo12:.LC17
-	mov	x1, 2048
-	mov	x0, x21
-	bl	xsnprintf
-	adrp	x0, .LC18
-	add	x0, x0, :lo12:.LC18
-	bl	printf
-	mov	x0, x21
-	bl	run_cmd
-	mov	w20, w0
-	ldr	x0, [sp, 88]
-	bl	free
-	cbnz	w20, .L43
-	mov	x0, x24
-	bl	file_exists
-	cbz	w0, .L43
-	add	x20, sp, 96
-	adrp	x0, .LC21
-	add	x0, x0, :lo12:.LC21
-	bl	printf
-	mov	x1, x20
-	mov	x0, x24
-	bl	sha256_file
-	cbnz	w0, .L44
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x24
-	adrp	x1, .LC22
-	add	x1, x1, :lo12:.LC22
-	add	x20, sp, 2816
-	ldr	x0, [x0]
-	bl	fprintf
-	mov	x3, x24
-	adrp	x2, .LC20
-	add	x2, x2, :lo12:.LC20
-	mov	x1, 600
-	mov	x0, x20
-	bl	xsnprintf
-	mov	x0, x20
-	bl	run_cmd_quiet
-	adrp	x0, .LC23
-	mov	w1, 0
-	add	x0, x0, :lo12:.LC23
-	bl	ask_yes_no
-	mov	w25, w0
-	cbz	w0, .L19
-	adrp	x0, .LC24
-	add	x0, x0, :lo12:.LC24
-	bl	printf
-.L101:
-	mov	x2, x23
-	mov	x1, x22
-	mov	x0, x19
-	bl	cmd_binary_install
-	mov	w25, w0
-	b	.L19
-	.p2align 2,,3
+	ldrb	r3, [r2], #-1	@ zero_extendqisi2
+	subs	r3, r3, #9
+	uxtb	r3, r3
+	cmp	r3, #23
+	bhi	.L41
+	lsr	r3, r1, r3
+	lsls	r3, r3, #31
+	bpl	.L41
+	cmn	r0, r2
+	strb	ip, [r2, #1]
+	bne	.L40
+.L41:
+	ldrb	r2, [r7]	@ zero_extendqisi2
+.L39:
+	cbz	r2, .L43
+.L63:
+	ldr	r1, .L117+52
+	movs	r2, #4
+	mov	r0, r7
+.LPIC15:
+	add	r1, pc
+	bl	strncmp(PLT)
+	cmp	r0, #0
+	beq	.L44
 .L43:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x19
-	adrp	x1, .LC19
-	add	x1, x1, :lo12:.LC19
-	add	x19, sp, 2816
-	ldr	x0, [x0]
-	bl	fprintf
-	mov	x3, x24
-	adrp	x2, .LC20
-	add	x2, x2, :lo12:.LC20
-	mov	x1, 600
-	mov	x0, x19
-	bl	xsnprintf
-	mov	x0, x19
-	bl	run_cmd_quiet
-	b	.L19
+	ldr	r3, .L117+56
+	mov	r2, r7
+	ldr	r1, .L117+60
+.LPIC16:
+	add	r1, pc
+	ldr	r3, [r9, r3]
+.L105:
+	sub	r8, r8, #1672
+	ldr	r0, [r3]
+	bl	fprintf(PLT)
+	ldr	r0, [r8]
+	bl	free(PLT)
+	mov	r0, r5
+	add	sp, sp, #5792
+	add	sp, sp, #20
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+.L109:
+	ldr	r3, .L117+56
+	mov	r2, r4
+	ldr	r1, .L117+64
+.LPIC3:
+	add	r1, pc
+	ldr	r3, [r9, r3]
+	ldr	r0, [r3]
+	bl	fprintf(PLT)
+.L25:
+	movs	r5, #0
+.L23:
+	mov	r0, r5
+	add	sp, sp, #5792
+	add	sp, sp, #20
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+.L110:
+	ldr	r3, .L117+68
+	ldr	r3, [r9, r3]
+	ldr	r1, [r3]
+	bl	fputs(PLT)
+	ldr	r0, [r5]
+	b	.L26
+.L111:
+	ldr	r0, .L117+72
+	mov	r1, r4
+	movs	r5, #1
+.LPIC9:
+	add	r0, pc
+	bl	printf(PLT)
+	ldr	r0, .L117+76
+.LPIC10:
+	add	r0, pc
+	bl	printf(PLT)
+	b	.L23
+.L30:
+	ldr	r3, .L117+56
+	mov	r2, r4
+	ldr	r1, .L117+80
+.LPIC14:
+	add	r1, pc
+	ldr	r3, [r9, r3]
+	b	.L105
+.L62:
+	ldr	r0, .L117+84
+	mov	r1, r4
+.LPIC48:
+	add	r0, pc
+	bl	printf(PLT)
+	b	.L25
+.L55:
+	mov	r0, r4
+	bl	aur_has_exact(PLT)
+	cmp	r0, #0
+	beq	.L65
+	ldr	r0, .L117+88
+	mov	r1, r4
+.LPIC41:
+	add	r0, pc
+	bl	printf(PLT)
+	ldrd	r3, r2, [sp, #20]
+	cmp	r3, #0
+	it	ne
+	cmpne	r2, #0
+	bne	.L116
+.L58:
+	movs	r5, #2
+	b	.L23
+.L35:
+	mov	r0, r7
+	str	r2, [sp, #28]
+	bl	strlen(PLT)
+	ldr	r2, [sp, #28]
+	cmp	r0, #0
+	bne	.L38
+	b	.L39
 .L44:
-	mov	x2, x20
-	mov	x1, x19
-	adrp	x0, .LC25
-	add	x0, x0, :lo12:.LC25
-	bl	printf
-	add	x1, sp, 168
-	mov	x0, x24
-	bl	stat
-	ldr	x2, [sp, 216]
-	cbnz	w0, .L46
-	cmp	x2, 1023
-	bgt	.L47
-.L46:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	adrp	x1, .LC26
-	add	x1, x1, :lo12:.LC26
-	add	x20, sp, 2816
-	ldr	x0, [x0]
-	bl	fprintf
-	mov	x3, x24
-	adrp	x2, .LC20
-	add	x2, x2, :lo12:.LC20
-	mov	x1, 600
-	mov	x0, x20
-	bl	xsnprintf
-	mov	x0, x20
-	bl	run_cmd_quiet
-	adrp	x0, .LC27
-	mov	w1, 0
-	add	x0, x0, :lo12:.LC27
-	bl	ask_yes_no
-	mov	w25, w0
-	cbz	w0, .L19
-	b	.L101
+	ldr	r0, .L117+92
+	mov	r1, r7
+	add	fp, sp, #224
+	sub	r8, r8, #1672
+.LPIC17:
+	add	r0, pc
+	bl	printf(PLT)
+	bl	getpid(PLT)
+	ldr	r2, .L117+96
+	mov	r3, r4
+	mov	r1, #512
+.LPIC18:
+	add	r2, pc
+	str	r0, [sp]
+	mov	r0, fp
+	bl	xsnprintf(PLT)
+	ldr	r2, .L117+100
+	mov	r3, fp
+	mov	r1, #2048
+.LPIC19:
+	add	r2, pc
+	mov	r0, r6
+	str	r7, [sp, #8]
+	strd	r7, fp, [sp]
+	bl	xsnprintf(PLT)
+	ldr	r0, .L117+104
+.LPIC20:
+	add	r0, pc
+	bl	printf(PLT)
+	mov	r0, r6
+	bl	run_cmd(PLT)
+	mov	r6, r0
+	ldr	r0, [r8]
+	bl	free(PLT)
+	cmp	r6, #0
+	bne	.L47
+	mov	r0, fp
+	bl	file_exists(PLT)
+	cmp	r0, #0
+	beq	.L47
+	ldr	r0, .L117+108
+	sub	r10, r10, #4
+.LPIC23:
+	add	r0, pc
+	bl	printf(PLT)
+	mov	r1, r10
+	mov	r0, fp
+	bl	sha256_file(PLT)
+	mov	r6, r0
+	cmp	r0, #0
+	bne	.L48
+	ldr	r3, .L117+56
+	mov	r2, fp
+	ldr	r1, .L117+112
+	add	r5, sp, #2736
+.LPIC24:
+	add	r1, pc
+	ldr	r3, [r9, r3]
+	ldr	r0, [r3]
+	bl	fprintf(PLT)
+	ldr	r2, .L117+116
+	mov	r3, fp
+	mov	r1, #600
+.LPIC25:
+	add	r2, pc
+	mov	r0, r5
+	bl	xsnprintf(PLT)
+	mov	r0, r5
+	bl	run_cmd_quiet(PLT)
+	ldr	r0, .L117+120
+	mov	r1, r6
+.LPIC26:
+	add	r0, pc
+	bl	ask_yes_no(PLT)
+	mov	r5, r0
+	cmp	r0, #0
+	beq	.L23
+	ldr	r0, .L117+124
+.LPIC27:
+	add	r0, pc
+	bl	printf(PLT)
+.L107:
+	ldrd	r1, r2, [sp, #20]
+	mov	r0, r4
+	bl	cmd_binary_install(PLT)
+	mov	r5, r0
+	b	.L23
+.L115:
+	ldr	r0, .L117+128
+	mov	r1, r6
+.LPIC44:
+	add	r0, pc
+	bl	printf(PLT)
+	ldr	r0, .L117+132
+	mov	r2, r4
+	mov	r1, r6
+.LPIC45:
+	add	r0, pc
+	bl	printf(PLT)
+	ldrd	r3, r2, [sp, #20]
+	cmp	r3, #0
+	it	ne
+	cmpne	r2, #0
+	beq	.L58
+	ldr	r2, .L117+136
+	mov	r3, r6
+	ldrd	r0, r1, [sp, #20]
+.LPIC46:
+	add	r2, pc
+	bl	xsnprintf(PLT)
+	b	.L58
 .L47:
-	adrp	x0, .LC28
-	add	x0, x0, :lo12:.LC28
-	bl	printf
-	add	x20, sp, 2816
-	mov	x3, x24
-	adrp	x2, .LC29
-	add	x2, x2, :lo12:.LC29
-	mov	x1, 1024
-	mov	x0, x20
-	bl	xsnprintf
-	mov	x0, x20
-	add	x21, sp, 808
-	bl	run_cmd
-	mov	w20, w0
-	mov	x3, x24
-	adrp	x2, .LC20
-	add	x2, x2, :lo12:.LC20
-	mov	x1, 600
-	mov	x0, x21
-	bl	xsnprintf
-	mov	x0, x21
-	bl	run_cmd_quiet
-	cbz	w20, .L49
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	mov	w3, w20
-	mov	x2, x19
-	adrp	x1, .LC30
-	add	x1, x1, :lo12:.LC30
-	ldr	x0, [x0]
-	bl	fprintf
-	adrp	x0, .LC31
-	mov	w1, 0
-	add	x0, x0, :lo12:.LC31
-	bl	ask_yes_no
-	cbz	w0, .L19
-	b	.L101
-.L49:
-	mov	x1, x19
-	adrp	x0, .LC32
-	add	x0, x0, :lo12:.LC32
-	bl	printf
-	adrp	x0, .LC33
-	add	x0, x0, :lo12:.LC33
-	bl	printf
-	mov	w25, 1
-	mov	x0, x19
-	bl	add_to_world
-	b	.L19
-	.section	.rodata.str1.8
-	.align	3
+	ldr	r3, .L117+56
+	mov	r2, r4
+	ldr	r1, .L117+140
+	add	r4, sp, #2736
+.LPIC21:
+	add	r1, pc
+	ldr	r3, [r9, r3]
+	ldr	r0, [r3]
+	bl	fprintf(PLT)
+	ldr	r2, .L117+144
+	mov	r3, fp
+	mov	r1, #600
+.LPIC22:
+	add	r2, pc
+	mov	r0, r4
+	bl	xsnprintf(PLT)
+	mov	r0, r4
+	bl	run_cmd_quiet(PLT)
+	b	.L23
+.L48:
+	ldr	r0, .L117+148
+	mov	r2, r10
+	mov	r1, r4
+	add	r7, sp, #112
+.LPIC28:
+	add	r0, pc
+	bl	printf(PLT)
+	mov	r1, r7
+	mov	r0, fp
+	bl	__stat64_time64(PLT)
+	mov	r6, r0
+	ldrd	r2, r3, [sp, #152]
+	cbnz	r0, .L50
+	cmp	r2, #1024
+	sbcs	r3, r3, #0
+	bge	.L51
+.L50:
+	ldr	r3, .L117+56
+	add	r5, sp, #2736
+	ldr	r1, .L117+152
+.LPIC29:
+	add	r1, pc
+	ldr	r3, [r9, r3]
+	ldr	r0, [r3]
+	bl	fprintf(PLT)
+	ldr	r2, .L117+156
+	mov	r3, fp
+	mov	r1, #600
+.LPIC30:
+	add	r2, pc
+	mov	r0, r5
+	bl	xsnprintf(PLT)
+	mov	r0, r5
+	bl	run_cmd_quiet(PLT)
+	ldr	r0, .L117+160
+	movs	r1, #0
+.LPIC31:
+	add	r0, pc
+	bl	ask_yes_no(PLT)
+	mov	r5, r0
+	cmp	r0, #0
+	beq	.L23
+	b	.L107
+.L116:
+	ldr	r2, .L117+164
+	mov	r3, r4
+	ldrd	r0, r1, [sp, #20]
+.LPIC42:
+	add	r2, pc
+	bl	xsnprintf(PLT)
+	b	.L58
+.L51:
+	ldr	r0, .L117+168
+	add	r7, sp, #2736
+	add	r8, sp, #736
+.LPIC32:
+	add	r0, pc
+	bl	printf(PLT)
+	ldr	r2, .L117+172
+	mov	r3, fp
+	mov	r1, #1024
+.LPIC33:
+	add	r2, pc
+	mov	r0, r7
+	bl	xsnprintf(PLT)
+	mov	r0, r7
+	bl	run_cmd(PLT)
+	ldr	r2, .L117+176
+	mov	r7, r0
+	mov	r3, fp
+.LPIC34:
+	add	r2, pc
+	mov	r1, #600
+	mov	r0, r8
+	bl	xsnprintf(PLT)
+	mov	r0, r8
+	bl	run_cmd_quiet(PLT)
+	cbz	r7, .L53
+	ldr	r2, .L117+56
+	mov	r3, r7
+	ldr	r1, .L117+180
+.LPIC35:
+	add	r1, pc
+	ldr	r2, [r9, r2]
+	ldr	r0, [r2]
+	mov	r2, r4
+	bl	fprintf(PLT)
+	ldr	r0, .L117+184
+	mov	r1, r6
+.LPIC36:
+	add	r0, pc
+	bl	ask_yes_no(PLT)
+	cmp	r0, #0
+	beq	.L23
+	b	.L107
+.L53:
+	ldr	r0, .L117+188
+	mov	r1, r4
+	movs	r5, #1
+.LPIC37:
+	add	r0, pc
+	bl	printf(PLT)
+	ldr	r0, .L117+192
+.LPIC38:
+	add	r0, pc
+	bl	printf(PLT)
+	mov	r0, r4
+	bl	add_to_world(PLT)
+	b	.L23
+.L118:
+	.align	2
+.L117:
+	.word	_GLOBAL_OFFSET_TABLE_-(.LPIC4+4)
+	.word	.LC4-(.LPIC5+4)
+	.word	.LC5-(.LPIC6+4)
+	.word	.LC6-(.LPIC7+4)
+	.word	.LC7-(.LPIC8+4)
+	.word	.LC7-(.LPIC11+4)
+	.word	.LC34-(.LPIC39+4)
+	.word	.LANCHOR0-(.LPIC40+4)
+	.word	sfx.1-(.LPIC49+4)
+	.word	.LC37-(.LPIC43+4)
+	.word	.LC40-(.LPIC47+4)
+	.word	.LC10-(.LPIC12+4)
+	.word	.LC11-(.LPIC13+4)
+	.word	.LC13-(.LPIC15+4)
+	.word	stderr(GOT)
+	.word	.LC14-(.LPIC16+4)
+	.word	.LC3-(.LPIC3+4)
+	.word	stdout(GOT)
+	.word	.LC8-(.LPIC9+4)
+	.word	.LC9-(.LPIC10+4)
+	.word	.LC12-(.LPIC14+4)
+	.word	.LC41-(.LPIC48+4)
+	.word	.LC35-(.LPIC41+4)
+	.word	.LC15-(.LPIC17+4)
+	.word	.LC16-(.LPIC18+4)
+	.word	.LC17-(.LPIC19+4)
+	.word	.LC18-(.LPIC20+4)
+	.word	.LC21-(.LPIC23+4)
+	.word	.LC22-(.LPIC24+4)
+	.word	.LC20-(.LPIC25+4)
+	.word	.LC23-(.LPIC26+4)
+	.word	.LC24-(.LPIC27+4)
+	.word	.LC38-(.LPIC44+4)
+	.word	.LC39-(.LPIC45+4)
+	.word	.LC36-(.LPIC46+4)
+	.word	.LC19-(.LPIC21+4)
+	.word	.LC20-(.LPIC22+4)
+	.word	.LC25-(.LPIC28+4)
+	.word	.LC26-(.LPIC29+4)
+	.word	.LC20-(.LPIC30+4)
+	.word	.LC27-(.LPIC31+4)
+	.word	.LC36-(.LPIC42+4)
+	.word	.LC28-(.LPIC32+4)
+	.word	.LC29-(.LPIC33+4)
+	.word	.LC20-(.LPIC34+4)
+	.word	.LC30-(.LPIC35+4)
+	.word	.LC31-(.LPIC36+4)
+	.word	.LC32-(.LPIC37+4)
+	.word	.LC33-(.LPIC38+4)
+	.section	.rodata.str1.4
+	.align	2
 .LC42:
-	.string	"-bin"
-	.align	3
+	.ascii	"-bin\000"
+	.align	2
 .LC43:
-	.string	"-binary"
-	.align	3
+	.ascii	"-binary\000"
+	.align	2
 .LC44:
-	.string	"-prebuilt"
-	.align	3
+	.ascii	"-prebuilt\000"
+	.align	2
 .LC45:
-	.string	"-release"
+	.ascii	"-release\000"
 	.set	sfx.1,sfx.0
 	.section	.data.rel.ro.local,"aw"
-	.align	4
+	.align	3
 	.set	.LANCHOR0,. + 0
 	.type	sfx.0, %object
 sfx.0:
-	.xword	.LC42
-	.xword	.LC43
-	.xword	.LC44
-	.xword	.LC45
-	.section	.note.GNU-stack,"",@progbits
+	.word	.LC42
+	.word	.LC43
+	.word	.LC44
+	.word	.LC45
+	.section	.note.GNU-stack,"",%progbits

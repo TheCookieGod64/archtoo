@@ -1,238 +1,269 @@
-	.arch armv8-a
+	.arch armv7-a
+	.fpu neon
 	.text
-	.section	.rodata.str1.8,"aMS",@progbits,1
-	.align	3
-.LC0:
-	.string	""
-	.align	3
-.LC1:
-	.string	"?"
-	.align	3
-.LC2:
-	.string	"\033[1;31m[-] Invalid search query: '%s'\n\033[0m"
-	.align	3
-.LC3:
-	.string	"\033[1;36m>>> Repositories\n\033[0m"
-	.align	3
-.LC4:
-	.string	"pacman -Ss -- %s"
-	.align	3
-.LC5:
-	.string	"    (no repository matches)"
-	.align	3
-.LC6:
-	.string	"\033[1;36m>>> AUR\n\033[0m"
-	.align	3
-.LC7:
-	.string	"    (no AUR matches)"
-	.align	3
-.LC8:
-	.string	"aur/%s %s"
-	.align	3
-.LC9:
-	.string	" (%ld votes)"
-	.align	3
-.LC10:
-	.string	"    %s\n"
-	.align	3
-.LC11:
-	.string	"\033[1;33m[!] AUR RPC: %s\n\033[0m"
-	.text
+	.section	.rodata.str1.4,"aMS",%progbits,1
 	.align	2
-	.p2align 5,,15
+.LC0:
+	.ascii	"\000"
+	.align	2
+.LC1:
+	.ascii	"?\000"
+	.align	2
+.LC2:
+	.ascii	"\033[1;31m[-] Invalid search query: '%s'\012\033[0m"
+	.ascii	"\000"
+	.align	2
+.LC3:
+	.ascii	"\033[1;36m>>> Repositories\012\033[0m\000"
+	.align	2
+.LC4:
+	.ascii	"pacman -Ss -- %s\000"
+	.align	2
+.LC5:
+	.ascii	"    (no repository matches)\000"
+	.align	2
+.LC6:
+	.ascii	"\033[1;36m>>> AUR\012\033[0m\000"
+	.align	2
+.LC7:
+	.ascii	"    (no AUR matches)\000"
+	.align	2
+.LC8:
+	.ascii	"aur/%s %s\000"
+	.align	2
+.LC9:
+	.ascii	" (%ld votes)\000"
+	.align	2
+.LC10:
+	.ascii	"    %s\012\000"
+	.align	2
+.LC11:
+	.ascii	"\033[1;33m[!] AUR RPC: %s\012\033[0m\000"
+	.text
+	.align	1
+	.p2align 2,,3
 	.global	cmd_search_v2
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	cmd_search_v2, %function
 cmd_search_v2:
-	movi	v31.4s, 0
-	sub	sp, sp, #1216
-	stp	x29, x30, [sp]
-	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	add	x19, sp, 128
-	mov	x20, x0
-	stp	x21, x22, [sp, 32]
-	str	xzr, [sp, 104]
-	stp	xzr, xzr, [sp, 112]
-	stp	q31, q31, [x19]
-	stp	q31, q31, [x19, 32]
-	stp	q31, q31, [x19, 64]
-	stp	q31, q31, [x19, 96]
-	stp	q31, q31, [x19, 128]
-	stp	q31, q31, [x19, 160]
-	stp	q31, q31, [x19, 192]
-	stp	q31, q31, [x19, 224]
-	bl	valid_search_query
-	cbnz	w0, .L2
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	cmp	x20, 0
-	adrp	x2, .LC0
-	add	x2, x2, :lo12:.LC0
-	adrp	x1, .LC2
-	csel	x2, x2, x20, eq
-	ldr	x0, [x0]
-	add	x1, x1, :lo12:.LC2
-	bl	fprintf
-.L4:
-	mov	w21, 0
-	mov	w0, w21
-	ldp	x29, x30, [sp]
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	add	sp, sp, 1216
-	ret
-	.p2align 2,,3
-.L2:
-	add	x21, sp, 384
-	mov	x0, x20
-	mov	x1, x21
-	mov	x2, 320
-	bl	shell_quote
-	cbz	w0, .L4
-	adrp	x0, .LC3
-	add	x0, x0, :lo12:.LC3
-	stp	x25, x26, [sp, 64]
-	bl	printf
-	mov	x3, x21
-	adrp	x2, .LC4
-	add	x2, x2, :lo12:.LC4
-	add	x0, sp, 704
-	mov	x1, 512
-	mov	x21, x0
-	bl	xsnprintf
-	mov	x0, x21
-	add	x1, sp, 104
-	bl	run_cmd_capture
-	cbnz	w0, .L7
-	ldr	x0, [sp, 104]
-	cbz	x0, .L7
-	ldrb	w1, [x0]
-	cbnz	w1, .L40
-.L7:
-	adrp	x0, .LC5
-	add	x0, x0, :lo12:.LC5
-	bl	puts
-	mov	w21, 0
-	ldr	x22, [sp, 104]
-.L8:
-	mov	x0, x22
-	bl	free
-	add	x25, sp, 112
-	adrp	x0, .LC6
-	add	x0, x0, :lo12:.LC6
-	bl	printf
-	bl	config_current
-	add	x0, x0, 20
-	mov	x1, x20
-	mov	x2, x25
-	mov	x3, x19
-	mov	x4, 256
-	bl	aur_rpc_search
-	cbz	w0, .L9
-	ldr	x0, [sp, 120]
-	cbz	x0, .L41
-	adrp	x26, .LC8
-	adrp	x22, .LC0
-	add	x26, x26, :lo12:.LC8
-	add	x22, x22, :lo12:.LC0
-	mov	x19, 0
-	mov	x21, 0
-	stp	x23, x24, [sp, 48]
-	adrp	x23, .LC1
-	add	x23, x23, :lo12:.LC1
-	adrp	x24, :got:stdout;ldr	x24, [x24, :got_lo12:stdout]
-	str	x27, [sp, 80]
-	adrp	x27, .LC9
-	add	x27, x27, :lo12:.LC9
-	b	.L10
-	.p2align 2,,3
-.L14:
-	ldr	x1, [x24]
-	mov	w0, 10
-	bl	putc
-	ldr	x1, [x20, 24]
-	cbz	x1, .L15
-	ldrb	w0, [x1]
-	cbnz	w0, .L42
-.L15:
-	ldr	x0, [sp, 120]
-	add	x21, x21, 1
-	add	x19, x19, 152
-	cmp	x0, x21
-	bls	.L43
-.L10:
-	ldr	x1, [sp, 112]
-	mov	x0, x26
-	add	x20, x1, x19
-	ldr	x1, [x1, x19]
-	ldr	x2, [x20, 16]
-	cmp	x1, 0
-	csel	x1, x23, x1, eq
-	cmp	x2, 0
-	csel	x2, x22, x2, eq
-	bl	printf
-	ldr	x1, [x20, 48]
-	cbz	x1, .L14
-	mov	x0, x27
-	bl	printf
-	b	.L14
-	.p2align 2,,3
-.L9:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	adrp	x1, .LC11
-	mov	x2, x19
-	add	x1, x1, :lo12:.LC11
-	ldr	x0, [x0]
-	bl	fprintf
-.L11:
-	mov	x0, x25
-	bl	aur_response_destroy
-	ldp	x29, x30, [sp]
-	mov	w0, w21
-	ldp	x25, x26, [sp, 64]
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	add	sp, sp, 1216
-	ret
-	.p2align 2,,3
-.L42:
-	adrp	x0, .LC10
-	add	x0, x0, :lo12:.LC10
-	bl	printf
-	b	.L15
-	.p2align 2,,3
-.L43:
-	ldr	x27, [sp, 80]
-	mov	w21, 1
-	ldp	x23, x24, [sp, 48]
-	b	.L11
-	.p2align 2,,3
-.L41:
-	adrp	x0, .LC7
-	add	x0, x0, :lo12:.LC7
-	bl	puts
-	b	.L11
-	.p2align 2,,3
-.L40:
-	stp	x23, x24, [sp, 48]
-	mov	w21, 1
-	adrp	x24, :got:stdout;ldr	x24, [x24, :got_lo12:stdout]
-	ldr	x1, [x24]
-	bl	fputs
-	ldr	x22, [sp, 104]
-	mov	x0, x22
-	bl	strlen
-	add	x0, x22, x0
-	ldrb	w0, [x0, -1]
-	cmp	w0, 10
+	@ args = 0, pretend = 0, frame = 1104
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+	movs	r1, #0
+	mov	r4, r0
+	subw	sp, sp, #1116
+	mov	r2, #256
+	add	r9, sp, #24
+	add	r5, sp, #16
+	mov	r0, r9
+	ldr	r6, .L43
+	str	r1, [sp, #12]
+	bl	memset(PLT)
+	vmov.i32	d16, #0  @ v8qi
+	mov	r0, r4
+	add	r7, sp, #12
+.LPIC3:
+	add	r6, pc
+	vstr	d16, [r5]
+	bl	valid_search_query(PLT)
+	cbnz	r0, .L2
+	ldr	r3, .L43+4
+	ldr	r3, [r6, r3]
+	ldr	r0, [r3]
+	cmp	r4, #0
 	beq	.L38
-	ldr	x1, [x24]
-	mov	w0, 10
-	bl	putc
-	ldr	x22, [sp, 104]
-	ldp	x23, x24, [sp, 48]
-	b	.L8
-	.p2align 2,,3
+.L3:
+	ldr	r1, .L43+8
+	mov	r2, r4
+.LPIC4:
+	add	r1, pc
+	bl	fprintf(PLT)
+.L4:
+	movs	r7, #0
+	mov	r0, r7
+	addw	sp, sp, #1116
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+.L2:
+	add	r8, sp, #280
+	mov	r2, #320
+	mov	r1, r8
+	mov	r0, r4
+	bl	shell_quote(PLT)
+	cmp	r0, #0
+	beq	.L4
+	ldr	r0, .L43+12
+.LPIC5:
+	add	r0, pc
+	bl	printf(PLT)
+	ldr	r2, .L43+16
+	mov	r3, r8
+	add	r8, sp, #600
+	mov	r1, #512
+.LPIC6:
+	add	r2, pc
+	mov	r0, r8
+	bl	xsnprintf(PLT)
+	mov	r1, r7
+	mov	r0, r8
+	bl	run_cmd_capture(PLT)
+	cbnz	r0, .L7
+	ldr	r0, [r7]
+	cbz	r0, .L7
+	ldrb	r3, [r0]	@ zero_extendqisi2
+	cmp	r3, #0
+	bne	.L39
+.L7:
+	ldr	r0, .L43+20
+.LPIC7:
+	add	r0, pc
+	bl	puts(PLT)
+	ldr	r10, [r7]
+	movs	r7, #0
+.L8:
+	mov	r0, r10
+	bl	free(PLT)
+	ldr	r0, .L43+24
+.LPIC8:
+	add	r0, pc
+	bl	printf(PLT)
+	bl	config_current(PLT)
+	mov	r3, #256
+	mov	r1, r4
+	str	r3, [sp]
+	adds	r0, r0, #16
+	mov	r3, r9
+	mov	r2, r5
+	bl	aur_rpc_search(PLT)
+	cmp	r0, #0
+	beq	.L9
+	ldr	r3, [r5, #4]
+	cmp	r3, #0
+	beq	.L40
+	ldr	r3, .L43+28
+	movs	r4, #0
+	ldr	fp, .L43+32
+	mov	r7, r4
+	ldr	r10, .L43+36
+	ldr	r9, .L43+40
+.LPIC1:
+	add	fp, pc
+	ldr	r8, [r6, r3]
+.LPIC2:
+	add	r10, pc
+.LPIC10:
+	add	r9, pc
+	b	.L10
+.L14:
+	ldr	r1, [r8]
+	movs	r0, #10
+	bl	putc(PLT)
+	ldr	r1, [r6, #12]
+	cbz	r1, .L15
+	ldrb	r3, [r1]	@ zero_extendqisi2
+	cbnz	r3, .L41
+.L15:
+	ldr	r3, [r5, #4]
+	adds	r7, r7, #1
+	adds	r4, r4, #88
+	cmp	r3, r7
+	bls	.L42
+.L10:
+	ldr	r3, [r5]
+	mov	r0, r9
+	adds	r6, r3, r4
+	ldr	r1, [r3, r4]
+	ldr	r2, [r6, #8]
+	cmp	r1, #0
+	it	eq
+	moveq	r1, fp
+	cmp	r2, #0
+	it	eq
+	moveq	r2, r10
+	bl	printf(PLT)
+	ldr	r1, [r6, #24]
+	cmp	r1, #0
+	beq	.L14
+	ldr	r0, .L43+44
+.LPIC11:
+	add	r0, pc
+	bl	printf(PLT)
+	b	.L14
 .L38:
-	ldp	x23, x24, [sp, 48]
+	ldr	r4, .L43+48
+.LPIC0:
+	add	r4, pc
+	b	.L3
+.L9:
+	ldr	r3, .L43+4
+	mov	r2, r9
+	ldr	r1, .L43+52
+.LPIC13:
+	add	r1, pc
+	ldr	r3, [r6, r3]
+	ldr	r0, [r3]
+	bl	fprintf(PLT)
+.L11:
+	mov	r0, r5
+	bl	aur_response_destroy(PLT)
+	mov	r0, r7
+	addw	sp, sp, #1116
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+.L41:
+	ldr	r0, .L43+56
+.LPIC12:
+	add	r0, pc
+	bl	printf(PLT)
+	b	.L15
+.L42:
+	movs	r7, #1
+	b	.L11
+.L40:
+	ldr	r0, .L43+60
+.LPIC9:
+	add	r0, pc
+	bl	puts(PLT)
+	b	.L11
+.L39:
+	ldr	r3, .L43+28
+	ldr	r8, [r6, r3]
+	ldr	r1, [r8]
+	bl	fputs(PLT)
+	ldr	r10, [r7]
+	mov	r0, r10
+	bl	strlen(PLT)
+	add	r0, r0, r10
+	ldrb	r3, [r0, #-1]	@ zero_extendqisi2
+	cmp	r3, #10
+	it	eq
+	moveq	r7, #1
+	beq	.L8
+	ldr	r1, [r8]
+	movs	r0, #10
+	bl	putc(PLT)
+	ldr	r10, [r7]
+	movs	r7, #1
 	b	.L8
-	.section	.note.GNU-stack,"",@progbits
+.L44:
+	.align	2
+.L43:
+	.word	_GLOBAL_OFFSET_TABLE_-(.LPIC3+4)
+	.word	stderr(GOT)
+	.word	.LC2-(.LPIC4+4)
+	.word	.LC3-(.LPIC5+4)
+	.word	.LC4-(.LPIC6+4)
+	.word	.LC5-(.LPIC7+4)
+	.word	.LC6-(.LPIC8+4)
+	.word	stdout(GOT)
+	.word	.LC1-(.LPIC1+4)
+	.word	.LC0-(.LPIC2+4)
+	.word	.LC8-(.LPIC10+4)
+	.word	.LC9-(.LPIC11+4)
+	.word	.LC0-(.LPIC0+4)
+	.word	.LC11-(.LPIC13+4)
+	.word	.LC10-(.LPIC12+4)
+	.word	.LC7-(.LPIC9+4)
+	.section	.note.GNU-stack,"",%progbits

@@ -1,311 +1,385 @@
-	.arch armv8-a
+	.arch armv7-a
+	.fpu neon
 	.text
-	.section	.rodata.str1.8,"aMS",@progbits,1
-	.align	3
-.LC0:
-	.string	"curl"
-	.align	3
-.LC1:
-	.string	"\033[1;31m[-] curl is required to fetch Arch news.\n\033[0m"
-	.align	3
-.LC2:
-	.string	"curl -fsSL --max-time 20 -- 'https://archlinux.org/feeds/news/'"
-	.align	3
-.LC3:
-	.string	"\033[1;31m[-] Could not download Arch news feed.\n\033[0m"
-	.align	3
-.LC4:
-	.string	"\033[1;36m>>> Recent Arch Linux news\n\033[0m"
-	.align	3
-.LC5:
-	.string	"<item>"
-	.align	3
-.LC6:
-	.string	"</item>"
-	.align	3
-.LC7:
-	.string	"<title>"
-	.align	3
-.LC8:
-	.string	"<![CDATA["
-	.align	3
-.LC9:
-	.string	"</title>"
-	.align	3
-.LC10:
-	.string	"&amp;"
-	.align	3
-.LC11:
-	.string	"&lt;"
-	.align	3
-.LC12:
-	.string	"&gt;"
-	.align	3
-.LC13:
-	.string	"&quot;"
-	.align	3
-.LC14:
-	.string	"&apos;"
-	.align	3
-.LC15:
-	.string	"&#39;"
-	.align	3
-.LC16:
-	.string	"  %d. %s\n"
-	.align	3
-.LC17:
-	.string	"\033[1;31m[-] News feed contained no items.\n\033[0m"
-	.text
+	.section	.rodata.str1.4,"aMS",%progbits,1
 	.align	2
-	.p2align 5,,15
+.LC0:
+	.ascii	"curl\000"
+	.align	2
+.LC1:
+	.ascii	"\033[1;31m[-] curl is required to fetch Arch news.\012"
+	.ascii	"\033[0m\000"
+	.align	2
+.LC2:
+	.ascii	"curl -fsSL --max-time 20 -- 'https://archlinux.org/"
+	.ascii	"feeds/news/'\000"
+	.align	2
+.LC3:
+	.ascii	"\033[1;31m[-] Could not download Arch news feed.\012"
+	.ascii	"\033[0m\000"
+	.align	2
+.LC4:
+	.ascii	"\033[1;36m>>> Recent Arch Linux news\012\033[0m\000"
+	.align	2
+.LC5:
+	.ascii	"<item>\000"
+	.align	2
+.LC6:
+	.ascii	"</item>\000"
+	.align	2
+.LC7:
+	.ascii	"<title>\000"
+	.align	2
+.LC8:
+	.ascii	"<![CDATA[\000"
+	.align	2
+.LC9:
+	.ascii	"</title>\000"
+	.align	2
+.LC10:
+	.ascii	"&amp;\000"
+	.align	2
+.LC11:
+	.ascii	"&lt;\000"
+	.align	2
+.LC12:
+	.ascii	"&gt;\000"
+	.align	2
+.LC13:
+	.ascii	"&quot;\000"
+	.align	2
+.LC14:
+	.ascii	"&apos;\000"
+	.align	2
+.LC15:
+	.ascii	"&#39;\000"
+	.align	2
+.LC16:
+	.ascii	"  %d. %s\012\000"
+	.align	2
+.LC17:
+	.ascii	"\033[1;31m[-] News feed contained no items.\012\033"
+	.ascii	"[0m\000"
+	.text
+	.align	1
+	.p2align 2,,3
 	.global	cmd_news_v2
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	cmd_news_v2, %function
 cmd_news_v2:
-	sub	sp, sp, #640
-	adrp	x0, .LC0
-	add	x0, x0, :lo12:.LC0
-	stp	x29, x30, [sp]
-	mov	x29, sp
-	str	xzr, [sp, 120]
-	bl	have_cmd
-	cbz	w0, .L41
-	add	x1, sp, 120
-	adrp	x0, .LC2
-	add	x0, x0, :lo12:.LC2
-	stp	x21, x22, [sp, 32]
-	bl	run_cmd_capture
-	mov	w21, w0
-	cbnz	w0, .L4
-	ldr	x0, [sp, 120]
-	cbz	x0, .L4
-	ldrb	w0, [x0]
-	cbz	w0, .L4
-	adrp	x0, .LC4
-	add	x0, x0, :lo12:.LC4
-	stp	x19, x20, [sp, 16]
-	stp	x23, x24, [sp, 48]
-	stp	x25, x26, [sp, 64]
-	adrp	x26, .LC10
-	add	x26, x26, :lo12:.LC10
-	stp	x27, x28, [sp, 80]
-	bl	printf
-	adrp	x27, .LC6
-	ldr	x23, [sp, 120]
-	add	x27, x27, :lo12:.LC6
-	adrp	x28, .LC5
-	.p2align 5,,15
+	@ args = 0, pretend = 0, frame = 544
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+	movs	r3, #0
+	ldr	r0, .L49
+	sub	sp, sp, #548
+	ldr	r5, .L49+4
+.LPIC0:
+	add	r0, pc
+	add	r4, sp, #28
+.LPIC1:
+	add	r5, pc
+	str	r3, [r4]
+	bl	have_cmd(PLT)
+	cmp	r0, #0
+	beq	.L41
+	ldr	r0, .L49+8
+	mov	r1, r4
+.LPIC3:
+	add	r0, pc
+	bl	run_cmd_capture(PLT)
+	mov	r7, r0
+	cmp	r0, #0
+	bne	.L4
+	ldr	r3, [r4]
+	cmp	r3, #0
+	beq	.L4
+	ldrb	r3, [r3]	@ zero_extendqisi2
+	cmp	r3, #0
+	beq	.L4
+	ldr	r0, .L49+12
+	ldr	fp, .L49+16
+.LPIC5:
+	add	r0, pc
+	bl	printf(PLT)
+	ldr	r3, .L49+20
+	ldr	r8, [r4]
+.LPIC11:
+	add	fp, pc
+.LPIC6:
+	add	r3, pc
+	str	r3, [sp, #4]
+	ldr	r3, .L49+24
+.LPIC7:
+	add	r3, pc
+	str	r3, [sp, #8]
+	ldr	r3, .L49+28
+.LPIC12:
+	add	r3, pc
+	str	r3, [sp, #16]
 .L25:
-	mov	x0, x23
-	add	x1, x28, :lo12:.LC5
-	bl	strstr
-	mov	x19, x0
-	cbz	x0, .L7
-	mov	x1, x27
-	bl	strstr
-	mov	x20, x0
-	cbz	x0, .L7
-	mov	x0, x19
-	adrp	x1, .LC7
-	add	x1, x1, :lo12:.LC7
-	bl	strstr
-	cmp	x0, 0
-	add	x23, x20, 7
-	mov	x19, x0
-	ccmp	x20, x0, 0, ne
-	bcc	.L25
-	add	x24, x0, 7
-	mov	x2, 9
-	mov	x0, x24
-	adrp	x1, .LC8
-	add	x1, x1, :lo12:.LC8
-	bl	strncmp
-	cmp	w0, 0
-	add	x19, x19, 16
-	csel	x24, x24, x19, ne
-	adrp	x1, .LC9
-	mov	x0, x24
-	add	x1, x1, :lo12:.LC9
-	bl	strstr
-	cmp	x0, 0
-	ccmp	x20, x0, 0, ne
-	bcc	.L25
-	add	x1, x24, 3
-	cmp	x0, x1
+	mov	r0, r8
+	ldr	r1, [sp, #4]
+	bl	strstr(PLT)
+	mov	r8, r0
+	cmp	r0, #0
+	beq	.L7
+	ldr	r1, [sp, #8]
+	bl	strstr(PLT)
+	mov	r6, r0
+	cmp	r0, #0
+	beq	.L7
+	ldr	r1, .L49+32
+	mov	r0, r8
+	add	r8, r6, #7
+.LPIC8:
+	add	r1, pc
+	bl	strstr(PLT)
+	cmp	r6, r0
+	ite	cs
+	movcs	r3, #0
+	movcc	r3, #1
+	mov	r10, r0
+	cmp	r0, #0
+	it	eq
+	orreq	r3, r3, #1
+	cmp	r3, #0
+	bne	.L25
+	ldr	r1, .L49+36
+	add	r9, r0, #7
+	movs	r2, #9
+	mov	r0, r9
+.LPIC9:
+	add	r1, pc
+	bl	strncmp(PLT)
+	cbnz	r0, .L9
+	add	r9, r10, #16
+.L9:
+	ldr	r1, .L49+40
+	mov	r0, r9
+.LPIC10:
+	add	r1, pc
+	bl	strstr(PLT)
+	cmp	r6, r0
+	ite	cs
+	movcs	r6, #0
+	movcc	r6, #1
+	cmp	r0, #0
+	it	eq
+	orreq	r6, r6, #1
+	cmp	r6, #0
+	bne	.L25
+	add	r3, r9, #3
+	cmp	r0, r3
 	bcc	.L10
-	ldrb	w1, [x0, -3]
-	sub	x2, x0, #3
-	cmp	w1, 93
+	ldrb	r3, [r0, #-3]	@ zero_extendqisi2
+	subs	r2, r0, #3
+	cmp	r3, #93
 	beq	.L42
 .L10:
-	sub	x19, x0, x24
-	mov	x0, 511
-	cmp	x19, x0
-	add	x22, sp, 128
-	csel	x19, x19, x0, ls
-	mov	x1, x24
-	mov	x2, x19
-	mov	x0, x22
-	bl	memcpy
-	strb	wzr, [x22, x19]
-	ldrb	w19, [sp, 128]
-	cbz	w19, .L27
-	adrp	x25, .LC12
-	adrp	x24, .LC11
-	add	x0, x25, :lo12:.LC12
-	add	x24, x24, :lo12:.LC11
-	mov	x25, x22
-	mov	x20, x22
-	str	x0, [sp, 104]
-	.p2align 5,,15
-.L20:
-	add	x25, x25, 1
-	cmp	w19, 38
-	beq	.L43
+	sub	r6, r0, r9
+	movw	r2, #511
+	cmp	r6, r2
+	add	r3, sp, #32
+	it	cs
+	movcs	r6, r2
+	mov	r0, r3
+	mov	r2, r6
+	mov	r1, r9
+	bl	memcpy(PLT)
+	movs	r2, #0
+	strb	r2, [r0, r6]
+	mov	r3, r0
+	ldrb	r6, [r0]	@ zero_extendqisi2
+	cmp	r6, #0
+	beq	.L27
+	ldr	r2, .L49+44
+	mov	r10, r0
+	str	r4, [sp, #20]
+	mov	r9, r0
+.LPIC13:
+	add	r2, pc
+	mov	r4, r0
+	str	r2, [sp, #12]
+	b	.L20
 .L13:
-	add	x20, x20, 1
+	add	r9, r9, #1
 .L15:
-	strb	w19, [x25, -1]
-	ldrb	w19, [x20]
-	cbnz	w19, .L20
-.L12:
-	strb	wzr, [x25]
-	add	w21, w21, 1
-	adrp	x0, .LC16
-	mov	x2, x22
-	mov	w1, w21
-	add	x0, x0, :lo12:.LC16
-	bl	printf
-	cmp	w21, 10
-	bne	.L25
-	ldr	x0, [sp, 120]
-	bl	free
-.L24:
-	ldp	x19, x20, [sp, 16]
-	mov	w0, 1
-	ldp	x21, x22, [sp, 32]
-	ldp	x23, x24, [sp, 48]
-	ldp	x25, x26, [sp, 64]
-	ldp	x27, x28, [sp, 80]
-	b	.L1
-	.p2align 2,,3
-.L43:
-	mov	x1, x26
-	mov	x0, x20
-	mov	x2, 5
-	bl	strncmp
-	cbz	w0, .L44
-	mov	x1, x24
-	mov	x0, x20
-	mov	x2, 4
-	bl	strncmp
-	cbz	w0, .L45
-	ldr	x1, [sp, 104]
-	mov	x0, x20
-	mov	x2, 4
-	bl	strncmp
-	cbz	w0, .L46
-	adrp	x1, .LC13
-	mov	x0, x20
-	add	x1, x1, :lo12:.LC13
-	mov	x2, 6
-	bl	strncmp
-	cbz	w0, .L47
-	adrp	x1, .LC14
-	mov	x0, x20
-	add	x1, x1, :lo12:.LC14
-	mov	x2, 6
-	bl	strncmp
-	cbz	w0, .L48
-	adrp	x1, .LC15
-	mov	x0, x20
-	add	x1, x1, :lo12:.LC15
-	mov	x2, 5
-	bl	strncmp
-	cbnz	w0, .L13
-	add	x20, x20, 5
-	mov	w19, 39
+	strb	r6, [r4, #-1]
+	ldrb	r6, [r9]	@ zero_extendqisi2
+	cmp	r6, #0
+	beq	.L43
+.L20:
+	adds	r4, r4, #1
+	cmp	r6, #38
+	bne	.L13
+	movs	r2, #5
+	mov	r1, fp
+	mov	r0, r9
+	bl	strncmp(PLT)
+	cmp	r0, #0
+	beq	.L44
+	ldr	r1, [sp, #16]
+	movs	r2, #4
+	mov	r0, r9
+	bl	strncmp(PLT)
+	cmp	r0, #0
+	beq	.L45
+	ldr	r1, [sp, #12]
+	movs	r2, #4
+	mov	r0, r9
+	bl	strncmp(PLT)
+	cmp	r0, #0
+	beq	.L46
+	ldr	r1, .L49+48
+	movs	r2, #6
+	mov	r0, r9
+.LPIC14:
+	add	r1, pc
+	bl	strncmp(PLT)
+	cmp	r0, #0
+	beq	.L47
+	ldr	r1, .L49+52
+	movs	r2, #6
+	mov	r0, r9
+.LPIC15:
+	add	r1, pc
+	bl	strncmp(PLT)
+	cmp	r0, #0
+	beq	.L48
+	ldr	r1, .L49+56
+	movs	r2, #5
+	mov	r0, r9
+.LPIC16:
+	add	r1, pc
+	bl	strncmp(PLT)
+	cmp	r0, #0
+	bne	.L13
+	add	r9, r9, #5
+	movs	r6, #39
 	b	.L15
-	.p2align 2,,3
 .L4:
-	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
-	mov	x2, 50
-	mov	x1, 1
-	adrp	x0, .LC3
-	add	x0, x0, :lo12:.LC3
-	ldr	x3, [x3]
-	bl	fwrite
-	ldr	x0, [sp, 120]
-	bl	free
-	ldp	x21, x22, [sp, 32]
+	ldr	r3, .L49+60
+	movs	r2, #50
+	ldr	r0, .L49+64
+	movs	r1, #1
+.LPIC4:
+	add	r0, pc
+	ldr	r3, [r5, r3]
+	ldr	r3, [r3]
+	bl	fwrite(PLT)
+	ldr	r0, [r4]
+	bl	free(PLT)
 .L3:
-	mov	w0, 0
+	movs	r0, #0
 .L1:
-	ldp	x29, x30, [sp]
-	add	sp, sp, 640
-	ret
-	.p2align 2,,3
+	add	sp, sp, #548
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
 .L44:
-	add	x20, x20, 5
-	b	.L15
-	.p2align 2,,3
+	add	r9, r9, #5
+	strb	r6, [r4, #-1]
+	ldrb	r6, [r9]	@ zero_extendqisi2
+	cmp	r6, #0
+	bne	.L20
+.L43:
+	mov	r3, r10
+	mov	r10, r4
+	ldr	r4, [sp, #20]
+.L12:
+	ldr	r0, .L49+68
+	adds	r7, r7, #1
+	mov	r2, r3
+	mov	r1, r7
+	movs	r3, #0
+.LPIC17:
+	add	r0, pc
+	strb	r3, [r10]
+	bl	printf(PLT)
+	cmp	r7, #10
+	bne	.L25
+	ldr	r0, [r4]
+	bl	free(PLT)
+.L24:
+	movs	r0, #1
+	b	.L1
 .L45:
-	add	x20, x20, 4
-	mov	w19, 60
+	add	r9, r9, #4
+	movs	r6, #60
 	b	.L15
-	.p2align 2,,3
 .L41:
-	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
-	adrp	x0, .LC1
-	mov	x2, 52
-	mov	x1, 1
-	add	x0, x0, :lo12:.LC1
-	ldr	x3, [x3]
-	bl	fwrite
+	ldr	r3, .L49+60
+	movs	r2, #52
+	ldr	r0, .L49+72
+	movs	r1, #1
+.LPIC2:
+	add	r0, pc
+	ldr	r3, [r5, r3]
+	ldr	r3, [r3]
+	bl	fwrite(PLT)
 	b	.L3
-	.p2align 2,,3
 .L46:
-	add	x20, x20, 4
-	mov	w19, 62
+	add	r9, r9, #4
+	movs	r6, #62
 	b	.L15
-	.p2align 2,,3
 .L47:
-	add	x20, x20, 6
-	mov	w19, 34
+	add	r9, r9, #6
+	movs	r6, #34
 	b	.L15
-	.p2align 2,,3
 .L42:
-	ldrb	w1, [x0, -2]
-	cmp	w1, 93
+	ldrb	r3, [r0, #-2]	@ zero_extendqisi2
+	cmp	r3, #93
 	bne	.L10
-	ldrb	w1, [x0, -1]
-	cmp	w1, 62
-	csel	x0, x0, x2, ne
+	ldrb	r3, [r0, #-1]	@ zero_extendqisi2
+	cmp	r3, #62
+	it	eq
+	moveq	r0, r2
 	b	.L10
-	.p2align 2,,3
 .L48:
-	add	x20, x20, 6
-	mov	w19, 39
+	add	r9, r9, #6
+	movs	r6, #39
 	b	.L15
-	.p2align 2,,3
 .L7:
-	ldr	x0, [sp, 120]
-	bl	free
-	cbnz	w21, .L24
-	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
-	adrp	x0, .LC17
-	mov	x2, 45
-	add	x0, x0, :lo12:.LC17
-	mov	x1, 1
-	ldr	x3, [x3]
-	bl	fwrite
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	ldp	x23, x24, [sp, 48]
-	ldp	x25, x26, [sp, 64]
-	ldp	x27, x28, [sp, 80]
+	ldr	r0, [r4]
+	bl	free(PLT)
+	cmp	r7, #0
+	bne	.L24
+	ldr	r3, .L49+60
+	movs	r2, #45
+	ldr	r0, .L49+76
+	movs	r1, #1
+.LPIC18:
+	add	r0, pc
+	ldr	r3, [r5, r3]
+	ldr	r3, [r3]
+	bl	fwrite(PLT)
 	b	.L3
-	.p2align 2,,3
 .L27:
-	mov	x25, x22
+	mov	r10, r0
 	b	.L12
-	.section	.note.GNU-stack,"",@progbits
+.L50:
+	.align	2
+.L49:
+	.word	.LC0-(.LPIC0+4)
+	.word	_GLOBAL_OFFSET_TABLE_-(.LPIC1+4)
+	.word	.LC2-(.LPIC3+4)
+	.word	.LC4-(.LPIC5+4)
+	.word	.LC10-(.LPIC11+4)
+	.word	.LC5-(.LPIC6+4)
+	.word	.LC6-(.LPIC7+4)
+	.word	.LC11-(.LPIC12+4)
+	.word	.LC7-(.LPIC8+4)
+	.word	.LC8-(.LPIC9+4)
+	.word	.LC9-(.LPIC10+4)
+	.word	.LC12-(.LPIC13+4)
+	.word	.LC13-(.LPIC14+4)
+	.word	.LC14-(.LPIC15+4)
+	.word	.LC15-(.LPIC16+4)
+	.word	stderr(GOT)
+	.word	.LC3-(.LPIC4+4)
+	.word	.LC16-(.LPIC17+4)
+	.word	.LC1-(.LPIC2+4)
+	.word	.LC17-(.LPIC18+4)
+	.section	.note.GNU-stack,"",%progbits

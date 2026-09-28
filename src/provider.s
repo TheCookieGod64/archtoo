@@ -1,878 +1,1094 @@
-	.arch armv8-a
+	.arch armv7-a
+	.fpu neon
 	.text
-	.align	2
-	.p2align 5,,15
+	.align	1
+	.p2align 2,,3
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	trim_copy, %function
 trim_copy:
-	stp	x29, x30, [sp, -48]!
-	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	mov	x20, x0
-	str	x21, [sp, 32]
-	cbz	x1, .L2
-	mov	x19, x1
-	bl	__ctype_b_loc
-	ldr	x1, [x0]
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, lr}
+	mov	r5, r0
+	mov	r4, r1
+	cbz	r1, .L2
+	bl	__ctype_b_loc(PLT)
+	mov	r3, r5
+	ldr	r1, [r0]
 	b	.L3
-	.p2align 2,,3
 .L4:
-	add	x20, x20, 1
-	subs	x19, x19, #1
-	beq	.L2
+	subs	r4, r4, #1
+	beq	.L19
 .L3:
-	ldrb	w0, [x20]
-	ldrh	w0, [x1, x0, lsl 1]
-	tbnz	x0, 13, .L4
-	.p2align 5,,15
-.L6:
-	cbz	x19, .L8
-	bl	__ctype_b_loc
-	sub	x1, x19, #1
-	ldr	x0, [x0]
-	ldrb	w2, [x20, x1]
-	ldrh	w0, [x0, x2, lsl 1]
-	tbz	x0, 13, .L21
-	mov	x19, x1
-	b	.L6
-	.p2align 2,,3
+	mov	r5, r3
+	ldrb	r2, [r3], #1	@ zero_extendqisi2
+	ldrh	r2, [r1, r2, lsl #1]
+	lsls	r2, r2, #18
+	bmi	.L4
 .L2:
-	mov	x19, 0
-	mov	x0, 1
-.L5:
-	bl	malloc
-	mov	x21, x0
-	cbz	x0, .L1
-	mov	x1, x20
-	mov	x2, x19
-	bl	memcpy
-	strb	wzr, [x21, x19]
-.L1:
-	mov	x0, x21
-	ldr	x21, [sp, 32]
-	ldp	x19, x20, [sp, 16]
-	ldp	x29, x30, [sp], 48
-	ret
-	.p2align 2,,3
+	adds	r6, r5, r4
+.L6:
+	cbz	r4, .L8
 .L21:
-	add	x0, x19, 1
-	b	.L5
+	bl	__ctype_b_loc(PLT)
+	ldrb	r2, [r6, #-1]!	@ zero_extendqisi2
+	ldr	r3, [r0]
+	subs	r1, r4, #1
+	ldrh	r3, [r3, r2, lsl #1]
+	lsls	r3, r3, #18
+	bpl	.L20
+	mov	r4, r1
+	cmp	r4, #0
+	bne	.L21
 .L8:
-	mov	x0, 1
+	movs	r0, #1
+.L5:
+	bl	malloc(PLT)
+	mov	r6, r0
+	cbz	r0, .L1
+	mov	r2, r4
+	mov	r1, r5
+	bl	memcpy(PLT)
+	movs	r3, #0
+	strb	r3, [r6, r4]
+.L1:
+	mov	r0, r6
+	pop	{r4, r5, r6, pc}
+.L20:
+	adds	r0, r4, #1
 	b	.L5
-	.section	.rodata.str1.8,"aMS",@progbits,1
-	.align	3
-.LC0:
-	.string	"repo"
-	.align	3
-.LC1:
-	.string	""
-	.align	3
-.LC2:
-	.string	"(package)"
-	.align	3
-.LC3:
-	.string	"(provides)"
-	.align	3
-.LC4:
-	.string	"pacman -Ssq -- %s"
-	.align	3
-.LC5:
-	.string	"pacman -Si --"
-	.align	3
-.LC6:
-	.string	"\nRepository"
-	.align	3
-.LC7:
-	.string	"Repository"
-	.align	3
-.LC8:
-	.string	"\nName"
-	.align	3
-.LC9:
-	.string	"\nVersion"
-	.align	3
-.LC10:
-	.string	"\nProvides"
-	.align	3
-.LC11:
-	.string	"None"
-	.align	3
-.LC12:
-	.string	" \t"
-	.align	3
-.LC13:
-	.string	"%s/%s %s  %s\n"
-	.text
+.L19:
+	mov	r5, r3
+	adds	r6, r5, r4
+	b	.L6
+	.section	.rodata.str1.4,"aMS",%progbits,1
 	.align	2
-	.p2align 5,,15
+.LC0:
+	.ascii	"repo\000"
+	.align	2
+.LC1:
+	.ascii	"\000"
+	.align	2
+.LC2:
+	.ascii	"(package)\000"
+	.align	2
+.LC3:
+	.ascii	"(provides)\000"
+	.align	2
+.LC4:
+	.ascii	"pacman -Ssq -- %s\000"
+	.align	2
+.LC5:
+	.ascii	"pacman -Si --\000"
+	.align	2
+.LC6:
+	.ascii	"\012Repository\000"
+	.align	2
+.LC7:
+	.ascii	"Repository\000"
+	.align	2
+.LC8:
+	.ascii	"\012Name\000"
+	.align	2
+.LC9:
+	.ascii	"\012Version\000"
+	.align	2
+.LC10:
+	.ascii	"\012Provides\000"
+	.align	2
+.LC11:
+	.ascii	"None\000"
+	.align	2
+.LC12:
+	.ascii	" \011\000"
+	.align	2
+.LC13:
+	.ascii	"%s/%s %s  %s\012\000"
+	.text
+	.align	1
+	.p2align 2,,3
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	print_repo_providers, %function
 print_repo_providers:
-	mov	x12, 5552
-	sub	sp, sp, x12
-	mov	x2, 320
-	stp	x29, x30, [sp]
-	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	add	x19, sp, 176
-	mov	x1, x19
-	stp	x21, x22, [sp, 32]
-	mov	x22, x0
-	stp	xzr, xzr, [sp, 152]
-	bl	shell_quote
-	cbnz	w0, .L165
+	@ args = 0, pretend = 0, frame = 5120
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+	movs	r5, #0
+	mov	r2, #320
+	sub	sp, sp, #5120
+	sub	sp, sp, #12
+	add	fp, sp, #1032
+	sub	r3, fp, #968
+	sub	r4, fp, #972
+	str	r0, [sp, #12]
+	str	r5, [r3]
+	add	r3, sp, #72
+	mov	r1, r3
+	mov	r6, r3
+	str	r5, [r4]
+	str	r3, [sp, #16]
+	bl	shell_quote(PLT)
+	cbnz	r0, .L154
 .L24:
-	mov	w21, 0
-	mov	x12, 5552
-	ldp	x29, x30, [sp]
-	mov	w0, w21
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	add	sp, sp, x12
-	ret
-	.p2align 2,,3
-.L165:
-	mov	x3, x19
-	adrp	x2, .LC4
-	add	x2, x2, :lo12:.LC4
-	stp	x23, x24, [sp, 48]
-	add	x24, sp, 1456
-	mov	x1, 4096
-	mov	x0, x24
-	bl	xsnprintf
-	add	x1, sp, 152
-	mov	x0, x24
-	bl	run_cmd_capture
-	ldr	x21, [sp, 152]
-	cbz	x21, .L166
-	stp	x25, x26, [sp, 64]
-	mov	x25, 0
-	ldrb	w0, [x21]
-	cbz	w0, .L153
-	mov	x0, x21
-	mov	w1, 10
-	add	x26, sp, 496
-	bl	strchr
-	add	x23, sp, 816
-	mov	x20, x0
-	cbz	x0, .L27
-	.p2align 5,,15
-.L167:
-	sub	x19, x0, x21
-	sub	x0, x19, #1
-	cmp	x0, 158
+	movs	r4, #0
+	mov	r0, r4
+	add	sp, sp, #5120
+	add	sp, sp, #12
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+.L154:
+	ldr	r2, .L166
+	mov	r3, r6
+	mov	r1, #4096
+	mov	r0, fp
+.LPIC21:
+	add	r2, pc
+	bl	xsnprintf(PLT)
+	mov	r1, r4
+	mov	r0, fp
+	bl	run_cmd_capture(PLT)
+	ldr	r6, [r4]
+	cmp	r6, #0
+	beq	.L24
+	ldrb	r3, [r6]	@ zero_extendqisi2
+	add	r7, sp, #712
+	mov	r8, r5
+	cmp	r3, #0
+	beq	.L155
+	movs	r1, #10
+	mov	r0, r6
+	bl	strchr(PLT)
+	mov	r4, r0
+	cbz	r0, .L27
+.L156:
+	sub	r9, r0, r6
+	add	r3, r9, #-1
+	cmp	r3, #158
 	bls	.L28
 .L85:
-	ldrb	w0, [x20, 1]
-	mov	x19, x25
-	add	x21, x20, 1
-	cbz	w0, .L30
+	ldrb	r3, [r4, #1]	@ zero_extendqisi2
+	mov	r9, r5
+	adds	r6, r4, #1
+	cbz	r3, .L30
 .L29:
-	mov	x0, x21
-	mov	w1, 10
-	mov	x25, x19
-	bl	strchr
-	mov	x20, x0
-	cbnz	x0, .L167
+	movs	r1, #10
+	mov	r0, r6
+	bl	strchr(PLT)
+	mov	r5, r9
+	mov	r4, r0
+	cmp	r0, #0
+	bne	.L156
 .L27:
-	mov	x0, x21
-	bl	strlen
-	mov	x19, x0
-	sub	x0, x0, #1
-	cmp	x0, 158
-	bls	.L168
+	mov	r0, r6
+	bl	strlen(PLT)
+	subs	r3, r0, #1
+	mov	r7, r0
+	cmp	r3, #158
+	bls	.L157
 .L30:
-	mov	x19, x25
+	mov	r9, r5
 .L91:
-	ldr	x0, [sp, 152]
-	bl	free
-	cbz	x19, .L155
-	add	x20, sp, 816
-	stp	x27, x28, [sp, 80]
+	sub	r3, fp, #972
+	ldr	r0, [r3]
+	bl	free(PLT)
+	cmp	r9, #0
+	beq	.L24
+	add	r10, sp, #392
 	b	.L89
-	.p2align 2,,3
-.L168:
-	add	x23, sp, 496
-	mov	x1, x21
-	mov	x2, x19
-	mov	x0, x23
-	bl	memcpy
-	strb	wzr, [x23, x19]
-	mov	x0, x23
-	bl	valid_pkgname
-	cbz	w0, .L30
-	add	x20, sp, 816
-	mov	x0, x23
-	stp	x27, x28, [sp, 80]
-	bl	strdup
-	add	x19, x25, 1
-	str	x0, [x20, x25, lsl 3]
-	ldr	x0, [sp, 152]
-	bl	free
-	.p2align 5,,15
+.L157:
+	mov	r1, r6
+	add	r6, sp, #712
+	mov	r2, r0
+	mov	r0, r6
+	bl	memcpy(PLT)
+	mov	r0, r6
+	strb	r4, [r6, r7]
+	bl	valid_pkgname(PLT)
+	cmp	r0, #0
+	beq	.L30
+	mov	r0, r6
+	add	r10, sp, #392
+	bl	strdup(PLT)
+	sub	r2, fp, #972
+	mov	r3, r0
+	add	r9, r5, #1
+	str	r3, [r10, r5, lsl #2]
+	ldr	r0, [r2]
+	bl	free(PLT)
 .L89:
-	adrp	x0, .LC5
-	add	x0, x0, :lo12:.LC5
-	add	x23, sp, 496
-	add	x19, x20, w19, uxtw 3
-	mov	x27, x20
-	mov	x25, 13
-	ldr	x1, [x0]
-	str	x1, [sp, 1456]
-	ldr	x0, [x0, 6]
-	mov	w26, 32
-	str	x0, [x24, 6]
-	.p2align 5,,15
+	ldr	r3, .L166+4
+	mov	ip, fp
+	sub	r10, r10, #4
+	movs	r6, #13
+.LPIC22:
+	add	r3, pc
+	add	r8, r10, r9, lsl #2
+	mov	r4, r10
+	add	r5, sp, #712
+	movs	r7, #32
+	ldm	r3, {r0, r1, r2, r3}
+	stmia	ip!, {r0, r1, r2}
+	strh	r3, [ip]	@ movhi
 .L41:
-	ldr	x0, [x27]
-	mov	x1, x23
-	mov	x2, 320
-	cbz	x0, .L37
-	bl	shell_quote
-	mov	w1, w0
-	mov	x0, x23
-	cbz	w1, .L37
-	bl	strlen
-	mov	x2, x0
-	add	x3, x25, 1
-	mov	x1, x23
-	add	x21, x2, x3
-	add	x0, x24, x3
-	cmp	x21, 4095
-	bhi	.L40
-	strb	w26, [x24, x25]
-	mov	x25, x21
-	bl	memcpy
-	strb	wzr, [x24, x21]
+	ldr	r0, [r4, #4]!
+	mov	r2, #320
+	mov	r1, r5
+	cbz	r0, .L37
+	bl	shell_quote(PLT)
+	mov	r3, r0
+	mov	r0, r5
+	cbz	r3, .L37
+	bl	strlen(PLT)
+	adds	r3, r6, #1
+	add	r9, r0, r3
+	mov	r2, r0
+	cmp	r9, #4096
+	add	r0, fp, r3
+	bcs	.L40
+	strb	r7, [fp, r6]
+	mov	r1, r5
+	mov	r6, r9
+	bl	memcpy(PLT)
+	movs	r3, #0
+	strb	r3, [fp, r9]
 .L37:
-	add	x27, x27, 8
-	cmp	x19, x27
+	cmp	r8, r4
 	bne	.L41
 .L40:
-	mov	x0, x24
-	add	x1, sp, 160
-	bl	run_cmd_capture
-	mov	w21, w0
-	ldr	x25, [sp, 160]
-	cbz	w0, .L169
-	mov	w21, 0
+	ldr	r3, [sp, #16]
+	mov	r0, fp
+	sub	r1, r3, #8
+	bl	run_cmd_capture(PLT)
+	sub	r3, fp, #968
+	mov	r4, r0
+	ldr	r5, [r3]
+	cbz	r0, .L158
+	movs	r4, #0
 .L42:
-	mov	x0, x25
-	bl	free
-	.p2align 5,,15
+	mov	r0, r5
+	bl	free(PLT)
 .L81:
-	ldr	x0, [x20], 8
-	bl	free
-	cmp	x19, x20
+	ldr	r0, [r10, #4]!
+	bl	free(PLT)
+	cmp	r8, r10
 	bne	.L81
-	ldp	x23, x24, [sp, 48]
-	mov	w0, w21
-	ldp	x25, x26, [sp, 64]
-	mov	x12, 5552
-	ldp	x27, x28, [sp, 80]
-	ldp	x29, x30, [sp]
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	add	sp, sp, x12
-	ret
-	.p2align 2,,3
+	mov	r0, r4
+	add	sp, sp, #5120
+	add	sp, sp, #12
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
 .L28:
-	mov	x1, x21
-	mov	x2, x19
-	mov	x0, x26
-	bl	memcpy
-	strb	wzr, [x26, x19]
-	mov	x0, x26
-	bl	valid_pkgname
-	cbz	w0, .L85
-	mov	x0, x26
-	bl	strdup
-	ldrb	w1, [x20, 1]
-	add	x21, x20, 1
-	str	x0, [x23, x25, lsl 3]
-	add	x19, x25, 1
-	mov	x20, x23
-	cbz	w1, .L91
-	cmp	x19, 80
+	mov	r2, r9
+	mov	r1, r6
+	mov	r0, r7
+	bl	memcpy(PLT)
+	mov	r0, r7
+	strb	r8, [r7, r9]
+	bl	valid_pkgname(PLT)
+	cmp	r0, #0
+	beq	.L85
+	mov	r0, r7
+	add	r10, sp, #392
+	bl	strdup(PLT)
+	ldrb	r3, [r4, #1]	@ zero_extendqisi2
+	add	r9, r5, #1
+	adds	r6, r4, #1
+	str	r0, [r10, r5, lsl #2]
+	cmp	r3, #0
+	beq	.L91
+	cmp	r9, #80
 	bne	.L29
-	ldr	x0, [sp, 152]
-	stp	x27, x28, [sp, 80]
-	bl	free
+	sub	r3, fp, #972
+	ldr	r0, [r3]
+	bl	free(PLT)
 	b	.L89
-	.p2align 2,,3
-.L169:
-	cbz	x25, .L42
-	ldrb	w0, [x25]
-	cbz	w0, .L42
-	adrp	x0, .LC13
-	add	x0, x0, :lo12:.LC13
-	adrp	x1, .LC6
-	add	x1, x1, :lo12:.LC6
-	str	x1, [sp, 104]
-	str	wzr, [sp, 116]
-	str	x0, [sp, 120]
-	adrp	x0, .LC2
-	add	x0, x0, :lo12:.LC2
-	str	x0, [sp, 128]
-	.p2align 5,,15
-.L80:
-	ldr	x1, [sp, 104]
-	mov	x0, x25
-	bl	strstr
-	mov	x21, x0
-	cmp	x0, x25
-	beq	.L170
-.L43:
-	mov	x23, x21
-	cbz	x21, .L171
-.L44:
-	adrp	x0, .LC7
-	add	x1, x0, :lo12:.LC7
-	mov	x0, x25
-	bl	strstr
-	mov	x28, x0
-	adrp	x0, .LC8
-	add	x1, x0, :lo12:.LC8
-	mov	x0, x25
-	bl	strstr
-	mov	x26, x0
-	adrp	x1, .LC9
-	mov	x0, x25
-	add	x1, x1, :lo12:.LC9
-	bl	strstr
-	adrp	x1, .LC10
-	mov	x24, x0
-	add	x1, x1, :lo12:.LC10
-	mov	x0, x25
-	bl	strstr
-	mov	x27, 0
-	cmp	x28, 0
-	mov	x25, x0
-	ccmp	x23, x28, 0, ne
-	bls	.L45
-	mov	x0, x28
-	mov	w1, 58
-	bl	strchr
-	cmp	x0, 0
-	mov	x28, x0
-	ccmp	x23, x0, 0, ne
-	bls	.L45
-	mov	w1, 10
-	add	x27, x28, 1
-	bl	strchr
-	cbz	x0, .L46
-	sub	x0, x0, x28
-	sub	x1, x0, #1
-.L47:
-	mov	x0, x27
-	bl	trim_copy
-	mov	x27, x0
-.L45:
-	cmp	x24, 0
-	ccmp	x23, x24, 0, ne
-	cset	w0, hi
-	str	w0, [sp, 96]
-	cmp	x26, 0
-	ccmp	x23, x26, 0, ne
-	bls	.L160
-	mov	x0, x26
-	mov	w1, 58
-	bl	strchr
-	cmp	x0, 0
-	mov	x26, x0
-	ccmp	x23, x0, 0, ne
-	bhi	.L51
-	ldr	w0, [sp, 96]
-.L160:
-	cbz	w0, .L156
-	mov	x0, x24
-	mov	w1, 58
-	bl	strchr
-	cmp	x0, 0
-	mov	x24, x0
-	ccmp	x23, x0, 0, ne
-	mov	x26, 0
-	bls	.L156
-.L83:
-	mov	x0, x24
-	mov	w1, 10
-	add	x28, x24, 1
-	bl	strchr
-	cbz	x0, .L55
-	sub	x0, x0, x24
-	sub	x1, x0, #1
-.L56:
-	mov	x0, x28
-	bl	trim_copy
-	mov	x28, x0
-.L54:
-	cmp	x25, 0
-	ccmp	x23, x25, 0, ne
-	cset	w24, hi
-	cbz	x26, .L50
-	mov	x1, x22
-	mov	x0, x26
-	bl	strcmp
-	cbz	w0, .L60
-	cbz	w24, .L59
-	mov	x0, x25
-	mov	w1, 58
-	bl	strchr
-	cmp	x0, 0
-	mov	x24, x0
-	ccmp	x0, x23, 2, ne
-	mov	w25, 0
-	bcs	.L59
-.L82:
-	mov	x0, x24
-	mov	w1, 10
-	add	x23, x24, 1
-	bl	strchr
-	cbz	x0, .L67
-	sub	x0, x0, x24
-	sub	x1, x0, #1
-.L68:
-	mov	x0, x23
-	bl	trim_copy
-	mov	x24, x0
-	cbz	x0, .L69
-	adrp	x1, .LC11
-	add	x1, x1, :lo12:.LC11
-	bl	strcmp
-	cbnz	w0, .L172
-.L69:
-	mov	x0, x24
-	bl	free
-	cbz	x26, .L59
-	cbz	w25, .L59
-.L88:
-	cbz	x27, .L163
-.L75:
-	ldrb	w0, [x27]
-	cbz	w0, .L163
-	cbz	x28, .L105
-	mov	x3, x28
-	mov	x1, x27
-.L65:
-	ldr	x4, [sp, 128]
-.L66:
-	mov	x2, x26
-	ldr	x0, [sp, 120]
-	bl	printf
-	mov	w0, 1
-	str	w0, [sp, 116]
-.L59:
-	mov	x0, x26
-	bl	free
-	mov	x0, x28
-	bl	free
-	mov	x0, x27
-	bl	free
-	cbz	x21, .L159
-	ldrb	w0, [x21, 1]
-	add	x25, x21, 1
-	cbnz	w0, .L80
-.L159:
-	ldr	x25, [sp, 160]
-	ldr	w21, [sp, 116]
-	b	.L42
-	.p2align 2,,3
-.L155:
-	ldp	x23, x24, [sp, 48]
-	ldp	x25, x26, [sp, 64]
-	b	.L24
-	.p2align 2,,3
-.L166:
-	ldp	x23, x24, [sp, 48]
-	b	.L24
-	.p2align 2,,3
-.L156:
-	mov	x28, 0
-.L50:
-	cmp	x25, 0
-	ccmp	x23, x25, 0, ne
-	bls	.L158
-	mov	x0, x25
-	mov	w1, 58
-	bl	strchr
-	cmp	x0, 0
-	mov	x24, x0
-	ccmp	x23, x0, 0, ne
-	bls	.L158
-	mov	w25, 0
-	mov	x26, 0
-	b	.L82
-	.p2align 2,,3
-.L60:
-	cbnz	w24, .L62
-	cbnz	x27, .L75
-	cbz	x28, .L102
-	adrp	x1, .LC0
-	adrp	x4, .LC2
-	add	x1, x1, :lo12:.LC0
-	add	x4, x4, :lo12:.LC2
-	mov	x3, x28
-	b	.L66
-	.p2align 2,,3
-.L171:
-	mov	x0, x25
-	bl	strlen
-	add	x23, x25, x0
-	b	.L44
-	.p2align 2,,3
-.L170:
-	ldr	x1, [sp, 104]
-	add	x0, x25, 1
-	bl	strstr
-	mov	x21, x0
-	b	.L43
-	.p2align 2,,3
-.L51:
-	mov	w1, 10
-	add	x28, x26, 1
-	bl	strchr
-	cbz	x0, .L52
-	sub	x0, x0, x26
-	sub	x1, x0, #1
-.L53:
-	mov	x0, x28
-	bl	trim_copy
-	mov	x26, x0
-	ldr	w0, [sp, 96]
-	mov	x28, 0
-	cbz	w0, .L54
-	mov	x0, x24
-	mov	w1, 58
-	bl	strchr
-	cmp	x0, 0
-	mov	x24, x0
-	ccmp	x23, x0, 0, ne
-	bls	.L54
-	b	.L83
-	.p2align 2,,3
 .L158:
-	mov	x26, 0
-	b	.L59
-	.p2align 2,,3
-.L163:
-	cbz	x28, .L173
-	adrp	x1, .LC0
-	mov	x3, x28
-	add	x1, x1, :lo12:.LC0
-	b	.L65
-	.p2align 2,,3
-.L62:
-	mov	x0, x25
-	mov	w1, 58
-	bl	strchr
-	cmp	x0, 0
-	mov	x24, x0
-	ccmp	x0, x23, 2, ne
-	bcs	.L88
-	mov	w25, 1
+	cmp	r5, #0
+	beq	.L42
+	ldrb	r3, [r5]	@ zero_extendqisi2
+	cmp	r3, #0
+	beq	.L42
+	ldr	r3, .L166+8
+	str	r0, [sp, #32]
+.LPIC23:
+	add	r3, pc
+	str	r3, [sp, #20]
+	ldr	r3, .L166+12
+	strd	r8, r10, [sp, #40]
+.LPIC25:
+	add	r3, pc
+	str	r3, [sp, #24]
+	ldr	r3, .L166+16
+	str	fp, [sp, #36]
+.LPIC26:
+	add	r3, pc
+	str	r3, [sp, #28]
+.L80:
+	ldr	r1, [sp, #20]
+	mov	r0, r5
+	bl	strstr(PLT)
+	mov	r4, r0
+	cmp	r0, r5
+	beq	.L159
+.L43:
+	mov	r8, r4
+	cmp	r4, #0
+	beq	.L160
+.L44:
+	ldr	r1, [sp, #24]
+	mov	r0, r5
+	bl	strstr(PLT)
+	ldr	r1, [sp, #28]
+	mov	fp, r0
+	mov	r0, r5
+	bl	strstr(PLT)
+	ldr	r1, .L166+20
+	mov	r7, r0
+	mov	r0, r5
+.LPIC27:
+	add	r1, pc
+	bl	strstr(PLT)
+	ldr	r1, .L166+24
+	mov	r10, r0
+	mov	r0, r5
+.LPIC28:
+	add	r1, pc
+	bl	strstr(PLT)
+	cmp	fp, #0
+	it	ne
+	cmpne	r8, fp
+	mov	r9, r0
+	ite	hi
+	movhi	r6, #1
+	movls	r6, #0
+	bls	.L45
+	mov	r0, fp
+	movs	r1, #58
+	bl	strchr(PLT)
+	cmp	r0, #0
+	it	ne
+	cmpne	r8, r0
+	mov	r5, r0
+	ite	hi
+	movhi	r6, #1
+	movls	r6, #0
+	bls	.L45
+	movs	r1, #10
+	adds	r6, r5, #1
+	bl	strchr(PLT)
+	cmp	r0, #0
+	beq	.L46
+	subs	r0, r0, r5
+	subs	r1, r0, #1
+.L47:
+	mov	r0, r6
+	bl	trim_copy(PLT)
+	mov	r6, r0
+.L45:
+	cmp	r10, #0
+	it	ne
+	cmpne	r8, r10
+	ite	hi
+	movhi	r5, #1
+	movls	r5, #0
+	cmp	r7, #0
+	it	ne
+	cmpne	r8, r7
+	bls	.L151
+	mov	r0, r7
+	movs	r1, #58
+	bl	strchr(PLT)
+	mov	r7, r0
+	cmp	r0, #0
+	it	ne
+	cmpne	r8, r0
+	bls	.L151
+	movs	r1, #10
+	add	fp, r7, #1
+	bl	strchr(PLT)
+	cmp	r0, #0
+	beq	.L52
+	subs	r0, r0, r7
+	subs	r1, r0, #1
+.L53:
+	mov	r0, fp
+	bl	trim_copy(PLT)
+	mov	r7, r0
+	cbz	r5, .L54
+	mov	r0, r10
+	movs	r1, #58
+	bl	strchr(PLT)
+	cmp	r0, #0
+	it	ne
+	cmpne	r8, r0
+	mov	r10, r0
+	ite	hi
+	movhi	r5, #1
+	movls	r5, #0
+	bhi	.L83
+.L54:
+	cmp	r9, #0
+	it	ne
+	cmpne	r8, r9
+	ite	hi
+	movhi	r10, #1
+	movls	r10, #0
+	cmp	r7, #0
+	beq	.L50
+	ldr	r1, [sp, #12]
+	mov	r0, r7
+	bl	strcmp(PLT)
+	cmp	r0, #0
+	beq	.L60
+	cmp	r10, #0
+	beq	.L59
+	mov	r0, r9
+	movs	r1, #58
+	bl	strchr(PLT)
+	cmp	r0, #0
+	it	ne
+	cmpne	r8, r0
+	mov	r10, r0
+	it	hi
+	movhi	r9, #0
+	bls	.L59
+.L82:
+	movs	r1, #10
+	mov	r0, r10
+	add	r8, r10, #1
+	bl	strchr(PLT)
+	cmp	r0, #0
+	beq	.L67
+	sub	r0, r0, r10
+	subs	r1, r0, #1
+.L68:
+	mov	r0, r8
+	bl	trim_copy(PLT)
+	mov	fp, r0
+	cbz	r0, .L69
+	ldr	r1, .L166+28
+.LPIC29:
+	add	r1, pc
+	bl	strcmp(PLT)
+	cmp	r0, #0
+	bne	.L161
+.L69:
+	mov	r0, fp
+	bl	free(PLT)
+	cbz	r7, .L59
+	cmp	r9, #0
+	beq	.L59
+.L88:
+	cmp	r6, #0
+	beq	.L162
+	ldrb	r3, [r6]	@ zero_extendqisi2
+	cmp	r3, #0
+	bne	.L76
+	cmp	r5, #0
+	beq	.L163
+	ldr	r1, .L166+32
+	mov	r3, r5
+.LPIC13:
+	add	r1, pc
+.L65:
+	ldr	r2, .L166+36
+.LPIC14:
+	add	r2, pc
+.L66:
+	ldr	r0, .L166+40
+	str	r2, [sp]
+	mov	r2, r7
+.LPIC32:
+	add	r0, pc
+	bl	printf(PLT)
+	movs	r3, #1
+	str	r3, [sp, #32]
+.L59:
+	mov	r0, r7
+	bl	free(PLT)
+	mov	r0, r5
+	bl	free(PLT)
+	mov	r0, r6
+	bl	free(PLT)
+	cbz	r4, .L153
+	ldrb	r3, [r4, #1]	@ zero_extendqisi2
+	adds	r5, r4, #1
+	cmp	r3, #0
+	bne	.L80
+.L153:
+	ldr	fp, [sp, #36]
+	ldrd	r8, r10, [sp, #40]
+	sub	r3, fp, #968
+	ldr	r4, [sp, #32]
+	ldr	r5, [r3]
+	b	.L42
+.L151:
+	cbnz	r5, .L49
+.L50:
+	cmp	r9, #0
+	it	ne
+	cmpne	r8, r9
+	ite	hi
+	movhi	r7, #1
+	movls	r7, #0
+	bls	.L59
+	mov	r0, r9
+	movs	r1, #58
+	bl	strchr(PLT)
+	cmp	r0, #0
+	it	ne
+	cmpne	r8, r0
+	it	ls
+	movls	r8, #0
+	mov	r10, r0
+	ite	hi
+	movhi	r8, #1
+	movls	r7, r8
+	bls	.L59
+	mov	r9, #0
+	mov	r7, r9
 	b	.L82
+.L49:
+	mov	r0, r10
+	movs	r1, #58
+	bl	strchr(PLT)
+	cmp	r0, #0
+	it	ne
+	cmpne	r8, r0
+	mov	r10, r0
+	itet	hi
+	movhi	r5, #1
+	movls	r5, #0
+	movhi	r7, #0
+	bls	.L50
+.L83:
+	movs	r1, #10
+	mov	r0, r10
+	add	r5, r10, #1
+	bl	strchr(PLT)
+	cmp	r0, #0
+	beq	.L55
+	sub	r0, r0, r10
+	subs	r1, r0, #1
+.L56:
+	mov	r0, r5
+	bl	trim_copy(PLT)
+	mov	r5, r0
+	b	.L54
+.L60:
+	cmp	r10, #0
+	bne	.L62
+	cmp	r6, #0
+	beq	.L63
+	ldrb	r3, [r6]	@ zero_extendqisi2
+	cmp	r3, #0
+	beq	.L64
+	cmp	r5, #0
+	beq	.L100
+.L152:
+	mov	r3, r5
+	mov	r1, r6
+	b	.L65
+.L160:
+	mov	r0, r5
+	bl	strlen(PLT)
+	add	r8, r5, r0
+	b	.L44
+.L159:
+	ldr	r1, [sp, #20]
+	adds	r0, r5, #1
+	bl	strstr(PLT)
+	mov	r4, r0
+	b	.L43
+.L62:
+	mov	r0, r9
+	movs	r1, #58
+	bl	strchr(PLT)
+	mov	r10, r0
+	cmp	r0, #0
+	it	ne
+	cmpne	r0, r8
+	bcs	.L88
+	mov	r9, #1
+	b	.L82
+.L76:
+	cmp	r5, #0
+	bne	.L152
+	ldr	r3, .L166+44
+	mov	r1, r6
+.LPIC8:
+	add	r3, pc
+	b	.L65
 .L67:
-	mov	x0, x23
-	bl	strlen
-	mov	x1, x0
+	mov	r0, r8
+	bl	strlen(PLT)
+	mov	r1, r0
 	b	.L68
-.L55:
-	mov	x0, x28
-	bl	strlen
-	mov	x1, x0
-	b	.L56
 .L52:
-	mov	x0, x28
-	bl	strlen
-	mov	x1, x0
+	mov	r0, fp
+	bl	strlen(PLT)
+	mov	r1, r0
 	b	.L53
 .L46:
-	mov	x0, x27
-	bl	strlen
-	mov	x1, x0
+	mov	r0, r6
+	bl	strlen(PLT)
+	mov	r1, r0
 	b	.L47
-.L173:
-	adrp	x3, .LC1
-	adrp	x1, .LC0
-	add	x3, x3, :lo12:.LC1
-	add	x1, x1, :lo12:.LC0
+.L55:
+	mov	r0, r5
+	bl	strlen(PLT)
+	mov	r1, r0
+	b	.L56
+.L162:
+	cmp	r5, #0
+	beq	.L164
+	ldr	r1, .L166+48
+	mov	r3, r5
+.LPIC10:
+	add	r1, pc
 	b	.L65
-.L105:
-	adrp	x3, .LC1
-	mov	x1, x27
-	add	x3, x3, :lo12:.LC1
+.L64:
+	cmp	r5, #0
+	beq	.L101
+	ldr	r1, .L166+52
+	mov	r3, r5
+.LPIC9:
+	add	r1, pc
 	b	.L65
-.L153:
-	mov	x0, x21
-	bl	free
-	ldp	x23, x24, [sp, 48]
-	ldp	x25, x26, [sp, 64]
+.L155:
+	mov	r0, r6
+	bl	free(PLT)
 	b	.L24
-.L172:
-	adrp	x0, .LC12
-	add	x0, x0, :lo12:.LC12
-	add	x2, sp, 168
-	mov	x1, x0
-	str	x0, [sp, 96]
-	mov	x0, x24
-	str	x2, [sp, 136]
-	str	xzr, [sp, 168]
-	bl	strtok_r
-	cbz	x0, .L69
-	add	x23, sp, 496
-	.p2align 5,,15
+.L161:
+	ldr	r3, [sp, #36]
+	mov	r0, fp
+	ldr	r1, .L166+56
+	sub	ip, r3, #964
+	ldr	r3, [sp, #16]
+.LPIC30:
+	add	r1, pc
+	sub	r10, r3, #4
+	movs	r3, #0
+	mov	r2, r10
+	str	r3, [ip]
+	bl	strtok_r(PLT)
+	cmp	r0, #0
+	beq	.L69
+	ldr	r3, .L166+60
+	add	r8, sp, #712
+	strd	r4, r5, [sp, #48]
+.LPIC31:
+	add	r3, pc
+	ldr	r4, [sp, #12]
+	mov	r5, r3
 .L73:
-	mov	x1, x23
-	mov	x2, 256
-	bl	dep_basename
-	ldrb	w2, [sp, 496]
-	mov	x1, x22
-	mov	x0, x23
-	cbz	w2, .L71
-	bl	strcmp
-	cbnz	w0, .L71
-	mov	x0, x24
-	bl	free
-	cbz	x26, .L59
-	cbz	x27, .L106
-	ldrb	w0, [x27]
-	adrp	x1, .LC0
-	add	x1, x1, :lo12:.LC0
-	cmp	w0, 0
-	csel	x1, x1, x27, eq
+	mov	r1, r8
+	mov	r2, #256
+	bl	dep_basename(PLT)
+	ldrb	r3, [r8]	@ zero_extendqisi2
+	mov	r1, r4
+	cbz	r3, .L71
+	mov	r0, r8
+	bl	strcmp(PLT)
+	cbnz	r0, .L71
+	mov	r0, fp
+	ldrd	r4, r5, [sp, #48]
+	bl	free(PLT)
+	cmp	r7, #0
+	beq	.L59
+	cmp	r6, #0
+	beq	.L106
+	ldrb	r3, [r6]	@ zero_extendqisi2
+	cmp	r3, #0
+	bne	.L107
+	ldr	r1, .L166+64
+.LPIC1:
+	add	r1, pc
 .L77:
-	cmp	x28, 0
-	adrp	x3, .LC1
-	add	x3, x3, :lo12:.LC1
-	csel	x3, x3, x28, eq
-	cbnz	w25, .L65
-	adrp	x4, .LC3
-	add	x4, x4, :lo12:.LC3
-	b	.L66
-	.p2align 2,,3
+	mov	r3, r5
+	cmp	r5, #0
+	beq	.L165
+.L78:
+	ldr	r2, .L166+68
+.LPIC15:
+	add	r2, pc
+	cmp	r9, #0
+	beq	.L66
+	b	.L65
 .L71:
-	ldr	x1, [sp, 96]
-	mov	x0, 0
-	ldr	x2, [sp, 136]
-	bl	strtok_r
-	cbnz	x0, .L73
+	mov	r2, r10
+	mov	r1, r5
+	movs	r0, #0
+	bl	strtok_r(PLT)
+	cmp	r0, #0
+	bne	.L73
+	ldrd	r4, r5, [sp, #48]
 	b	.L69
+.L63:
+	cbz	r5, .L102
+	ldr	r1, .L166+72
+	mov	r3, r5
+	ldr	r2, .L166+76
+.LPIC19:
+	add	r1, pc
+.LPIC20:
+	add	r2, pc
+	b	.L66
+.L163:
+	ldr	r3, .L166+80
+	ldr	r1, .L166+84
+.LPIC11:
+	add	r3, pc
+.LPIC12:
+	add	r1, pc
+	b	.L65
+.L164:
+	ldr	r3, .L166+88
+	ldr	r1, .L166+92
+.LPIC5:
+	add	r3, pc
+.LPIC6:
+	add	r1, pc
+	b	.L65
+.L100:
+	ldr	r3, .L166+96
+	mov	r1, r6
+.LPIC7:
+	add	r3, pc
+	b	.L65
+.L101:
+	ldr	r3, .L166+100
+	ldr	r1, .L166+104
+.LPIC3:
+	add	r3, pc
+.LPIC4:
+	add	r1, pc
+	b	.L65
 .L102:
-	adrp	x3, .LC1
-	adrp	x1, .LC0
-	adrp	x4, .LC2
-	add	x3, x3, :lo12:.LC1
-	add	x1, x1, :lo12:.LC0
-	add	x4, x4, :lo12:.LC2
+	ldr	r3, .L166+108
+	ldr	r1, .L166+112
+	ldr	r2, .L166+116
+.LPIC16:
+	add	r3, pc
+.LPIC17:
+	add	r1, pc
+.LPIC18:
+	add	r2, pc
 	b	.L66
 .L106:
-	adrp	x1, .LC0
-	add	x1, x1, :lo12:.LC0
+	ldr	r1, .L166+120
+.LPIC0:
+	add	r1, pc
 	b	.L77
-	.section	.rodata.str1.8
-	.align	3
-.LC14:
-	.string	"?"
-	.align	3
-.LC15:
-	.string	"\033[1;31m[-] Invalid package name: '%s'\n\033[0m"
-	.align	3
-.LC16:
-	.string	"\033[1;36m>>> Providers of %s\n\033[0m"
-	.align	3
-.LC17:
-	.string	"aur/%s %s  %s\n"
-	.align	3
-.LC18:
-	.string	"\033[1;33m[!] No providers found for '%s'.\n\033[0m"
-	.text
+.L165:
+	ldr	r3, .L166+124
+.LPIC2:
+	add	r3, pc
+	b	.L78
+.L107:
+	mov	r1, r6
+	b	.L77
+.L167:
 	.align	2
-	.p2align 5,,15
+.L166:
+	.word	.LC4-(.LPIC21+4)
+	.word	.LC5-(.LPIC22+4)
+	.word	.LC6-(.LPIC23+4)
+	.word	.LC7-(.LPIC25+4)
+	.word	.LC8-(.LPIC26+4)
+	.word	.LC9-(.LPIC27+4)
+	.word	.LC10-(.LPIC28+4)
+	.word	.LC11-(.LPIC29+4)
+	.word	.LC0-(.LPIC13+4)
+	.word	.LC2-(.LPIC14+4)
+	.word	.LC13-(.LPIC32+4)
+	.word	.LC1-(.LPIC8+4)
+	.word	.LC0-(.LPIC10+4)
+	.word	.LC0-(.LPIC9+4)
+	.word	.LC12-(.LPIC30+4)
+	.word	.LC12-(.LPIC31+4)
+	.word	.LC0-(.LPIC1+4)
+	.word	.LC3-(.LPIC15+4)
+	.word	.LC0-(.LPIC19+4)
+	.word	.LC2-(.LPIC20+4)
+	.word	.LC1-(.LPIC11+4)
+	.word	.LC0-(.LPIC12+4)
+	.word	.LC1-(.LPIC5+4)
+	.word	.LC0-(.LPIC6+4)
+	.word	.LC1-(.LPIC7+4)
+	.word	.LC1-(.LPIC3+4)
+	.word	.LC0-(.LPIC4+4)
+	.word	.LC1-(.LPIC16+4)
+	.word	.LC0-(.LPIC17+4)
+	.word	.LC2-(.LPIC18+4)
+	.word	.LC0-(.LPIC0+4)
+	.word	.LC1-(.LPIC2+4)
+	.section	.rodata.str1.4
+	.align	2
+.LC14:
+	.ascii	"?\000"
+	.align	2
+.LC15:
+	.ascii	"\033[1;31m[-] Invalid package name: '%s'\012\033[0m"
+	.ascii	"\000"
+	.align	2
+.LC16:
+	.ascii	"\033[1;36m>>> Providers of %s\012\033[0m\000"
+	.align	2
+.LC17:
+	.ascii	"aur/%s %s  %s\012\000"
+	.align	2
+.LC18:
+	.ascii	"\033[1;33m[!] No providers found for '%s'.\012\033["
+	.ascii	"0m\000"
+	.text
+	.align	1
+	.p2align 2,,3
 	.global	cmd_provider_v2
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	cmd_provider_v2, %function
 cmd_provider_v2:
-	movi	v31.4s, 0
-	sub	sp, sp, #640
-	stp	x29, x30, [sp]
-	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	add	x19, sp, 128
-	stp	x21, x22, [sp, 32]
-	mov	x21, x0
-	stp	x23, x24, [sp, 48]
-	stp	xzr, xzr, [sp, 112]
-	stp	q31, q31, [x19]
-	stp	q31, q31, [x19, 32]
-	stp	q31, q31, [x19, 64]
-	stp	q31, q31, [x19, 96]
-	stp	q31, q31, [x19, 128]
-	stp	q31, q31, [x19, 160]
-	stp	q31, q31, [x19, 192]
-	stp	q31, q31, [x19, 224]
-	bl	valid_pkgname
-	cbnz	w0, .L175
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	cmp	x21, 0
-	adrp	x2, .LC1
-	add	x2, x2, :lo12:.LC1
-	adrp	x1, .LC15
-	csel	x2, x2, x21, eq
-	ldr	x0, [x0]
-	add	x1, x1, :lo12:.LC15
-	bl	fprintf
-.L177:
-	mov	w23, 0
-	mov	w0, w23
-	ldp	x29, x30, [sp]
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	ldp	x23, x24, [sp, 48]
-	add	sp, sp, 640
-	ret
-	.p2align 2,,3
-.L175:
-	mov	x1, x21
-	adrp	x0, .LC16
-	add	x0, x0, :lo12:.LC16
-	stp	x25, x26, [sp, 64]
-	bl	printf
-	mov	x0, x21
-	bl	print_repo_providers
-	add	x26, sp, 112
-	mov	w23, w0
-	bl	config_current
-	add	x0, x0, 20
-	mov	x3, x19
-	mov	x2, x26
-	mov	x1, x21
-	mov	x4, 256
-	bl	aur_rpc_info
-	cbz	w0, .L178
-	ldr	x20, [sp, 120]
-	cbz	x20, .L178
-	stp	x27, x28, [sp, 80]
-	adrp	x27, .LC17
-	add	x0, x27, :lo12:.LC17
-	adrp	x28, .LC2
-	mov	x22, 0
-	mov	x25, 0
-	str	x0, [sp, 96]
-	add	x0, x28, :lo12:.LC2
-	str	x0, [sp, 104]
-	.p2align 5,,15
-.L193:
-	ldr	x0, [sp, 112]
-	add	x28, x0, x22
-	ldr	x19, [x0, x22]
-	ldr	x27, [x28, 128]
-	cbz	x19, .L216
-	mov	x1, x21
-	mov	x0, x19
-	bl	strcmp
-	cmp	w0, 0
-	cset	w24, eq
-	cbz	x27, .L182
-.L180:
-	add	x20, sp, 384
-	mov	x19, 0
-	.p2align 5,,15
+	@ args = 0, pretend = 0, frame = 544
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+	vmov.i32	d16, #0  @ v8qi
+	mov	r7, r0
+	sub	sp, sp, #556
+	ldr	r4, .L216
+	add	r5, sp, #40
+	mov	r2, #256
+	movs	r1, #0
+	mov	r0, r5
+	vstr	d16, [sp, #32]
+	bl	memset(PLT)
+	mov	r0, r7
+.LPIC43:
+	add	r4, pc
+	bl	valid_pkgname(PLT)
+	cbnz	r0, .L169
+	ldr	r3, .L216+4
+	ldr	r3, [r4, r3]
+	ldr	r0, [r3]
+	cmp	r7, #0
+	beq	.L208
+.L170:
+	ldr	r1, .L216+8
+	mov	r2, r7
+.LPIC44:
+	add	r1, pc
+	bl	fprintf(PLT)
+.L171:
+	movs	r3, #0
+	str	r3, [sp, #8]
+.L168:
+	ldr	r0, [sp, #8]
+	add	sp, sp, #556
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+.L169:
+	ldr	r0, .L216+12
+	mov	r1, r7
+	add	r8, sp, #32
+.LPIC45:
+	add	r0, pc
+	bl	printf(PLT)
+	mov	r0, r7
+	bl	print_repo_providers(PLT)
+	str	r0, [sp, #8]
+	bl	config_current(PLT)
+	mov	r3, #256
+	adds	r0, r0, #16
+	str	r3, [sp]
+	mov	r2, r8
+	mov	r3, r5
+	mov	r1, r7
+	bl	aur_rpc_info(PLT)
+	cmp	r0, #0
+	beq	.L172
+	ldr	r3, [r8, #4]
+	cmp	r3, #0
+	beq	.L172
+	ldr	r3, .L216+16
+	mov	r9, #0
+.LPIC46:
+	add	r3, pc
+	str	r3, [sp, #16]
+	ldr	r3, .L216+20
+.LPIC41:
+	add	r3, pc
+	str	r3, [sp, #20]
+	ldr	r3, .L216+24
+.LPIC42:
+	add	r3, pc
+	strd	r3, r4, [sp, #24]
+	b	.L187
+.L214:
+	bl	strcmp(PLT)
+	cmp	r0, #0
+	bne	.L177
+	ldr	r4, [r10, fp]
+	cmp	r4, #0
+	beq	.L209
+	ldr	r2, [r6, #8]
+	cmp	r2, #0
+	beq	.L210
+.L185:
+	ldr	r3, [sp, #12]
+	cmp	r3, #0
+	beq	.L193
+.L184:
+	ldr	r3, [sp, #20]
 .L186:
-	ldr	x0, [x28, 120]
-	mov	x1, x20
-	mov	x2, 256
-	ldr	x0, [x0, x19, lsl 3]
-	bl	dep_basename
-	ldrb	w2, [sp, 384]
-	mov	x1, x21
-	mov	x0, x20
-	cbz	w2, .L183
-	bl	strcmp
-	cbnz	w0, .L183
-	ldr	x19, [x28]
-	adrp	x1, .LC14
-	ldr	x2, [x28, 16]
-	cmp	x19, 0
-	add	x1, x1, :lo12:.LC14
-	adrp	x0, .LC1
-	csel	x19, x1, x19, eq
-	add	x0, x0, :lo12:.LC1
-	cmp	x2, 0
-	csel	x2, x0, x2, eq
-	cbnz	w24, .L190
-	adrp	x3, .LC3
-	add	x3, x3, :lo12:.LC3
-.L192:
-	ldr	x0, [sp, 96]
-	mov	x1, x19
-	mov	w23, 1
-	bl	printf
-	ldr	x20, [sp, 120]
-.L188:
-	add	x25, x25, 1
-	add	x22, x22, 152
-	cmp	x20, x25
-	bhi	.L193
-	ldp	x27, x28, [sp, 80]
-.L178:
-	mov	x0, x26
-	bl	aur_response_destroy
-	cbz	w23, .L217
-	ldp	x25, x26, [sp, 64]
-	mov	w0, w23
-	ldp	x29, x30, [sp]
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	ldp	x23, x24, [sp, 48]
-	add	sp, sp, 640
-	ret
+	ldr	r0, [sp, #16]
+	mov	r1, r4
+	bl	printf(PLT)
+	movs	r3, #1
+	str	r3, [sp, #8]
 .L182:
-	cbnz	w0, .L188
-	ldr	x2, [x28, 16]
-.L215:
-	cbnz	x2, .L190
-	adrp	x2, .LC1
-	add	x2, x2, :lo12:.LC1
-	.p2align 5,,15
-.L190:
-	ldr	x3, [sp, 104]
-	b	.L192
-	.p2align 2,,3
-.L183:
-	ldr	x0, [x28, 128]
-	add	x19, x19, 1
-	cmp	x0, x19
-	bhi	.L186
-	cbnz	w24, .L187
-	ldr	x20, [sp, 120]
-	b	.L188
-	.p2align 2,,3
-.L216:
-	mov	w24, 0
-	cbnz	x27, .L180
-	b	.L188
-	.p2align 2,,3
-.L217:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x21
-	adrp	x1, .LC18
-	add	x1, x1, :lo12:.LC18
-	ldr	x0, [x0]
-	bl	fprintf
-	ldp	x25, x26, [sp, 64]
-	b	.L177
+	ldr	r3, [r8, #4]
+	add	r9, r9, #1
+	cmp	r3, r9
+	bls	.L211
 .L187:
-	ldr	x19, [x28]
-	ldr	x2, [x28, 16]
-	cbnz	x19, .L215
-	cbz	x2, .L197
-	ldr	x3, [sp, 104]
-	adrp	x19, .LC14
-	add	x19, x19, :lo12:.LC14
-	b	.L192
-.L197:
-	ldr	x3, [sp, 104]
-	adrp	x2, .LC1
-	adrp	x19, .LC14
-	add	x2, x2, :lo12:.LC1
-	add	x19, x19, :lo12:.LC14
-	b	.L192
-	.section	.note.GNU-stack,"",@progbits
+	mov	fp, #88
+	ldr	r10, [r8]
+	mul	fp, fp, r9
+	add	r6, r10, fp
+	ldr	r4, [r10, fp]
+	ldr	r5, [r6, #72]
+	cmp	r4, #0
+	beq	.L212
+	mov	r1, r7
+	mov	r0, r4
+	bl	strcmp(PLT)
+	clz	r3, r0
+	lsrs	r3, r3, #5
+	str	r3, [sp, #12]
+	cmp	r5, #0
+	beq	.L213
+.L174:
+	movs	r4, #0
+	add	r5, sp, #296
+.L180:
+	ldr	r3, [r6, #68]
+	mov	r1, r5
+	mov	r2, #256
+	ldr	r0, [r3, r4, lsl #2]
+	bl	dep_basename(PLT)
+	ldrb	r3, [r5]	@ zero_extendqisi2
+	mov	r1, r7
+	mov	r0, r5
+	cmp	r3, #0
+	bne	.L214
+.L177:
+	ldr	r3, [r6, #72]
+	adds	r4, r4, #1
+	cmp	r3, r4
+	bhi	.L180
+	ldr	r3, [sp, #12]
+	cmp	r3, #0
+	beq	.L182
+	ldr	r4, [r10, fp]
+	ldr	r2, [r6, #8]
+	cmp	r4, #0
+	beq	.L215
+	cmp	r2, #0
+	bne	.L184
+	ldr	r2, .L216+28
+.LPIC39:
+	add	r2, pc
+	b	.L184
+.L211:
+	ldr	r4, [sp, #28]
+.L172:
+	mov	r0, r8
+	bl	aur_response_destroy(PLT)
+	ldr	r3, [sp, #8]
+	cmp	r3, #0
+	bne	.L168
+	ldr	r3, .L216+4
+	mov	r2, r7
+	ldr	r1, .L216+32
+.LPIC47:
+	add	r1, pc
+	ldr	r3, [r4, r3]
+	ldr	r0, [r3]
+	bl	fprintf(PLT)
+	b	.L171
+.L208:
+	ldr	r7, .L216+36
+.LPIC33:
+	add	r7, pc
+	b	.L170
+.L209:
+	ldr	r2, [r6, #8]
+	ldr	r4, .L216+40
+.LPIC34:
+	add	r4, pc
+	cmp	r2, #0
+	bne	.L185
+.L210:
+	ldr	r3, [sp, #12]
+	ldr	r2, .L216+44
+.LPIC35:
+	add	r2, pc
+	cmp	r3, #0
+	bne	.L184
+.L193:
+	ldr	r3, [sp, #24]
+	b	.L186
+.L212:
+	cmp	r5, #0
+	beq	.L182
+	str	r4, [sp, #12]
+	b	.L174
+.L213:
+	cmp	r0, #0
+	bne	.L182
+	ldr	r2, [r6, #8]
+	cmp	r2, #0
+	bne	.L184
+	ldr	r2, .L216+48
+.LPIC36:
+	add	r2, pc
+	b	.L184
+.L215:
+	cbz	r2, .L191
+	ldr	r4, .L216+52
+.LPIC40:
+	add	r4, pc
+	b	.L184
+.L191:
+	ldr	r2, .L216+56
+	ldr	r4, .L216+60
+.LPIC37:
+	add	r2, pc
+.LPIC38:
+	add	r4, pc
+	b	.L184
+.L217:
+	.align	2
+.L216:
+	.word	_GLOBAL_OFFSET_TABLE_-(.LPIC43+4)
+	.word	stderr(GOT)
+	.word	.LC15-(.LPIC44+4)
+	.word	.LC16-(.LPIC45+4)
+	.word	.LC17-(.LPIC46+4)
+	.word	.LC2-(.LPIC41+4)
+	.word	.LC3-(.LPIC42+4)
+	.word	.LC1-(.LPIC39+4)
+	.word	.LC18-(.LPIC47+4)
+	.word	.LC1-(.LPIC33+4)
+	.word	.LC14-(.LPIC34+4)
+	.word	.LC1-(.LPIC35+4)
+	.word	.LC1-(.LPIC36+4)
+	.word	.LC14-(.LPIC40+4)
+	.word	.LC1-(.LPIC37+4)
+	.word	.LC14-(.LPIC38+4)
+	.section	.note.GNU-stack,"",%progbits

@@ -1,5 +1,17 @@
 # Changelog — Archtoo Emerge Engine, ARM64 Edition
 
+## v1.0.0-arm-32 — arm-32 branch starts its own version line: armv7-a hard-float port (code base = aarch64 v1.2.2)
+
+### Added
+- This branch: the full v1.2.2 feature set (binary-variant auto-select etc.) rebuilt for
+  32-bit ARM (armv7-a + NEON + hard-float EABI, the Arch Linux ARM armv7 baseline) — for
+  older phones, 32-bit Raspberry Pi images, routers and similar.
+- Host-aware Makefile (same design as arm v1.2.2): native build on an armv7 host with the
+  distro's own gcc/as; `arm-linux-gnueabihf-*` cross build everywhere else, with the
+  `make check` smoke-test running the binary under qemu-arm(-static) when available.
+- GAS modules are regenerated from c_src/ for armv7 (`make regen` flips the ISA flags via
+  ARCH_FLAGS); linking adds `--as-needed` and `-latomic` for 64-bit atomics on 32-bit ARM.
+
 ## v1.2.2 — --binary auto-selects AUR binary variant (hotfix)
 
 ### Added

@@ -1,353 +1,372 @@
-	.arch armv8-a
+	.arch armv7-a
+	.fpu neon
 	.text
-	.section	.rodata.str1.8,"aMS",@progbits,1
-	.align	3
-.LC0:
-	.string	"-S"
-	.align	3
-.LC1:
-	.string	"pacman -Slq 2>/dev/null | sort -u"
-	.text
+	.section	.rodata.str1.4,"aMS",%progbits,1
 	.align	2
-	.p2align 5,,15
+.LC0:
+	.ascii	"-S\000"
+	.align	2
+.LC1:
+	.ascii	"pacman -Slq 2>/dev/null | sort -u\000"
+	.text
+	.align	1
+	.p2align 2,,3
 	.global	cmd_completion_v2
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	cmd_completion_v2, %function
 cmd_completion_v2:
-	stp	x29, x30, [sp, -48]!
-	adrp	x0, .LC0
-	add	x0, x0, :lo12:.LC0
-	mov	x29, sp
-	str	x19, [sp, 16]
-	adrp	x19, .LANCHOR0
-	add	x19, x19, :lo12:.LANCHOR0
-	str	xzr, [sp, 40]
-	add	x19, x19, 8
-	.p2align 5,,15
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, lr}
+	movs	r3, #0
+	ldr	r4, .L14
+	sub	sp, sp, #12
+	ldr	r0, .L14+4
+	ldr	r5, .L14+8
+.LPIC1:
+	add	r4, pc
+.LPIC0:
+	add	r0, pc
+	str	r3, [sp, #4]
+.LPIC3:
+	add	r5, pc
 .L2:
-	bl	puts
-	ldr	x0, [x19], 8
-	cbnz	x0, .L2
-	add	x1, sp, 40
-	adrp	x0, .LC1
-	add	x0, x0, :lo12:.LC1
-	bl	run_cmd_capture
-	mov	w1, w0
-	ldr	x0, [sp, 40]
-	cbnz	w1, .L3
-	cbz	x0, .L3
-	ldrb	w1, [x0]
-	cbnz	w1, .L13
+	bl	puts(PLT)
+	ldr	r0, [r4, #4]!
+	cmp	r0, #0
+	bne	.L2
+	ldr	r0, .L14+12
+	add	r1, sp, #4
+.LPIC2:
+	add	r0, pc
+	bl	run_cmd_capture(PLT)
+	mov	r3, r0
+	ldr	r0, [sp, #4]
+	cbnz	r3, .L3
+	cbz	r0, .L3
+	ldrb	r3, [r0]	@ zero_extendqisi2
+	cbnz	r3, .L13
 .L3:
-	bl	free
-	ldr	x19, [sp, 16]
-	mov	w0, 1
-	ldp	x29, x30, [sp], 48
-	ret
-	.p2align 2,,3
+	bl	free(PLT)
+	movs	r0, #1
+	add	sp, sp, #12
+	@ sp needed
+	pop	{r4, r5, pc}
 .L13:
-	adrp	x1, :got:stdout;ldr	x1, [x1, :got_lo12:stdout]
-	ldr	x1, [x1]
-	bl	fputs
-	ldr	x0, [sp, 40]
-	bl	free
-	ldr	x19, [sp, 16]
-	mov	w0, 1
-	ldp	x29, x30, [sp], 48
-	ret
-	.section	.rodata.str1.8
-	.align	3
+	ldr	r3, .L14+16
+	ldr	r3, [r5, r3]
+	ldr	r1, [r3]
+	bl	fputs(PLT)
+	ldr	r0, [sp, #4]
+	bl	free(PLT)
+	movs	r0, #1
+	add	sp, sp, #12
+	@ sp needed
+	pop	{r4, r5, pc}
+.L15:
+	.align	2
+.L14:
+	.word	.LANCHOR0-(.LPIC1+4)
+	.word	.LC0-(.LPIC0+4)
+	.word	_GLOBAL_OFFSET_TABLE_-(.LPIC3+4)
+	.word	.LC1-(.LPIC2+4)
+	.word	stdout(GOT)
+	.section	.rodata.str1.4
+	.align	2
 .LC2:
-	.string	"-I"
-	.align	3
+	.ascii	"-I\000"
+	.align	2
 .LC3:
-	.string	"-Q"
-	.align	3
+	.ascii	"-Q\000"
+	.align	2
 .LC4:
-	.string	"-A"
-	.align	3
+	.ascii	"-A\000"
+	.align	2
 .LC5:
-	.string	"-G"
-	.align	3
+	.ascii	"-G\000"
+	.align	2
 .LC6:
-	.string	"-B"
-	.align	3
+	.ascii	"-B\000"
+	.align	2
 .LC7:
-	.string	"-C"
-	.align	3
+	.ascii	"-C\000"
+	.align	2
 .LC8:
-	.string	"-U"
-	.align	3
+	.ascii	"-U\000"
+	.align	2
 .LC9:
-	.string	"-D"
-	.align	3
+	.ascii	"-D\000"
+	.align	2
 .LC10:
-	.string	"-v"
-	.align	3
+	.ascii	"-v\000"
+	.align	2
 .LC11:
-	.string	"-h"
-	.align	3
+	.ascii	"-h\000"
+	.align	2
 .LC12:
-	.string	"-i"
-	.align	3
+	.ascii	"-i\000"
+	.align	2
 .LC13:
-	.string	"-j"
-	.align	3
+	.ascii	"-j\000"
+	.align	2
 .LC14:
-	.string	"-r"
-	.align	3
+	.ascii	"-r\000"
+	.align	2
 .LC15:
-	.string	"-O0"
-	.align	3
+	.ascii	"-O0\000"
+	.align	2
 .LC16:
-	.string	"-O1"
-	.align	3
+	.ascii	"-O1\000"
+	.align	2
 .LC17:
-	.string	"-O2"
-	.align	3
+	.ascii	"-O2\000"
+	.align	2
 .LC18:
-	.string	"-O3"
-	.align	3
+	.ascii	"-O3\000"
+	.align	2
 .LC19:
-	.string	"-Os"
-	.align	3
+	.ascii	"-Os\000"
+	.align	2
 .LC20:
-	.string	"-Ofast"
-	.align	3
+	.ascii	"-Ofast\000"
+	.align	2
 .LC21:
-	.string	"-Og"
-	.align	3
+	.ascii	"-Og\000"
+	.align	2
 .LC22:
-	.string	"-Oz"
-	.align	3
+	.ascii	"-Oz\000"
+	.align	2
 .LC23:
-	.string	"--help"
-	.align	3
+	.ascii	"--help\000"
+	.align	2
 .LC24:
-	.string	"--version"
-	.align	3
+	.ascii	"--version\000"
+	.align	2
 .LC25:
-	.string	"--noconfirm"
-	.align	3
+	.ascii	"--noconfirm\000"
+	.align	2
 .LC26:
-	.string	"--interactive"
-	.align	3
+	.ascii	"--interactive\000"
+	.align	2
 .LC27:
-	.string	"--prompt-timeout"
-	.align	3
+	.ascii	"--prompt-timeout\000"
+	.align	2
 .LC28:
-	.string	"--jobs"
-	.align	3
+	.ascii	"--jobs\000"
+	.align	2
 .LC29:
-	.string	"--raw"
-	.align	3
+	.ascii	"--raw\000"
+	.align	2
 .LC30:
-	.string	"--target"
-	.align	3
+	.ascii	"--target\000"
+	.align	2
 .LC31:
-	.string	"--march"
-	.align	3
+	.ascii	"--march\000"
+	.align	2
 .LC32:
-	.string	"--cpu"
-	.align	3
+	.ascii	"--cpu\000"
+	.align	2
 .LC33:
-	.string	"--opt-level"
-	.align	3
+	.ascii	"--opt-level\000"
+	.align	2
 .LC34:
-	.string	"--opt"
-	.align	3
+	.ascii	"--opt\000"
+	.align	2
 .LC35:
-	.string	"--optimization"
-	.align	3
+	.ascii	"--optimization\000"
+	.align	2
 .LC36:
-	.string	"--pipe"
-	.align	3
+	.ascii	"--pipe\000"
+	.align	2
 .LC37:
-	.string	"--no-pipe"
-	.align	3
+	.ascii	"--no-pipe\000"
+	.align	2
 .LC38:
-	.string	"--gentoo-chroot"
-	.align	3
+	.ascii	"--gentoo-chroot\000"
+	.align	2
 .LC39:
-	.string	"--imitation"
-	.align	3
+	.ascii	"--imitation\000"
+	.align	2
 .LC40:
-	.string	"--portage-imitation"
-	.align	3
+	.ascii	"--portage-imitation\000"
+	.align	2
 .LC41:
-	.string	"--gentoo-imitation"
-	.align	3
+	.ascii	"--gentoo-imitation\000"
+	.align	2
 .LC42:
-	.string	"--no-gentoo-chroot"
-	.align	3
+	.ascii	"--no-gentoo-chroot\000"
+	.align	2
 .LC43:
-	.string	"--no-imitation"
-	.align	3
+	.ascii	"--no-imitation\000"
+	.align	2
 .LC44:
-	.string	"--chroot-path"
-	.align	3
+	.ascii	"--chroot-path\000"
+	.align	2
 .LC45:
-	.string	"--binary"
-	.align	3
+	.ascii	"--binary\000"
+	.align	2
 .LC46:
-	.string	"--use-binary"
-	.align	3
+	.ascii	"--use-binary\000"
+	.align	2
 .LC47:
-	.string	"--use-bin"
-	.align	3
+	.ascii	"--use-bin\000"
+	.align	2
 .LC48:
-	.string	"--bin"
-	.align	3
+	.ascii	"--bin\000"
+	.align	2
 .LC49:
-	.string	"--prebuilt"
-	.align	3
+	.ascii	"--prebuilt\000"
+	.align	2
 .LC50:
-	.string	"--use-prebuilt"
-	.align	3
+	.ascii	"--use-prebuilt\000"
+	.align	2
 .LC51:
-	.string	"--no-build"
-	.align	3
+	.ascii	"--no-build\000"
+	.align	2
 .LC52:
-	.string	"--no-compile"
-	.align	3
+	.ascii	"--no-compile\000"
+	.align	2
 .LC53:
-	.string	"--no-binary"
-	.align	3
+	.ascii	"--no-binary\000"
+	.align	2
 .LC54:
-	.string	"--no-use-binary"
-	.align	3
+	.ascii	"--no-use-binary\000"
+	.align	2
 .LC55:
-	.string	"--no-bin"
-	.align	3
+	.ascii	"--no-bin\000"
+	.align	2
 .LC56:
-	.string	"--resume"
-	.align	3
+	.ascii	"--resume\000"
+	.align	2
 .LC57:
-	.string	"--no-keys"
-	.align	3
+	.ascii	"--no-keys\000"
+	.align	2
 .LC58:
-	.string	"--no-inhibit"
-	.align	3
+	.ascii	"--no-inhibit\000"
+	.align	2
 .LC59:
-	.string	"--no-sync"
-	.align	3
+	.ascii	"--no-sync\000"
+	.align	2
 .LC60:
-	.string	"--no-aur-sync"
-	.align	3
+	.ascii	"--no-aur-sync\000"
+	.align	2
 .LC61:
-	.string	"--command-guide"
-	.align	3
+	.ascii	"--command-guide\000"
+	.align	2
 .LC62:
-	.string	"--orphans"
-	.align	3
+	.ascii	"--orphans\000"
+	.align	2
 .LC63:
-	.string	"--clean"
-	.align	3
+	.ascii	"--clean\000"
+	.align	2
 .LC64:
-	.string	"--stats"
-	.align	3
+	.ascii	"--stats\000"
+	.align	2
 .LC65:
-	.string	"--news"
-	.align	3
+	.ascii	"--news\000"
+	.align	2
 .LC66:
-	.string	"--complete"
-	.align	3
+	.ascii	"--complete\000"
+	.align	2
 .LC67:
-	.string	"--devel"
-	.align	3
+	.ascii	"--devel\000"
+	.align	2
 .LC68:
-	.string	"--providers"
-	.align	3
+	.ascii	"--providers\000"
+	.align	2
 .LC69:
-	.string	"--deps"
-	.align	3
+	.ascii	"--deps\000"
+	.align	2
 .LC70:
-	.string	"--review"
-	.align	3
+	.ascii	"--review\000"
+	.align	2
 .LC71:
-	.string	"--unmerge"
-	.align	3
+	.ascii	"--unmerge\000"
+	.align	2
 .LC72:
-	.string	"--deselect"
-	.align	3
+	.ascii	"--deselect\000"
+	.align	2
 .LC73:
-	.string	"--update"
+	.ascii	"--update\000"
 	.section	.data.rel.ro.local,"aw"
-	.align	4
+	.align	3
 	.set	.LANCHOR0,. + 0
 	.type	flags.0, %object
 flags.0:
-	.xword	.LC0
-	.xword	.LC2
-	.xword	.LC3
-	.xword	.LC4
-	.xword	.LC5
-	.xword	.LC6
-	.xword	.LC7
-	.xword	.LC8
-	.xword	.LC9
-	.xword	.LC10
-	.xword	.LC11
-	.xword	.LC12
-	.xword	.LC13
-	.xword	.LC14
-	.xword	.LC15
-	.xword	.LC16
-	.xword	.LC17
-	.xword	.LC18
-	.xword	.LC19
-	.xword	.LC20
-	.xword	.LC21
-	.xword	.LC22
-	.xword	.LC23
-	.xword	.LC24
-	.xword	.LC25
-	.xword	.LC26
-	.xword	.LC27
-	.xword	.LC28
-	.xword	.LC29
-	.xword	.LC30
-	.xword	.LC31
-	.xword	.LC32
-	.xword	.LC33
-	.xword	.LC34
-	.xword	.LC35
-	.xword	.LC36
-	.xword	.LC37
-	.xword	.LC38
-	.xword	.LC39
-	.xword	.LC40
-	.xword	.LC41
-	.xword	.LC42
-	.xword	.LC43
-	.xword	.LC44
-	.xword	.LC45
-	.xword	.LC46
-	.xword	.LC47
-	.xword	.LC48
-	.xword	.LC49
-	.xword	.LC50
-	.xword	.LC51
-	.xword	.LC52
-	.xword	.LC53
-	.xword	.LC54
-	.xword	.LC55
-	.xword	.LC56
-	.xword	.LC57
-	.xword	.LC58
-	.xword	.LC59
-	.xword	.LC60
-	.xword	.LC61
-	.xword	.LC62
-	.xword	.LC63
-	.xword	.LC64
-	.xword	.LC65
-	.xword	.LC66
-	.xword	.LC67
-	.xword	.LC68
-	.xword	.LC69
-	.xword	.LC70
-	.xword	.LC71
-	.xword	.LC72
-	.xword	.LC73
-	.xword	0
-	.section	.note.GNU-stack,"",@progbits
+	.word	.LC0
+	.word	.LC2
+	.word	.LC3
+	.word	.LC4
+	.word	.LC5
+	.word	.LC6
+	.word	.LC7
+	.word	.LC8
+	.word	.LC9
+	.word	.LC10
+	.word	.LC11
+	.word	.LC12
+	.word	.LC13
+	.word	.LC14
+	.word	.LC15
+	.word	.LC16
+	.word	.LC17
+	.word	.LC18
+	.word	.LC19
+	.word	.LC20
+	.word	.LC21
+	.word	.LC22
+	.word	.LC23
+	.word	.LC24
+	.word	.LC25
+	.word	.LC26
+	.word	.LC27
+	.word	.LC28
+	.word	.LC29
+	.word	.LC30
+	.word	.LC31
+	.word	.LC32
+	.word	.LC33
+	.word	.LC34
+	.word	.LC35
+	.word	.LC36
+	.word	.LC37
+	.word	.LC38
+	.word	.LC39
+	.word	.LC40
+	.word	.LC41
+	.word	.LC42
+	.word	.LC43
+	.word	.LC44
+	.word	.LC45
+	.word	.LC46
+	.word	.LC47
+	.word	.LC48
+	.word	.LC49
+	.word	.LC50
+	.word	.LC51
+	.word	.LC52
+	.word	.LC53
+	.word	.LC54
+	.word	.LC55
+	.word	.LC56
+	.word	.LC57
+	.word	.LC58
+	.word	.LC59
+	.word	.LC60
+	.word	.LC61
+	.word	.LC62
+	.word	.LC63
+	.word	.LC64
+	.word	.LC65
+	.word	.LC66
+	.word	.LC67
+	.word	.LC68
+	.word	.LC69
+	.word	.LC70
+	.word	.LC71
+	.word	.LC72
+	.word	.LC73
+	.word	0
+	.section	.note.GNU-stack,"",%progbits

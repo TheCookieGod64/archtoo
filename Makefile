@@ -1,33 +1,32 @@
-# Archtoo Emerge Engine — ARM64 (aarch64) edition
+# Archtoo Emerge Engine — ARMv7 32-bit (hard-float, GAS) edition  [arm-32 branch]
 #
-# Toolchain auto-detection (v1.2.2+): the build adapts to the HOST it runs on.
-#   - aarch64 host (Termux on a phone, any ARM board): fully NATIVE — plain
-#     gcc/as, no cross packages, no sysroot, and `make check` actually RUNS
-#     the binary. No random symlinks needed anymore.
-#   - anything else (x86_64 workstation): cross-compiles via the
-#     aarch64-linux-gnu-* toolchain and `make check` runs the result under
-#     qemu-aarch64(-static) when available, else reports the skip politely.
-# Linking goes through $(CC) in both cases so startup objects/libc come from
-# the host's own toolchain — that is what makes Termux "just work" while the
-# cross branch keeps the same -z noexecstack hardening.
+# Host-aware build, mirroring the arm64 branch (v1.2.2 design):
+#   - armv7/armv6 host (older phone, Raspberry Pi in 32-bit mode, ...): fully
+#     NATIVE — plain gcc/as from the distro, no cross packages, check RUNS.
+#   - anything else (x86_64 workstation, aarch64 phone): cross-compiles via
+#     the arm-linux-gnueabihf-* toolchain (Arch: pacman -S arm-linux-gnueabihf-gcc)
+#     and runs the smoke-test under qemu-arm(-static) when available.
+# Target ISA: armv7-a + NEON + hard-float EABI (the Arch Linux ARM armv7 baseline).
 
-VERSION := 1.2.2
+VERSION := 1.0.0
 
 HOST_ARCH := $(shell uname -m)
-ifeq ($(HOST_ARCH),aarch64)
-  TC        :=
-  RUN_BIN   := ./bin/emerge
-  HOSTMODE  := native aarch64
-else
-  TC        := aarch64-linux-gnu-
-  SYSROOT   := /usr/aarch64-linux-gnu
-  QEMU      := $(firstword $(shell command -v qemu-aarch64-static || command -v qemu-aarch64))
+ARCH_FLAGS := -march=armv7-a -mfpu=neon -mfloat-abi=hard
+
+ifeq (,$(filter $(HOST_ARCH),armv7l armv6l armv8l arm))
+  TC        := arm-linux-gnueabihf-
+  SYSROOT   := /usr/arm-linux-gnueabihf
+  QEMU      := $(firstword $(shell command -v qemu-arm-static || command -v qemu-arm))
   ifneq ($(QEMU),)
     RUN_BIN := $(QEMU) -L $(SYSROOT) ./bin/emerge
   else
     RUN_BIN := :
   endif
-  HOSTMODE  := cross $(TC) -> aarch64
+  HOSTMODE  := cross $(TC) -> armv7 hardfp
+else
+  TC        :=
+  RUN_BIN   := ./bin/emerge
+  HOSTMODE  := native $(HOST_ARCH) hardfp
 endif
 
 CC      := $(TC)gcc
@@ -36,7 +35,7 @@ LD      := $(TC)ld
 AR      := $(TC)ar
 STRIP   := $(TC)strip
 
-SYSROOT ?= /usr/aarch64-linux-gnu
+SYSROOT ?= /usr/arm-linux-gnueabihf
 
 SRCS := $(wildcard src/*.s)
 OBJS := $(patsubst src/%.s,build/%.o,$(SRCS))
@@ -47,20 +46,20 @@ build: ; @mkdir -p build
 bin:   ; @mkdir -p bin
 
 build/%.o: src/%.s | build
-	$(AS) -o $@ $<
+	$(AS) $(ARCH_FLAGS) -o $@ $<
 
 bin/emerge: $(OBJS) | bin
-	$(CC) -Wl,-z,noexecstack -o $@ $(OBJS)
-	@echo "[+] ARM64 binary built at $@ (v$(VERSION), $(HOSTMODE))"
+	$(CC) $(ARCH_FLAGS) -Wl,-z,noexecstack -Wl,--as-needed -o $@ $(OBJS) -latomic
+	@echo "[+] ARMv7 binary built at $@ (v$(VERSION), $(HOSTMODE))"
 
 check: all
 	@echo "[*] bin/emerge ELF check:"; file bin/emerge
-	@if [ -n "$(QEMU)$(filter aarch64,$(HOST_ARCH))" ] && [ "$(RUN_BIN)" != ":" ]; then \
+	@if [ "$(RUN_BIN)" != ":" ]; then \
 	  echo "[*] runtime smoke-test ($(HOSTMODE)):"; \
 	  $(RUN_BIN) --version; \
 	  $(RUN_BIN) --help >/dev/null && echo "[+] help ok"; \
 	else \
-	  echo "[!] no qemu-aarch64 found for the cross-run smoke-test — skipping (the build itself is OK; install e.g. 'qemu-user-static' to enable it)"; \
+	  echo "[!] no qemu-arm found for the cross-run smoke-test — skipping (the build itself is OK; install e.g. 'qemu-user-static' to enable it)"; \
 	fi
 
 # ---- regen: (re)generate src/*.s from c_src/*.c with the detected $(CC) ----
@@ -69,7 +68,7 @@ regen:
 	@mkdir -p build/regen
 	@for c in $(wildcard c_src/*.c); do \
 	  m=$$(basename $$c .c); \
-	  $(CC) -std=gnu11 -O2 -pipe -march=armv8-a -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-ident \
+	  $(CC) -std=gnu11 -O2 -pipe $(ARCH_FLAGS) -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-ident \
 	     -Ic_src/headers -S $$c -o build/regen/$$m.s.raw || { echo "GEREED: $(CC) faalde op $$c"; exit 1; }; \
 	  perl -ne 'next if /^\s*\#|^\s*\.cfi|^\s*\.file|^\s*\.loc|^\s*\.size|^\s*\.ident|^\s*\.eabi_attribute|^\s*\.aeabi_attribute|^\s*$$/; print' \
 	     build/regen/$$m.s.raw > src/$$m.s || { echo "GEREED: strip faalde op $$m"; exit 1; }; \

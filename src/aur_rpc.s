@@ -1,1518 +1,1665 @@
-	.arch armv8-a
+	.arch armv7-a
+	.fpu neon
 	.text
-	.align	2
-	.p2align 5,,15
+	.align	1
+	.p2align 2,,3
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	package_destroy, %function
 package_destroy:
-	stp	x29, x30, [sp, -160]!
-	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	add	x20, sp, 64
-	stp	x21, x22, [sp, 32]
-	mov	x22, x0
-	stp	x23, x24, [sp, 48]
-	add	x24, sp, 112
-	mov	x23, 1
-	ldr	x0, [x0]
-	bl	free
-	ldr	x0, [x22, 8]
-	bl	free
-	ldr	x0, [x22, 16]
-	bl	free
-	ldr	x0, [x22, 24]
-	bl	free
-	ldr	x0, [x22, 32]
-	bl	free
-	ldr	x0, [x22, 40]
-	bl	free
-	ldr	x4, [x22, 80]
-	add	x9, x22, 72
-	ldr	x3, [x22, 96]
-	add	x8, x22, 88
-	ldr	x2, [x22, 112]
-	add	x7, x22, 104
-	ldr	x1, [x22, 128]
-	add	x6, x22, 120
-	ldr	x0, [x22, 144]
-	add	x5, x22, 136
-	stp	x9, x8, [sp, 64]
-	stp	x7, x6, [sp, 80]
-	str	x5, [sp, 96]
-	stp	x4, x3, [sp, 112]
-	stp	x2, x1, [sp, 128]
-	str	x0, [sp, 144]
+	@ args = 0, pretend = 0, frame = 64
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, r8, r9, lr}
+	mov	r7, r0
+	ldr	r0, [r0]
+	sub	sp, sp, #68
+	bl	free(PLT)
+	ldr	r0, [r7, #4]
+	bl	free(PLT)
+	ldr	r0, [r7, #8]
+	bl	free(PLT)
+	ldr	r0, [r7, #12]
+	bl	free(PLT)
+	ldr	r0, [r7, #16]
+	bl	free(PLT)
+	ldr	r0, [r7, #20]
+	bl	free(PLT)
+	add	r2, r7, #60
+	vldr	d16, [r7, #48]
+	vldr	d17, [r7, #56]
+	add	r3, r7, #68
+	vldr	d18, [r7, #64]
+	vldr	d19, [r7, #72]
+	add	r0, r7, #44
+	strd	r2, r3, [sp, #8]
+	add	r1, r7, #52
+	strd	r0, r1, [sp]
+	add	r8, sp, #40
+	vuzp.32	q8, q9
+	add	r5, sp, #16
+	vld1.64	{d18-d19}, [sp:64]
+	add	r9, sp, #60
+	ldr	r3, [r7, #80]
+	add	r2, r7, #76
+	str	r3, [sp, #56]
+	str	r2, [sp, #32]
+	vstr	d16, [sp, #40]
+	vstr	d17, [sp, #48]
+	vstr	d18, [sp, #16]
+	vstr	d19, [sp, #24]
 .L2:
-	add	x0, x24, x23, lsl 3
-	mov	x19, 0
-	ldr	x21, [x0, -8]
-	cbz	x21, .L5
-	.p2align 5,,15
+	ldr	r6, [r8], #4
+	movs	r4, #0
+	cbz	r6, .L5
 .L3:
-	ldr	x1, [x20]
-	ldr	x1, [x1]
-	ldr	x0, [x1, x19, lsl 3]
-	add	x19, x19, 1
-	bl	free
-	cmp	x19, x21
+	ldr	r3, [r5]
+	ldr	r3, [r3]
+	ldr	r0, [r3, r4, lsl #2]
+	adds	r4, r4, #1
+	bl	free(PLT)
+	cmp	r4, r6
 	bne	.L3
 .L5:
-	ldr	x0, [x20], 8
-	add	x23, x23, 1
-	ldr	x0, [x0]
-	bl	free
-	cmp	x23, 6
+	ldr	r3, [r5], #4
+	ldr	r0, [r3]
+	bl	free(PLT)
+	cmp	r8, r9
 	bne	.L2
-	movi	v31.4s, 0
-	str	xzr, [x22, 144]
-	stp	q31, q31, [x22]
-	stp	q31, q31, [x22, 32]
-	stp	q31, q31, [x22, 64]
-	stp	q31, q31, [x22, 96]
-	str	q31, [x22, 128]
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	ldp	x23, x24, [sp, 48]
-	ldp	x29, x30, [sp], 160
-	ret
-	.align	2
-	.p2align 5,,15
+	movs	r2, #88
+	movs	r1, #0
+	mov	r0, r7
+	add	sp, sp, #68
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, lr}
+	b	memset(PLT)
+	.align	1
+	.p2align 2,,3
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	parse_json_string, %function
 parse_json_string:
-	stp	x29, x30, [sp, -96]!
-	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	stp	x25, x26, [sp, 64]
-	stp	x27, x28, [sp, 80]
-	mov	x27, x0
-	ldr	x20, [x0]
-	ldrb	w0, [x20]
-	cmp	w0, 34
-	bne	.L14
-	mov	x0, x20
-	bl	strlen
-	add	x26, x0, 1
-	mov	x0, x26
-	bl	malloc
-	mov	x25, x0
-	cbz	x0, .L14
-	stp	x21, x22, [sp, 32]
-	add	x20, x20, 1
-	mov	x21, 0
-	stp	x23, x24, [sp, 48]
-	mov	x24, x0
-	ldrb	w19, [x20]
-	cmp	w19, 34
-	ccmp	w19, 0, 4, ne
-	bne	.L15
-	b	.L16
-	.p2align 2,,3
-.L17:
-	mov	x21, x23
-	mov	x20, x22
-	strb	w19, [x24]
-.L21:
-	ldrb	w19, [x20]
-	cmp	w19, 34
-	ccmp	w19, 0, 4, ne
-	beq	.L34
-.L15:
-	add	x1, x21, 8
-	add	x24, x25, x21
-	cmp	x1, x26
-	bcs	.L35
-	add	x22, x20, 1
-	add	x23, x21, 1
-	cmp	w19, 92
-	bne	.L17
-	ldrb	w19, [x20, 1]
-	add	x28, x25, x23
-	cbz	w19, .L36
-	add	x22, x20, 2
-	cmp	w19, 114
-	beq	.L24
-	bhi	.L20
-	cmp	w19, 102
-	beq	.L25
-	cmp	w19, 110
-	beq	.L26
-	cmp	w19, 98
-	mov	w0, 8
-	csel	w19, w19, w0, ne
-	b	.L17
-	.p2align 2,,3
-.L20:
-	cmp	w19, 116
-	beq	.L27
-	cmp	w19, 117
-	bne	.L17
-	mov	x0, x22
-	bl	strlen
-	cmp	x0, 3
-	bls	.L17
-	mov	w0, 92
-	strb	w0, [x24]
-	strb	w19, [x28]
-	add	x21, x21, 6
-	add	x20, x20, 6
-	ldr	w0, [x20, -4]
-	str	w0, [x24, 2]
-	b	.L21
-	.p2align 2,,3
-.L26:
-	mov	w19, 10
-	b	.L17
-	.p2align 2,,3
-.L27:
-	mov	w19, 9
-	b	.L17
-	.p2align 2,,3
-.L35:
-	ldrb	w19, [x20]
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+	ldr	r4, [r0]
+	sub	sp, sp, #12
+	ldrb	r3, [r4]	@ zero_extendqisi2
+	cmp	r3, #34
+	bne	.L13
+	mov	fp, r0
+	mov	r0, r4
+	bl	strlen(PLT)
+	add	r10, r0, #1
+	mov	r0, r10
+	bl	malloc(PLT)
+	mov	r9, r0
+	cmp	r0, #0
+	beq	.L13
+	adds	r6, r4, #1
+	ldrb	r4, [r4, #1]	@ zero_extendqisi2
+	cmp	r4, #0
+	it	ne
+	cmpne	r4, #34
+	it	eq
+	moveq	r2, r0
+	beq	.L15
+	movs	r5, #0
+	b	.L14
 .L16:
-	cmp	w19, 34
-	cinc	x20, x20, eq
-.L19:
-	strb	wzr, [x24]
-	mov	x0, x25
-	str	x20, [x27]
-	ldp	x21, x22, [sp, 32]
-	ldp	x23, x24, [sp, 48]
-	ldp	x19, x20, [sp, 16]
-	ldp	x25, x26, [sp, 64]
-	ldp	x27, x28, [sp, 80]
-	ldp	x29, x30, [sp], 96
-	ret
-	.p2align 2,,3
+	mov	r5, r3
+	mov	r6, r7
+	strb	r4, [r8]
+.L26:
+	ldrb	r4, [r6]	@ zero_extendqisi2
+	cmp	r4, #0
+	it	ne
+	cmpne	r4, #34
+	beq	.L36
 .L14:
-	mov	x25, 0
-	mov	x0, x25
-	ldp	x19, x20, [sp, 16]
-	ldp	x25, x26, [sp, 64]
-	ldp	x27, x28, [sp, 80]
-	ldp	x29, x30, [sp], 96
-	ret
-	.p2align 2,,3
-.L25:
-	mov	w19, 12
-	b	.L17
-	.p2align 2,,3
-.L24:
-	mov	w19, 13
-	b	.L17
-	.p2align 2,,3
-.L34:
-	add	x24, x25, x21
+	add	r2, r9, r5
+	add	r3, r5, #8
+	mov	r8, r2
+	cmp	r3, r10
+	bcs	.L37
+	adds	r7, r6, #1
+	adds	r3, r5, #1
+	cmp	r4, #92
+	bne	.L16
+	ldrb	r4, [r6, #1]	@ zero_extendqisi2
+	cmp	r4, #0
+	beq	.L38
+	sub	r2, r4, #98
+	adds	r7, r6, #2
+	cmp	r2, #19
+	bhi	.L16
+	adr	r1, .L21
+	ldr	r2, [r1, r2, lsl #2]
+	add	r1, r1, r2
+	bx	r1
+	.p2align 2
+.L21:
+	.word	.L25+1-.L21
+	.word	.L16+1-.L21
+	.word	.L16+1-.L21
+	.word	.L16+1-.L21
+	.word	.L24+1-.L21
+	.word	.L16+1-.L21
+	.word	.L16+1-.L21
+	.word	.L16+1-.L21
+	.word	.L16+1-.L21
+	.word	.L16+1-.L21
+	.word	.L16+1-.L21
+	.word	.L16+1-.L21
+	.word	.L29+1-.L21
+	.word	.L16+1-.L21
+	.word	.L16+1-.L21
+	.word	.L16+1-.L21
+	.word	.L23+1-.L21
+	.word	.L16+1-.L21
+	.word	.L22+1-.L21
+	.word	.L20+1-.L21
+	.p2align 1
+.L20:
+	mov	r0, r7
+	str	r3, [sp, #4]
+	bl	strlen(PLT)
+	ldr	r3, [sp, #4]
+	cmp	r0, #3
+	bls	.L16
+	adds	r6, r6, #6
+	movw	r3, #30044
+	strh	r3, [r8]	@ unaligned
+	adds	r5, r5, #6
+	ldr	r3, [r6, #-4]	@ unaligned
+	str	r3, [r8, #2]	@ unaligned
+	b	.L26
+.L22:
+	movs	r4, #9
 	b	.L16
-	.p2align 2,,3
+.L23:
+	movs	r4, #13
+	b	.L16
+.L24:
+	movs	r4, #12
+	b	.L16
+.L25:
+	movs	r4, #8
+	b	.L16
+.L37:
+	ldrb	r4, [r6]	@ zero_extendqisi2
+.L15:
+	cmp	r4, #34
+	it	eq
+	addeq	r6, r6, #1
+.L18:
+	movs	r3, #0
+	mov	r0, r9
+	strb	r3, [r2]
+	str	r6, [fp]
+	add	sp, sp, #12
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+.L13:
+	mov	r9, #0
+	mov	r0, r9
+	add	sp, sp, #12
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
 .L36:
-	mov	w0, 92
-	mov	x20, x22
-	strb	w0, [x24]
-	mov	x24, x28
-	b	.L19
-	.section	.rodata.str1.8,"aMS",@progbits,1
-	.align	3
-.LC0:
-	.string	"\"%s\""
-	.text
+	add	r2, r9, r5
+	b	.L15
+.L29:
+	movs	r4, #10
+	b	.L16
+.L38:
+	movs	r1, #92
+	mov	r6, r7
+	strb	r1, [r2]
+	add	r2, r9, r3
+	b	.L18
+	.section	.rodata.str1.4,"aMS",%progbits,1
 	.align	2
-	.p2align 5,,15
+.LC0:
+	.ascii	"\"%s\"\000"
+	.text
+	.align	1
+	.p2align 2,,3
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	find_key, %function
 find_key:
-	stp	x29, x30, [sp, -144]!
-	mov	x3, x2
-	adrp	x2, .LC0
-	mov	x29, sp
-	add	x2, x2, :lo12:.LC0
-	str	x21, [sp, 32]
-	add	x21, sp, 48
-	stp	x19, x20, [sp, 16]
-	mov	x19, x0
-	mov	x20, x1
-	mov	x0, x21
-	mov	x1, 96
-	bl	snprintf
-	.p2align 5,,15
-.L38:
-	mov	x0, x19
-	mov	x1, x21
-	bl	strstr
-	cmp	x0, 0
-	mov	x19, x0
-	ccmp	x0, x20, 2, ne
-	bcs	.L46
-	mov	x0, x21
-	bl	strlen
-	add	x19, x19, x0
-	cmp	x20, x19
-	bls	.L38
-	bl	__ctype_b_loc
-	ldr	x1, [x0]
-	b	.L40
-	.p2align 2,,3
-.L41:
-	add	x19, x19, 1
-	cmp	x20, x19
-	beq	.L38
+	@ args = 0, pretend = 0, frame = 96
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, lr}
+	mov	r3, r2
+	ldr	r2, .L51
+	sub	sp, sp, #100
+	mov	r7, r0
+	mov	r5, r1
+.LPIC0:
+	add	r2, pc
+	movs	r1, #96
+	mov	r0, sp
+	mov	r6, sp
+	bl	snprintf(PLT)
 .L40:
-	ldrb	w0, [x19]
-	ldrh	w0, [x1, x0, lsl 1]
-	tbnz	x0, 13, .L41
-	cmp	x20, x19
-	bls	.L38
-	ldrb	w0, [x19]
-	cmp	w0, 58
-	bne	.L38
-	ldr	x21, [sp, 32]
-	add	x0, x19, 1
-	ldp	x19, x20, [sp, 16]
-	ldp	x29, x30, [sp], 144
-	ret
-.L46:
-	ldr	x21, [sp, 32]
-	mov	x0, 0
-	ldp	x19, x20, [sp, 16]
-	ldp	x29, x30, [sp], 144
-	ret
+	mov	r0, r7
+	mov	r1, r6
+	bl	strstr(PLT)
+	cmp	r0, #0
+	it	ne
+	cmpne	r0, r5
+	mov	r7, r0
+	ite	cc
+	movcc	r4, #1
+	movcs	r4, #0
+	bcs	.L49
+	mov	r0, r6
+	bl	strlen(PLT)
+	add	r7, r7, r0
+	cmp	r5, r7
+	bls	.L40
+	bl	__ctype_b_loc(PLT)
+	mov	r3, r7
+	ldr	r1, [r0]
+	b	.L42
+.L44:
+	cmp	r5, r3
+	beq	.L50
+.L42:
+	mov	r7, r3
+	ldrb	r2, [r3], #1	@ zero_extendqisi2
+	ldrh	r2, [r1, r2, lsl #1]
+	lsls	r2, r2, #18
+	bmi	.L44
+.L43:
+	cmp	r5, r7
+	bls	.L40
+	ldrb	r3, [r7]	@ zero_extendqisi2
+	cmp	r3, #58
+	bne	.L40
+	adds	r0, r7, #1
+	add	sp, sp, #100
+	@ sp needed
+	pop	{r4, r5, r6, r7, pc}
+.L50:
+	mov	r7, r5
+	b	.L43
+.L49:
+	mov	r0, r4
+	add	sp, sp, #100
+	@ sp needed
+	pop	{r4, r5, r6, r7, pc}
+.L52:
 	.align	2
-	.p2align 5,,15
+.L51:
+	.word	.LC0-(.LPIC0+4)
+	.align	1
+	.p2align 2,,3
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	object_array, %function
 object_array:
-	stp	x29, x30, [sp, -96]!
-	mov	x29, sp
-	stp	x21, x22, [sp, 32]
-	mov	x21, x3
-	mov	x22, x1
-	stp	x19, x20, [sp, 16]
-	mov	x20, x4
-	bl	find_key
-	str	xzr, [x21]
-	str	xzr, [x20]
-	cbz	x0, .L57
-	mov	x19, x0
-	cmp	x0, x22
-	bcs	.L77
-	bl	__ctype_b_loc
-	ldr	x3, [x0]
-	b	.L52
-	.p2align 2,,3
-.L53:
-	cmp	x0, x22
-	beq	.L78
-	mov	x19, x0
-.L52:
-	ldrb	w1, [x19]
-	add	x0, x19, 1
-	ubfiz	x2, x1, 1, 8
-	ldrh	w2, [x3, x2]
-	tbnz	x2, 13, .L53
-.L51:
-	cmp	w1, 91
-	bne	.L57
-.L81:
-	add	x19, x19, 1
-	stp	x23, x24, [sp, 48]
-	add	x23, sp, 88
-	str	x19, [sp, 88]
-	cmp	x19, x22
-	bcs	.L56
-	str	x25, [sp, 64]
-	.p2align 5,,15
-.L55:
-	bl	__ctype_b_loc
-	ldr	x3, [x0]
-	mov	w5, 0
-	.p2align 5,,15
-.L62:
-	ldrb	w2, [x19]
-	mov	w1, w5
-	add	x19, x19, 1
-	cmp	w2, 44
-	ubfiz	x0, x2, 1, 8
-	ldrh	w0, [x3, x0]
-	and	w0, w0, 8192
-	ccmp	w0, 0, 0, ne
-	cset	w5, ne
-	beq	.L79
-	mov	x24, x19
-	cmp	x19, x22
-	bne	.L62
-.L74:
-	ldp	x23, x24, [sp, 48]
-	ldr	x25, [sp, 64]
-.L57:
-	mov	w0, 1
-.L47:
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	ldp	x29, x30, [sp], 96
-	ret
-	.p2align 2,,3
-.L79:
-	cbz	w1, .L59
-	str	x24, [sp, 88]
+	@ args = 4, pretend = 0, frame = 8
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, r8, r9, r10, lr}
+	mov	r6, r3
+	mov	r8, r1
+	sub	sp, sp, #8
+	ldr	r5, [sp, #40]
+	bl	find_key(PLT)
+	movs	r3, #0
+	str	r3, [r6]
+	str	r3, [r5]
+	cbz	r0, .L63
+	cmp	r0, r8
+	mov	r9, r0
+	it	cs
+	ldrbcs	r2, [r0]	@ zero_extendqisi2
+	bcs	.L57
+	bl	__ctype_b_loc(PLT)
+	mov	r3, r9
+	ldr	r0, [r0]
+	b	.L58
 .L59:
-	cmp	w2, 93
-	beq	.L74
-	cmp	w2, 34
-	bne	.L76
-	mov	x0, x23
-	bl	parse_json_string
-	ldr	x1, [x20]
-	mov	x25, x0
-	ldr	x0, [x21]
-	add	x1, x1, 1
-	lsl	x1, x1, 3
-	bl	realloc
-	cmp	x25, 0
-	ccmp	x0, 0, 4, ne
+	cmp	r8, r3
+	beq	.L79
+.L58:
+	ldrb	r2, [r3]	@ zero_extendqisi2
+	mov	r9, r3
+	adds	r3, r3, #1
+	ldrh	r1, [r0, r2, lsl #1]
+	lsls	r1, r1, #18
+	bmi	.L59
+.L57:
+	cmp	r2, #91
+	bne	.L63
+.L82:
+	add	r9, r9, #1
+	str	r9, [sp, #4]
+	cmp	r9, r8
+	bcs	.L62
+	add	r7, sp, #4
+.L61:
+	bl	__ctype_b_loc(PLT)
+	ldr	ip, [r0]
+	mov	r3, r9
+	movs	r2, #0
+.L68:
+	ldrb	r1, [r3], #1	@ zero_extendqisi2
+	mov	r0, r2
+	add	r2, ip, r1, lsl #1
+	ldrb	r2, [r2, #1]	@ zero_extendqisi2
+	ubfx	r2, r2, #5, #1
+	cmp	r1, #44
+	it	eq
+	orreq	r2, r2, #1
+	ands	r2, r2, #255
 	beq	.L80
-	ldr	x1, [x20]
-	str	x0, [x21]
-	ldr	x19, [sp, 88]
-	add	x2, x1, 1
-	str	x2, [x20]
-	str	x25, [x0, x1, lsl 3]
-	cmp	x19, x22
-	bcc	.L55
-.L76:
-	ldr	x25, [sp, 64]
-.L56:
-	mov	w0, 0
-	ldp	x23, x24, [sp, 48]
-	b	.L47
-.L78:
-	ldrb	w1, [x19, 1]
-	mov	x19, x22
-	cmp	w1, 91
-	bne	.L57
-	b	.L81
+	mov	r4, r3
+	cmp	r8, r3
+	bne	.L68
+.L63:
+	movs	r0, #1
+.L53:
+	add	sp, sp, #8
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, pc}
 .L80:
-	mov	x0, x25
-	bl	free
-	ldr	x25, [sp, 64]
-	b	.L56
-.L77:
-	ldrb	w1, [x0]
-	b	.L51
-	.section	.rodata.str1.8
-	.align	3
-.LC1:
-	.string	""
-	.align	3
-.LC2:
-	.string	"null"
-	.text
+	cbz	r0, .L65
+	str	r4, [sp, #4]
+.L65:
+	cmp	r1, #93
+	beq	.L63
+	cmp	r1, #34
+	bne	.L62
+	mov	r0, r7
+	bl	parse_json_string(PLT)
+	ldr	r1, [r5]
+	mov	r10, r0
+	ldr	r0, [r6]
+	adds	r1, r1, #1
+	lsls	r1, r1, #2
+	bl	realloc(PLT)
+	cmp	r0, #0
+	it	ne
+	cmpne	r10, #0
+	beq	.L81
+	ldr	r3, [r5]
+	ldr	r9, [sp, #4]
+	str	r0, [r6]
+	adds	r2, r3, #1
+	cmp	r9, r8
+	str	r2, [r5]
+	str	r10, [r0, r3, lsl #2]
+	bcc	.L61
+.L62:
+	movs	r0, #0
+	b	.L53
+.L79:
+	ldrb	r2, [r9, #1]	@ zero_extendqisi2
+	mov	r9, r8
+	cmp	r2, #91
+	bne	.L63
+	b	.L82
+.L81:
+	mov	r0, r10
+	bl	free(PLT)
+	b	.L62
+	.section	.rodata.str1.4
 	.align	2
-	.p2align 5,,15
+.LC1:
+	.ascii	"\000"
+	.align	2
+.LC2:
+	.ascii	"null\000"
+	.text
+	.align	1
+	.p2align 2,,3
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	object_string, %function
 object_string:
-	stp	x29, x30, [sp, -64]!
-	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	mov	x20, x1
-	bl	find_key
-	str	x0, [sp, 56]
-	cbz	x0, .L97
-	mov	x19, x0
-	cmp	x0, x20
-	bcs	.L84
-	str	x21, [sp, 32]
-	bl	__ctype_b_loc
-	ldr	x2, [x0]
-	mov	w1, 0
-	b	.L85
-	.p2align 2,,3
-.L87:
-	add	x19, x19, 1
-	mov	w1, 1
-	mov	x21, x19
-	cmp	x19, x20
-	beq	.L98
-.L85:
-	ldrb	w0, [x19]
-	ldrh	w0, [x2, x0, lsl 1]
-	tbnz	x0, 13, .L87
-	cbz	w1, .L88
-	str	x21, [sp, 56]
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, lr}
+	mov	r6, r1
+	sub	sp, sp, #12
+	bl	find_key(PLT)
+	str	r0, [sp, #4]
+	cbz	r0, .L84
+	mov	r4, r0
+	cmp	r0, r6
+	bcs	.L85
+	bl	__ctype_b_loc(PLT)
+	movs	r5, #0
+	ldr	r0, [r0]
+	mov	r3, r4
+	b	.L86
 .L88:
-	sub	x20, x20, x19
-	cmp	x20, 3
-	ble	.L96
-	adrp	x1, .LC2
-	mov	x0, x19
-	add	x1, x1, :lo12:.LC2
-	mov	x2, 4
-	bl	strncmp
-	cbz	w0, .L99
+	mov	r7, r3
+	movs	r5, #1
+	cmp	r6, r3
+	beq	.L97
+.L86:
+	mov	r4, r3
+	ldrb	r2, [r3], #1	@ zero_extendqisi2
+	ldrh	r2, [r0, r2, lsl #1]
+	lsls	r2, r2, #18
+	bmi	.L88
+	cbz	r5, .L87
+	str	r7, [sp, #4]
+.L87:
+	subs	r1, r6, r4
+	cmp	r1, #3
+	ble	.L85
+	ldr	r1, .L99
+	movs	r2, #4
+	mov	r0, r4
+.LPIC2:
+	add	r1, pc
+	bl	strncmp(PLT)
+	cbz	r0, .L98
+.L85:
+	ldrb	r3, [r4]	@ zero_extendqisi2
+	cmp	r3, #34
+	beq	.L90
+	ldr	r0, .L99+4
+.LPIC4:
+	add	r0, pc
 .L96:
-	ldr	x21, [sp, 32]
-.L84:
-	ldrb	w0, [x19]
-	cmp	w0, 34
-	beq	.L89
+	add	sp, sp, #12
+	@ sp needed
+	pop	{r4, r5, r6, r7, lr}
+	b	strdup(PLT)
+.L90:
+	add	r0, sp, #4
+	bl	parse_json_string(PLT)
+	add	sp, sp, #12
+	@ sp needed
+	pop	{r4, r5, r6, r7, pc}
 .L97:
-	ldp	x19, x20, [sp, 16]
-	adrp	x0, .LC1
-	ldp	x29, x30, [sp], 64
-	add	x0, x0, :lo12:.LC1
-	b	strdup
-	.p2align 2,,3
-.L89:
-	add	x0, sp, 56
-	bl	parse_json_string
-	ldp	x19, x20, [sp, 16]
-	ldp	x29, x30, [sp], 64
-	ret
-	.p2align 2,,3
+	mov	r4, r6
+	str	r6, [sp, #4]
+	b	.L87
 .L98:
-	ldrb	w0, [x19]
-	str	x19, [sp, 56]
-	ldr	x21, [sp, 32]
-	cmp	w0, 34
-	beq	.L89
-	b	.L97
-	.p2align 2,,3
-.L99:
-	ldr	x21, [sp, 32]
-	adrp	x0, .LC1
-	ldp	x19, x20, [sp, 16]
-	add	x0, x0, :lo12:.LC1
-	ldp	x29, x30, [sp], 64
-	b	strdup
+	ldr	r0, .L99+8
+.LPIC3:
+	add	r0, pc
+	b	.L96
+.L84:
+	ldr	r0, .L99+12
+.LPIC1:
+	add	r0, pc
+	b	.L96
+.L100:
 	.align	2
-	.p2align 5,,15
+.L99:
+	.word	.LC2-(.LPIC2+4)
+	.word	.LC1-(.LPIC4+4)
+	.word	.LC1-(.LPIC3+4)
+	.word	.LC1-(.LPIC1+4)
+	.align	1
+	.p2align 2,,3
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	object_long, %function
 object_long:
-	stp	x29, x30, [sp, -32]!
-	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	mov	x20, x1
-	bl	find_key
-	cbz	x0, .L101
-	mov	x19, x0
-	cmp	x20, x0
-	bls	.L102
-	bl	__ctype_b_loc
-	ldr	x1, [x0]
-	b	.L103
-	.p2align 2,,3
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r3, r4, r5, lr}
+	mov	r5, r1
+	bl	find_key(PLT)
+	cbz	r0, .L102
+	mov	r4, r0
+	cmp	r5, r0
+	bls	.L103
+	bl	__ctype_b_loc(PLT)
+	mov	r3, r4
+	ldr	r1, [r0]
+	b	.L104
+.L105:
+	cmp	r5, r3
+	beq	.L108
 .L104:
-	add	x19, x19, 1
-	cmp	x20, x19
-	beq	.L102
+	mov	r4, r3
+	ldrb	r2, [r3], #1	@ zero_extendqisi2
+	ldrh	r2, [r1, r2, lsl #1]
+	lsls	r2, r2, #18
+	bmi	.L105
 .L103:
-	ldrb	w0, [x19]
-	ldrh	w0, [x1, x0, lsl 1]
-	tbnz	x0, 13, .L104
+	mov	r0, r4
+	movs	r2, #10
+	pop	{r3, r4, r5, lr}
+	movs	r1, #0
+	b	strtol(PLT)
+.L108:
+	mov	r4, r5
+	b	.L103
 .L102:
-	mov	x0, x19
-	mov	w2, 10
-	ldp	x19, x20, [sp, 16]
-	mov	x1, 0
-	ldp	x29, x30, [sp], 32
-	b	strtol
-	.p2align 2,,3
-.L101:
-	ldp	x19, x20, [sp, 16]
-	ldp	x29, x30, [sp], 32
-	ret
-	.section	.rodata.str1.8
-	.align	3
-.LC3:
-	.string	"unknown error"
-	.text
+	pop	{r3, r4, r5, pc}
+	.section	.rodata.str1.4
 	.align	2
-	.p2align 5,,15
+.LC3:
+	.ascii	"unknown error\000"
+	.text
+	.align	1
+	.p2align 2,,3
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	set_error, %function
 set_error:
-	cmp	x0, 0
-	ccmp	x1, 0, 4, ne
-	beq	.L113
-	stp	x29, x30, [sp, -48]!
-	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	mov	x19, x1
-	mov	x20, x2
-	stp	x21, x22, [sp, 32]
-	mov	x21, x0
-	cbz	x2, .L111
-	mov	x0, x2
-	bl	strlen
-	mov	x22, x0
-.L109:
-	cmp	x19, x22
-	sub	x19, x19, #1
-	csel	x22, x19, x22, ls
-	mov	x1, x20
-	mov	x2, x22
-	mov	x0, x21
-	bl	memcpy
-	strb	wzr, [x21, x22]
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	ldp	x29, x30, [sp], 48
-	ret
-	.p2align 2,,3
-.L113:
-	ret
-	.p2align 2,,3
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	cmp	r1, #0
+	it	ne
+	cmpne	r0, #0
+	beq	.L115
+	push	{r3, r4, r5, r6, r7, lr}
+	mov	r4, r0
+	mov	r5, r1
+	mov	r6, r2
+	cbz	r2, .L113
+	mov	r0, r2
+	bl	strlen(PLT)
+	mov	r7, r0
 .L111:
-	adrp	x20, .LC3
-	mov	x22, 13
-	add	x20, x20, :lo12:.LC3
-	b	.L109
-	.section	.rodata.str1.8
-	.align	3
-.LC4:
-	.string	"15"
-	.align	3
-.LC5:
-	.string	"--connect-timeout"
-	.align	3
-.LC6:
-	.string	"--location"
-	.align	3
-.LC7:
-	.string	"--show-error"
-	.align	3
-.LC8:
-	.string	"--silent"
-	.align	3
-.LC9:
-	.string	"--fail"
-	.align	3
-.LC10:
-	.string	"curl"
-	.align	3
-.LC11:
-	.string	"60"
-	.align	3
-.LC12:
-	.string	"--max-time"
-	.align	3
-.LC13:
-	.string	"out of memory"
-	.align	3
-.LC14:
-	.string	"AUR RPC HTTP request failed"
-	.text
+	cmp	r5, r7
+	mov	r1, r6
+	it	ls
+	addls	r7, r5, #-1
+	mov	r0, r4
+	mov	r2, r7
+	bl	memcpy(PLT)
+	movs	r3, #0
+	strb	r3, [r4, r7]
+	pop	{r3, r4, r5, r6, r7, pc}
+.L115:
+	bx	lr
+.L113:
+	ldr	r6, .L118
+	movs	r7, #13
+.LPIC5:
+	add	r6, pc
+	b	.L111
+.L119:
 	.align	2
-	.p2align 5,,15
+.L118:
+	.word	.LC3-(.LPIC5+4)
+	.section	.rodata.str1.4
+	.align	2
+.LC4:
+	.ascii	"--silent\000"
+	.align	2
+.LC5:
+	.ascii	"--fail\000"
+	.align	2
+.LC6:
+	.ascii	"curl\000"
+	.align	2
+.LC7:
+	.ascii	"60\000"
+	.align	2
+.LC8:
+	.ascii	"--max-time\000"
+	.align	2
+.LC9:
+	.ascii	"15\000"
+	.align	2
+.LC10:
+	.ascii	"--connect-timeout\000"
+	.align	2
+.LC11:
+	.ascii	"--location\000"
+	.align	2
+.LC12:
+	.ascii	"--show-error\000"
+	.align	2
+.LC13:
+	.ascii	"out of memory\000"
+	.align	2
+.LC14:
+	.ascii	"AUR RPC HTTP request failed\000"
+	.text
+	.align	1
+	.p2align 2,,3
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	curl_get.constprop.0, %function
 curl_get.constprop.0:
-	mov	x12, 8336
-	sub	sp, sp, x12
-	stp	x29, x30, [sp, 32]
-	add	x29, sp, 32
-	stp	x19, x20, [sp, 48]
-	mov	x19, x0
-	add	x0, sp, 136
-	stp	x21, x22, [sp, 64]
-	mov	x21, x1
-	stp	x25, x26, [sp, 96]
-	mov	x26, x2
-	mov	x25, x3
-	str	xzr, [x1]
-	bl	pipe
-	cbnz	w0, .L146
-	stp	x23, x24, [sp, 80]
-	bl	fork
-	mov	w24, w0
-	cmp	w0, 0
-	blt	.L147
-	str	x27, [sp, 112]
-	beq	.L148
-	ldr	w0, [sp, 140]
-	add	x23, sp, 144
-	mov	x19, 0
-	mov	x22, 0
-	bl	close
-	ldr	w0, [sp, 136]
-	mov	x1, x23
-	mov	x2, 8192
-	bl	read
-	mov	x20, x0
-	cmp	x0, 0
-	ble	.L149
-	.p2align 5,,15
-.L132:
-	add	x27, x20, x22
-	add	x4, x27, 1
-	cmp	x4, x19
-	bls	.L150
-	cbnz	x19, .L127
-	mov	x19, 8192
-	cmp	x4, x19
-	bls	.L128
-	.p2align 5,,15
+	@ args = 0, pretend = 0, frame = 8224
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+	mov	r7, r1
+	mov	r5, r0
+	sub	sp, sp, #8256
+	movs	r1, #0
+	sub	sp, sp, #4
+	str	r1, [r7]
+	add	r6, sp, #64
+	sub	r0, r6, #8
+	str	r2, [sp, #36]
+	str	r3, [sp, #40]
+	bl	pipe(PLT)
+	cmp	r0, #0
+	bne	.L147
+	mov	r4, r0
+	bl	fork(PLT)
+	subs	r9, r0, #0
+	blt	.L149
+	beq	.L150
+	mov	r8, r4
+	mov	fp, r4
+	ldr	r0, [r6, #-4]
+	bl	close(PLT)
 .L127:
-	lsl	x19, x19, 1
-	cmp	x4, x19
-	bhi	.L127
-.L128:
-	ldr	x0, [x21]
-	mov	x1, x19
-	bl	realloc
-	cbz	x0, .L151
-	str	x0, [x21]
-.L125:
-	mov	x2, x20
-	add	x0, x0, x22
-	mov	x1, x23
-	bl	memcpy
-	ldr	x0, [x21]
-	mov	x1, x23
-	mov	x2, 8192
-	mov	x22, x27
-	strb	wzr, [x0, x27]
-	ldr	w0, [sp, 136]
-	bl	read
-	mov	x20, x0
-	cmp	x0, 0
-	bgt	.L132
-.L149:
-	ldr	w0, [sp, 136]
-	add	x19, sp, 132
-	bl	close
-	b	.L134
-	.p2align 2,,3
-.L152:
-	bl	__errno_location
-	ldr	w0, [x0]
-	cmp	w0, 4
-	bne	.L133
-.L134:
-	mov	x1, x19
-	mov	w0, w24
-	mov	w2, 0
-	bl	waitpid
-	tbnz	w0, #31, .L152
-.L133:
-	ldr	w2, [sp, 132]
-	mov	w1, 65407
-	ldr	x0, [x21]
-	tst	w2, w1
-	bne	.L153
-	cbz	x0, .L154
-.L137:
-	cmp	x0, 0
-	mov	x12, 8336
-	ldr	x27, [sp, 112]
-	cset	w0, ne
-	ldp	x23, x24, [sp, 80]
-	ldp	x29, x30, [sp, 32]
-	ldp	x19, x20, [sp, 48]
-	ldp	x21, x22, [sp, 64]
-	ldp	x25, x26, [sp, 96]
-	add	sp, sp, x12
-	ret
-	.p2align 2,,3
-.L148:
-	ldr	w0, [sp, 136]
-	bl	close
-	ldr	w0, [sp, 140]
-	mov	w1, 1
-	bl	dup2
-	tbnz	w0, #31, .L145
-	ldr	w0, [sp, 140]
-	bl	close
-	stp	x19, xzr, [sp, 16]
-	adrp	x1, .LC11
-	adrp	x0, .LC12
-	add	x1, x1, :lo12:.LC11
-	add	x0, x0, :lo12:.LC12
-	stp	x0, x1, [sp]
-	adrp	x1, .LC10
-	add	x1, x1, :lo12:.LC10
-	adrp	x7, .LC4
-	adrp	x6, .LC5
-	adrp	x5, .LC6
-	adrp	x4, .LC7
-	adrp	x3, .LC8
-	adrp	x2, .LC9
-	mov	x0, x1
-	add	x7, x7, :lo12:.LC4
-	add	x6, x6, :lo12:.LC5
-	add	x5, x5, :lo12:.LC6
-	add	x4, x4, :lo12:.LC7
-	add	x3, x3, :lo12:.LC8
-	add	x2, x2, :lo12:.LC9
-	bl	execlp
-.L145:
-	mov	w0, 127
-	bl	_exit
-	.p2align 2,,3
+	ldr	r0, [r6, #-8]
+	mov	r2, #8192
+	mov	r1, r6
+	bl	read(PLT)
+	subs	r5, r0, #0
+	ble	.L151
+	add	r10, r5, r8
+	add	r2, r10, #1
+	cmp	r2, r4
+	it	ls
+	ldrls	r2, [r7]
+	bls	.L129
+	cbnz	r4, .L131
+	mov	r4, #8192
+	cmp	r2, #8192
+	bls	.L132
+.L131:
+	lsls	r4, r4, #1
+	cmp	r2, r4
+	bhi	.L131
+.L132:
+	ldr	r0, [r7]
+	mov	r1, r4
+	bl	realloc(PLT)
+	mov	r2, r0
+	cmp	r0, #0
+	beq	.L152
+	str	r0, [r7]
+.L129:
+	add	r0, r2, r8
+	mov	r1, r6
+	mov	r2, r5
+	mov	r8, r10
+	bl	memcpy(PLT)
+	ldr	r2, [r7]
+	strb	fp, [r2, r10]
+	b	.L127
 .L150:
-	ldr	x0, [x21]
-	b	.L125
-	.p2align 2,,3
-.L146:
-	bl	__errno_location
-	ldr	w0, [x0]
-	bl	strerror
-	mov	x2, x0
-	mov	x1, x25
-	mov	x0, x26
-	bl	set_error
-.L118:
-	ldp	x29, x30, [sp, 32]
-	mov	w0, 0
-	ldp	x19, x20, [sp, 48]
-	mov	x12, 8336
-	ldp	x21, x22, [sp, 64]
-	ldp	x25, x26, [sp, 96]
-	add	sp, sp, x12
-	ret
-.L151:
-	ldr	w0, [sp, 136]
-	bl	close
-	mov	w1, 15
-	mov	w0, w24
-	bl	kill
-	mov	w2, 0
-	mov	x1, 0
-	mov	w0, w24
-	bl	waitpid
-	ldr	x0, [x21]
-	bl	free
-	str	xzr, [x21]
-	cmp	x26, 0
-	ccmp	x25, 0, 4, ne
-	beq	.L143
-	cmp	x25, 14
-	mov	x19, 14
-	csel	x19, x25, x19, ls
-	adrp	x1, .LC13
-	sub	x19, x19, #1
-	add	x1, x1, :lo12:.LC13
-.L144:
-	mov	x2, x19
-	mov	x0, x26
-	bl	memcpy
-	strb	wzr, [x26, x19]
-	ldr	x27, [sp, 112]
-	ldp	x23, x24, [sp, 80]
-	b	.L118
+	ldr	r0, [r6, #-8]
+	bl	close(PLT)
+	ldr	r0, [r6, #-4]
+	movs	r1, #1
+	bl	dup2(PLT)
+	cmp	r0, #0
+	blt	.L148
+	ldr	r0, [r6, #-4]
+	bl	close(PLT)
+	ldr	r4, .L156
+	ldr	r0, .L156+4
+	ldr	r2, .L156+8
+.LPIC10:
+	add	r4, pc
+	ldr	r3, .L156+12
+.LPIC11:
+	add	r0, pc
+	ldr	r1, .L156+16
+.LPIC12:
+	add	r2, pc
+.LPIC13:
+	add	r3, pc
+	strd	r0, r4, [sp, #16]
+	strd	r3, r2, [sp, #8]
+.LPIC8:
+	add	r1, pc
+	ldr	r4, .L156+20
+	ldr	r0, .L156+24
+	ldr	r3, .L156+28
+.LPIC14:
+	add	r4, pc
+	ldr	r2, .L156+32
+.LPIC15:
+	add	r0, pc
+.LPIC6:
+	add	r3, pc
+	strd	r0, r4, [sp]
+.LPIC7:
+	add	r2, pc
+	mov	r0, r1
+	strd	r5, r9, [sp, #24]
+	bl	execlp(PLT)
+.L148:
+	movs	r0, #127
+	bl	_exit(PLT)
+.L149:
+	ldr	r0, [r6, #-8]
+	bl	close(PLT)
+	ldr	r0, [r6, #-4]
+	bl	close(PLT)
 .L147:
-	ldr	w0, [sp, 136]
-	bl	close
-	ldr	w0, [sp, 140]
-	bl	close
-	bl	__errno_location
-	ldr	w0, [x0]
-	bl	strerror
-	mov	x2, x0
-	mov	x1, x25
-	mov	x0, x26
-	bl	set_error
-	ldp	x23, x24, [sp, 80]
-	b	.L118
-.L143:
-	ldr	x27, [sp, 112]
-	ldp	x23, x24, [sp, 80]
-	b	.L118
+	bl	__errno_location(PLT)
+	ldr	r0, [r0]
+	bl	strerror(PLT)
+	mov	r2, r0
+	ldrd	r0, r1, [sp, #36]
+	bl	set_error(PLT)
+.L122:
+	movs	r0, #0
+	add	sp, sp, #8256
+	add	sp, sp, #4
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+.L151:
+	ldr	r0, [r6, #-8]
+	add	r4, sp, #52
+	bl	close(PLT)
+	b	.L138
 .L153:
-	bl	free
-	str	xzr, [x21]
-	cmp	x26, 0
-	ccmp	x25, 0, 4, ne
-	beq	.L143
-	cmp	x25, 28
-	mov	x0, 28
-	csel	x19, x25, x0, ls
-	adrp	x1, .LC14
-	sub	x19, x19, #1
-	add	x1, x1, :lo12:.LC14
-	b	.L144
+	bl	__errno_location(PLT)
+	ldr	r3, [r0]
+	cmp	r3, #4
+	bne	.L137
+.L138:
+	movs	r2, #0
+	mov	r1, r4
+	mov	r0, r9
+	bl	waitpid(PLT)
+	cmp	r0, #0
+	blt	.L153
+.L137:
+	ldr	r3, [r6, #-12]
+	movw	r2, #65407
+	ldr	r0, [r7]
+	tst	r2, r3
+	bne	.L154
+	cmp	r0, #0
+	beq	.L155
+.L141:
+	subs	r0, r0, #0
+	it	ne
+	movne	r0, #1
+	add	sp, sp, #8256
+	add	sp, sp, #4
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+.L152:
+	str	r0, [sp, #44]
+	ldr	r0, [r6, #-8]
+	bl	close(PLT)
+	movs	r1, #15
+	mov	r0, r9
+	bl	kill(PLT)
+	ldr	r2, [sp, #44]
+	mov	r0, r9
+	mov	r1, r2
+	bl	waitpid(PLT)
+	ldr	r0, [r7]
+	bl	free(PLT)
+	ldr	r2, [sp, #44]
+	str	r2, [r7]
+	ldrd	r3, r2, [sp, #36]
+	cmp	r2, #0
+	it	ne
+	cmpne	r3, #0
+	ite	eq
+	moveq	r5, #1
+	movne	r5, #0
+	beq	.L122
+	ldr	r4, [sp, #40]
+	ldr	r6, [sp, #36]
+	cmp	r4, #14
+	ldr	r1, .L156+36
+	it	cs
+	movcs	r4, #14
+	mov	r0, r6
+	subs	r4, r4, #1
+.LPIC16:
+	add	r1, pc
+	mov	r2, r4
+	bl	memcpy(PLT)
+	strb	r5, [r6, r4]
+	b	.L122
 .L154:
-	adrp	x0, .LC1
-	add	x0, x0, :lo12:.LC1
-	bl	strdup
-	str	x0, [x21]
-	b	.L137
-	.section	.rodata.str1.8
-	.align	3
-.LC15:
-	.string	"search"
-	.align	3
-.LC16:
-	.string	"%s/search/%s?by=name-desc"
-	.align	3
-.LC17:
-	.string	"%s/info?arg[]=%s"
-	.align	3
-.LC18:
-	.string	"\"results\""
-	.align	3
-.LC19:
-	.string	"invalid AUR RPC response"
-	.align	3
-.LC20:
-	.string	"truncated AUR RPC object"
-	.align	3
-.LC21:
-	.string	"Name"
-	.align	3
-.LC22:
-	.string	"PackageBase"
-	.align	3
-.LC23:
-	.string	"Version"
-	.align	3
-.LC24:
-	.string	"Description"
-	.align	3
-.LC25:
-	.string	"URL"
-	.align	3
-.LC26:
-	.string	"Maintainer"
-	.align	3
-.LC27:
-	.string	"NumVotes"
-	.align	3
-.LC28:
-	.string	"Popularity"
-	.align	3
-.LC29:
-	.string	"OutOfDate"
-	.align	3
-.LC30:
-	.string	"Depends"
-	.align	3
-.LC31:
-	.string	"MakeDepends"
-	.align	3
-.LC32:
-	.string	"CheckDepends"
-	.align	3
-.LC33:
-	.string	"Provides"
-	.align	3
-.LC34:
-	.string	"Conflicts"
-	.align	3
-.LC35:
-	.string	"cannot parse AUR package metadata"
-	.align	3
-.LC36:
-	.string	"truncated AUR RPC results"
-	.text
+	bl	free(PLT)
+	movs	r3, #0
+	ldr	r6, [sp, #36]
+	str	r3, [r7]
+	ldr	r3, [sp, #40]
+	cmp	r3, #0
+	it	ne
+	cmpne	r6, #0
+	ite	eq
+	moveq	r5, #1
+	movne	r5, #0
+	beq	.L122
+	cmp	r3, #28
+	ldr	r1, .L156+40
+	it	cs
+	movcs	r3, #28
+	mov	r0, r6
+	subs	r4, r3, #1
+.LPIC17:
+	add	r1, pc
+	mov	r2, r4
+	bl	memcpy(PLT)
+	strb	r5, [r6, r4]
+	b	.L122
+.L155:
+	ldr	r0, .L156+44
+.LPIC18:
+	add	r0, pc
+	bl	strdup(PLT)
+	str	r0, [r7]
+	b	.L141
+.L157:
 	.align	2
-	.p2align 5,,15
+.L156:
+	.word	.LC7-(.LPIC10+4)
+	.word	.LC8-(.LPIC11+4)
+	.word	.LC9-(.LPIC12+4)
+	.word	.LC10-(.LPIC13+4)
+	.word	.LC6-(.LPIC8+4)
+	.word	.LC11-(.LPIC14+4)
+	.word	.LC12-(.LPIC15+4)
+	.word	.LC4-(.LPIC6+4)
+	.word	.LC5-(.LPIC7+4)
+	.word	.LC13-(.LPIC16+4)
+	.word	.LC14-(.LPIC17+4)
+	.word	.LC1-(.LPIC18+4)
+	.section	.rodata.str1.4
+	.align	2
+.LC15:
+	.ascii	"search\000"
+	.align	2
+.LC16:
+	.ascii	"%s/search/%s?by=name-desc\000"
+	.align	2
+.LC17:
+	.ascii	"%s/info?arg[]=%s\000"
+	.align	2
+.LC18:
+	.ascii	"\"results\"\000"
+	.align	2
+.LC19:
+	.ascii	"invalid AUR RPC response\000"
+	.align	2
+.LC20:
+	.ascii	"truncated AUR RPC object\000"
+	.align	2
+.LC21:
+	.ascii	"Name\000"
+	.align	2
+.LC22:
+	.ascii	"PackageBase\000"
+	.align	2
+.LC23:
+	.ascii	"Version\000"
+	.align	2
+.LC24:
+	.ascii	"Description\000"
+	.align	2
+.LC25:
+	.ascii	"URL\000"
+	.align	2
+.LC26:
+	.ascii	"Maintainer\000"
+	.align	2
+.LC27:
+	.ascii	"NumVotes\000"
+	.align	2
+.LC28:
+	.ascii	"Popularity\000"
+	.align	2
+.LC29:
+	.ascii	"OutOfDate\000"
+	.align	2
+.LC30:
+	.ascii	"Depends\000"
+	.align	2
+.LC31:
+	.ascii	"MakeDepends\000"
+	.align	2
+.LC32:
+	.ascii	"CheckDepends\000"
+	.align	2
+.LC33:
+	.ascii	"Provides\000"
+	.align	2
+.LC34:
+	.ascii	"Conflicts\000"
+	.align	2
+.LC35:
+	.ascii	"cannot parse AUR package metadata\000"
+	.align	2
+.LC36:
+	.ascii	"truncated AUR RPC results\000"
+	.text
+	.align	1
+	.p2align 2,,3
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	request, %function
 request:
-	stp	x29, x30, [sp, -256]!
-	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	mov	x19, x2
-	mov	x20, x3
-	stp	x21, x22, [sp, 32]
-	mov	x21, x4
-	mov	x22, x5
-	stp	x23, x24, [sp, 48]
-	mov	x24, x1
-	stp	x25, x26, [sp, 64]
-	mov	x25, x0
-	mov	x0, x2
-	bl	strlen
-	mov	x23, x0
-	add	x0, x0, x0, lsl 1
-	add	x0, x0, 1
-	bl	malloc
-	cbz	x0, .L156
-	mov	x26, x0
-	mov	x5, x0
-	cbz	x23, .L158
-	bl	__ctype_b_loc
-	ldr	x8, [x0]
-	adrp	x9, .LANCHOR0
-	mov	x2, x19
-	add	x6, x19, x23
-	add	x9, x9, :lo12:.LANCHOR0
-	mov	x5, 0
-	mov	w11, 37
-	b	.L164
-	.p2align 2,,3
-.L277:
-	cmp	w3, 95
-	ccmp	w1, 1, 0, ne
-	bls	.L161
-	lsr	w10, w3, 4
-	and	w1, w3, 15
-	add	x0, x5, 2
-	cmp	w3, 126
-	beq	.L161
-	ldrb	w3, [x9, w10, sxtw]
-	add	x2, x2, 1
-	strb	w11, [x26, x5]
-	add	x5, x5, 3
-	ldrb	w1, [x9, w1, sxtw]
-	strb	w3, [x26, x4]
-	strb	w1, [x26, x0]
-	cmp	x6, x2
-	beq	.L276
-	.p2align 5,,15
-.L164:
-	ldrb	w3, [x2]
-	add	x4, x5, 1
-	add	x7, x26, x5
-	sub	w1, w3, #45
-	ubfiz	x0, x3, 1, 8
-	and	w1, w1, 255
-	ldrh	w0, [x8, x0]
-	tbz	x0, 3, .L277
-.L161:
-	add	x2, x2, 1
-	strb	w3, [x7]
-	mov	x5, x4
-	cmp	x6, x2
-	bne	.L164
-.L276:
-	add	x5, x26, x5
-.L158:
-	strb	wzr, [x5]
-	mov	x0, x25
-	stp	xzr, xzr, [x20]
-	str	xzr, [sp, 96]
-	bl	strlen
-	mov	x19, x0
-	mov	x0, x24
-	bl	strlen
-	mov	x23, x0
-	mov	x0, x26
-	bl	strlen
-	add	x1, x19, x23
-	add	x19, x0, 32
-	add	x19, x19, x1
-	mov	x0, x19
-	bl	malloc
-	mov	x23, x0
-	cbz	x0, .L278
-	mov	x0, x24
-	adrp	x1, .LC15
-	add	x1, x1, :lo12:.LC15
-	bl	strcmp
-	mov	x3, x25
-	mov	x1, x19
-	cbz	w0, .L279
-	adrp	x2, .LC17
-	mov	x4, x26
-	add	x2, x2, :lo12:.LC17
-	mov	x0, x23
-	bl	snprintf
-.L169:
-	mov	x0, x26
-	bl	free
-	mov	x3, x22
-	mov	x2, x21
-	add	x1, sp, 96
-	mov	x0, x23
-	bl	curl_get.constprop.0
-	mov	w24, w0
-	ldr	x25, [sp, 96]
-	cbz	w0, .L173
-	adrp	x1, .LC18
-	mov	x0, x25
-	add	x1, x1, :lo12:.LC18
-	bl	strstr
-	cbz	x0, .L171
-	mov	w1, 91
-	bl	strchr
-	cbz	x0, .L171
-	ldrb	w1, [x0, 1]
-	add	x19, x0, 1
-	cbz	w1, .L175
-	stp	x27, x28, [sp, 80]
-	.p2align 5,,15
-.L274:
-	mov	x27, x19
-	cmp	w1, 123
-	bne	.L200
-	b	.L199
-	.p2align 2,,3
-.L177:
-	ldrb	w1, [x27, 1]!
-	cmp	w1, 123
-	ccmp	w1, 0, 4, ne
-	beq	.L176
-.L200:
-	cmp	w1, 93
-	bne	.L177
-	ldp	x27, x28, [sp, 80]
-.L178:
-	mov	x0, x23
-	bl	free
-	mov	x0, x25
-	bl	free
-	mov	w0, w24
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	ldp	x23, x24, [sp, 48]
-	ldp	x25, x26, [sp, 64]
-	ldp	x29, x30, [sp], 256
-	ret
-.L279:
-	mov	x4, x26
-	mov	x0, x23
-	adrp	x2, .LC16
-	add	x2, x2, :lo12:.LC16
-	bl	snprintf
-	b	.L169
-	.p2align 2,,3
-.L176:
-	cbz	w1, .L280
-.L199:
-	mov	x19, x27
-	mov	w3, 0
-	mov	w1, 123
-	.p2align 5,,15
-.L188:
-	add	x2, x19, 1
-	cmp	w1, 34
-	beq	.L281
-	cmp	w1, 123
-	beq	.L282
-	cmp	w1, 125
-	beq	.L283
-.L187:
-	mov	x19, x2
-.L184:
-	ldrb	w1, [x19]
-	cbnz	w1, .L188
-	.p2align 5,,15
-.L203:
-	cbnz	w3, .L284
-.L179:
-	movi	v31.4s, 0
-	add	x28, sp, 104
-	mov	x1, x19
-	mov	x0, x27
-	adrp	x2, .LC21
-	add	x2, x2, :lo12:.LC21
-	str	xzr, [x28, 144]
-	stp	q31, q31, [x28]
-	stp	q31, q31, [x28, 32]
-	stp	q31, q31, [x28, 64]
-	stp	q31, q31, [x28, 96]
-	str	q31, [x28, 128]
-	bl	object_string
-	mov	x3, x0
-	mov	x1, x19
-	mov	x0, x27
-	adrp	x2, .LC22
-	add	x2, x2, :lo12:.LC22
-	str	x3, [sp, 104]
-	bl	object_string
-	mov	x3, x0
-	mov	x1, x19
-	mov	x0, x27
-	adrp	x2, .LC23
-	add	x2, x2, :lo12:.LC23
-	str	x3, [sp, 112]
-	bl	object_string
-	mov	x3, x0
-	mov	x1, x19
-	mov	x0, x27
-	adrp	x2, .LC24
-	add	x2, x2, :lo12:.LC24
-	str	x3, [sp, 120]
-	bl	object_string
-	mov	x3, x0
-	mov	x1, x19
-	mov	x0, x27
-	adrp	x2, .LC25
-	add	x2, x2, :lo12:.LC25
-	str	x3, [sp, 128]
-	bl	object_string
-	mov	x3, x0
-	mov	x1, x19
-	mov	x0, x27
-	adrp	x2, .LC26
-	add	x2, x2, :lo12:.LC26
-	str	x3, [sp, 136]
-	bl	object_string
-	mov	x3, x0
-	mov	x1, x19
-	mov	x0, x27
-	adrp	x2, .LC27
-	add	x2, x2, :lo12:.LC27
-	str	x3, [sp, 144]
-	bl	object_long
-	mov	x3, x0
-	mov	x1, x19
-	mov	x0, x27
-	adrp	x2, .LC28
-	add	x2, x2, :lo12:.LC28
-	str	x3, [sp, 152]
-	bl	find_key
-	mov	x26, x0
-	cbz	x0, .L207
-	cmp	x19, x0
-	bls	.L190
-	bl	__ctype_b_loc
-	ldr	x1, [x0]
-	b	.L191
-	.p2align 2,,3
-.L192:
-	add	x26, x26, 1
-	cmp	x19, x26
-	beq	.L190
-.L191:
-	ldrb	w0, [x26]
-	ldrh	w0, [x1, x0, lsl 1]
-	tbnz	x0, 13, .L192
-.L190:
-	mov	x0, x26
-	mov	x1, 0
-	bl	strtod
-.L189:
-	mov	x1, x19
-	mov	x0, x27
-	adrp	x2, .LC29
-	add	x2, x2, :lo12:.LC29
-	str	d0, [sp, 160]
-	bl	object_long
-	str	x0, [sp, 168]
-	ldr	x0, [sp, 104]
-	cbz	x0, .L194
-	ldr	x0, [sp, 112]
-	cbz	x0, .L194
-	ldr	x0, [sp, 120]
-	cbz	x0, .L194
-	ldr	x0, [sp, 128]
-	cbz	x0, .L194
-	ldr	x0, [sp, 136]
-	cbz	x0, .L194
-	ldr	x0, [sp, 144]
-	cbz	x0, .L194
-	adrp	x2, .LC30
-	add	x4, sp, 184
-	add	x2, x2, :lo12:.LC30
-	add	x3, sp, 176
-	mov	x1, x19
-	mov	x0, x27
-	bl	object_array
-	cbz	w0, .L194
-	adrp	x2, .LC31
-	add	x4, sp, 200
-	add	x2, x2, :lo12:.LC31
-	add	x3, sp, 192
-	mov	x1, x19
-	mov	x0, x27
-	bl	object_array
-	cbnz	w0, .L285
-	.p2align 5,,15
-.L194:
-	mov	x0, x28
-	bl	package_destroy
-	cmp	x21, 0
-	ccmp	x22, 0, 4, ne
-	beq	.L272
-	cmp	x22, 34
-	mov	x19, 34
-	csel	x19, x22, x19, ls
-	adrp	x1, .LC35
-	sub	x19, x19, #1
-	add	x1, x1, :lo12:.LC35
-.L275:
-	mov	x2, x19
-	mov	x0, x21
-	bl	memcpy
-	strb	wzr, [x21, x19]
-	ldp	x27, x28, [sp, 80]
-	b	.L173
-	.p2align 2,,3
-.L283:
-	subs	w3, w3, #1
-	bne	.L187
-	mov	x19, x2
-	b	.L179
-	.p2align 2,,3
-.L282:
-	add	w3, w3, 1
-	b	.L187
-	.p2align 2,,3
-.L281:
-	ldrb	w0, [x19, 1]
-	cbz	w0, .L205
-	.p2align 5,,15
-.L185:
-	add	x1, x2, 1
-	mov	x19, x1
-	cmp	w0, 92
-	beq	.L286
-	ldrb	w2, [x2, 1]
-	cmp	w0, 34
-	beq	.L184
-	mov	w0, w2
-.L183:
-	mov	x2, x1
-	cbnz	w0, .L185
-	mov	x19, x1
-	b	.L203
-	.p2align 2,,3
-.L286:
-	ldrb	w0, [x2, 1]
-	cbz	w0, .L203
-	ldrb	w0, [x2, 2]
-	add	x1, x1, 1
-	b	.L183
-.L284:
-	cmp	x21, 0
-	ccmp	x22, 0, 4, ne
-	bne	.L287
-	.p2align 5,,15
-.L272:
-	ldp	x27, x28, [sp, 80]
-.L173:
-	mov	x21, 0
-	ldr	x0, [x20, 8]
-	mov	x19, 0
-	cbz	x0, .L202
-	.p2align 5,,15
-.L201:
-	ldr	x0, [x20]
-	add	x19, x19, 1
-	add	x0, x0, x21
-	bl	package_destroy
-	ldr	x0, [x20, 8]
-	add	x21, x21, 152
-	cmp	x19, x0
-	bcc	.L201
-.L202:
-	ldr	x0, [x20]
-	mov	w24, 0
-	bl	free
-	stp	xzr, xzr, [x20]
-	b	.L178
-	.p2align 2,,3
-.L207:
-	movi	d0, #0
-	b	.L189
-.L285:
-	adrp	x2, .LC32
-	add	x4, sp, 216
-	add	x2, x2, :lo12:.LC32
-	add	x3, sp, 208
-	mov	x1, x19
-	mov	x0, x27
-	bl	object_array
-	cbz	w0, .L194
-	adrp	x2, .LC33
-	add	x4, sp, 232
-	add	x2, x2, :lo12:.LC33
-	add	x3, sp, 224
-	mov	x1, x19
-	mov	x0, x27
-	bl	object_array
-	cbz	w0, .L194
-	adrp	x2, .LC34
-	mov	x0, x27
-	add	x4, sp, 248
-	add	x2, x2, :lo12:.LC34
-	add	x3, sp, 240
-	mov	x1, x19
-	bl	object_array
-	cbz	w0, .L194
-	ldp	x0, x1, [x20]
-	add	x1, x1, 1
-	add	x2, x1, x1, lsl 3
-	add	x1, x1, x2, lsl 1
-	lsl	x1, x1, 3
-	bl	realloc
-	mov	x2, x0
-	cbz	x0, .L194
-	ldr	x1, [x20, 8]
-	add	x0, x1, 1
-	stp	x2, x0, [x20]
-	add	x0, x1, x1, lsl 3
-	ldp	q26, q28, [x28]
-	add	x0, x1, x0, lsl 1
-	ldp	q29, q31, [x28, 64]
-	lsl	x1, x0, 3
-	ldp	q27, q30, [x28, 32]
-	add	x0, x2, x0, lsl 3
-	str	q26, [x2, x1]
-	stp	q28, q27, [x0, 16]
-	stp	q30, q29, [x0, 48]
-	str	q31, [x0, 80]
-	ldr	q31, [x28, 128]
-	ldp	q30, q29, [x28, 96]
-	ldr	x1, [x28, 144]
-	str	x1, [x0, 144]
-	stp	q30, q29, [x0, 96]
-	str	q31, [x0, 128]
-	ldrb	w1, [x19]
-	cbnz	w1, .L274
-	ldp	x27, x28, [sp, 80]
-.L175:
-	cmp	x21, 0
-	ccmp	x22, 0, 4, ne
-	beq	.L173
-	cmp	x22, 26
-	mov	x19, 26
-	csel	x19, x22, x19, ls
-	mov	x0, x21
-	sub	x19, x19, #1
-	adrp	x1, .LC36
-	mov	x2, x19
-	add	x1, x1, :lo12:.LC36
-	bl	memcpy
-	strb	wzr, [x21, x19]
-	b	.L173
-.L280:
-	mov	x19, x27
-	b	.L179
-.L156:
-	stp	xzr, xzr, [x20]
-	cmp	x21, 0
-	ccmp	x22, 0, 4, ne
-	str	xzr, [sp, 96]
+	@ args = 8, pretend = 0, frame = 104
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+	mov	r10, r0
+	mov	r0, r2
+	sub	sp, sp, #116
+	mov	r9, r2
+	mov	r6, r1
+	mov	r4, r3
+	bl	strlen(PLT)
+	mov	r7, r0
+	add	r0, r0, r0, lsl #1
+	ldr	r8, [sp, #152]
+	adds	r0, r0, #1
+	bl	malloc(PLT)
+	mov	r5, r0
+	cmp	r0, #0
 	beq	.L159
-	cmp	x22, 14
-	mov	x19, 14
-	csel	x19, x22, x19, ls
-	mov	x0, x21
-	sub	x19, x19, #1
-	adrp	x1, .LC13
-	mov	x2, x19
-	add	x1, x1, :lo12:.LC13
-	bl	memcpy
-	strb	wzr, [x21, x19]
-.L159:
-	mov	w24, 0
-.L288:
-	ldp	x19, x20, [sp, 16]
-	mov	w0, w24
-	ldp	x21, x22, [sp, 32]
-	ldp	x23, x24, [sp, 48]
-	ldp	x25, x26, [sp, 64]
-	ldp	x29, x30, [sp], 256
-	ret
-.L205:
-	mov	x19, x2
-	b	.L203
-.L171:
-	cmp	x21, 0
-	ccmp	x22, 0, 4, ne
-	beq	.L173
-	cmp	x22, 25
-	mov	x19, 25
-	csel	x19, x22, x19, ls
-	mov	x0, x21
-	sub	x19, x19, #1
-	adrp	x1, .LC19
-	mov	x2, x19
-	add	x1, x1, :lo12:.LC19
-	bl	memcpy
-	strb	wzr, [x21, x19]
-	b	.L173
-.L287:
-	cmp	x22, 25
-	mov	x19, 25
-	csel	x19, x22, x19, ls
-	adrp	x1, .LC20
-	sub	x19, x19, #1
-	add	x1, x1, :lo12:.LC20
-	b	.L275
+	mov	ip, r0
+	cbz	r7, .L161
+	ldr	fp, .L286
+	bl	__ctype_b_loc(PLT)
+	add	lr, r9, #-1
+	mov	ip, #0
+	add	r1, lr, r7
+.LPIC19:
+	add	fp, pc
+	ldr	r7, [r0]
+	strd	r10, r6, [sp, #8]
+	b	.L167
+.L276:
+	cmp	r3, #95
+	it	ne
+	cmpne	r9, #1
+	bls	.L164
+	lsr	r10, r3, #4
+	add	r6, ip, #2
+	cmp	r3, #126
+	and	r9, r3, #15
+	beq	.L164
+	mov	r3, #37
+	strb	r3, [r5, ip]
+	ldrb	r3, [fp, r10]	@ zero_extendqisi2
+	add	ip, ip, #3
+	strb	r3, [r5, r2]
+	cmp	r1, lr
+	ldrb	r3, [fp, r9]	@ zero_extendqisi2
+	strb	r3, [r5, r6]
+	beq	.L275
+.L167:
+	ldrb	r3, [lr, #1]!	@ zero_extendqisi2
+	add	r2, ip, #1
+	add	r0, r5, ip
+	sub	r9, r3, #45
+	ldrh	r6, [r7, r3, lsl #1]
+	lsls	r6, r6, #28
+	bpl	.L276
+.L164:
+	mov	ip, r2
+	cmp	r1, lr
+	strb	r3, [r0]
+	bne	.L167
+.L275:
+	ldrd	r10, r6, [sp, #8]
+	add	ip, ip, r5
+.L161:
+	vmov.i32	d16, #0  @ v8qi
+	movs	r3, #0
+	mov	r0, r10
+	strb	r3, [ip]
+	str	r3, [sp, #20]
+	vst1.8	{d16}, [r4]
+	bl	strlen(PLT)
+	mov	r7, r0
+	mov	r0, r6
+	bl	strlen(PLT)
+	mov	r9, r0
+	add	r7, r7, r9
+	mov	r0, r5
+	adds	r7, r7, #32
+	bl	strlen(PLT)
+	add	r7, r7, r0
+	mov	r0, r7
+	bl	malloc(PLT)
+	mov	r9, r0
+	cmp	r0, #0
+	beq	.L277
+	ldr	r1, .L286+4
+	mov	r0, r6
+.LPIC23:
+	add	r1, pc
+	bl	strcmp(PLT)
+	mov	r3, r10
+	mov	r1, r7
+	str	r5, [sp]
+	cmp	r0, #0
+	beq	.L278
+	ldr	r2, .L286+8
+	mov	r0, r9
+.LPIC25:
+	add	r2, pc
+	bl	snprintf(PLT)
+.L172:
+	mov	r0, r5
+	bl	free(PLT)
+	ldr	r3, [sp, #156]
+	mov	r2, r8
+	add	r1, sp, #20
+	mov	r0, r9
+	bl	curl_get.constprop.0(PLT)
+	ldr	r3, [sp, #20]
+	mov	r10, r0
+	str	r3, [sp, #8]
+	cmp	r0, #0
+	beq	.L176
+	ldr	r1, .L286+12
+	mov	r0, r3
+.LPIC26:
+	add	r1, pc
+	bl	strstr(PLT)
+	cmp	r0, #0
+	beq	.L174
+	movs	r1, #91
+	bl	strchr(PLT)
+	cmp	r0, #0
+	beq	.L174
+	ldrb	r3, [r0, #1]	@ zero_extendqisi2
+	adds	r5, r0, #1
+	cmp	r3, #0
+	beq	.L178
+.L177:
+	mov	r6, r5
+	cmp	r3, #123
+	bne	.L203
+	b	.L202
+.L180:
+	ldrb	r3, [r6, #1]!	@ zero_extendqisi2
+	cmp	r3, #0
+	it	ne
+	cmpne	r3, #123
+	beq	.L179
+.L203:
+	cmp	r3, #93
+	bne	.L180
+.L181:
+	mov	r0, r9
+	bl	free(PLT)
+	ldr	r0, [sp, #8]
+	bl	free(PLT)
+	mov	r0, r10
+	add	sp, sp, #116
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
 .L278:
-	mov	x0, x26
-	bl	free
-	mov	x1, x22
-	mov	x0, x21
-	adrp	x2, .LC13
-	mov	w24, 0
-	add	x2, x2, :lo12:.LC13
-	bl	set_error
-	b	.L288
+	ldr	r2, .L286+16
+	mov	r0, r9
+.LPIC24:
+	add	r2, pc
+	bl	snprintf(PLT)
+	b	.L172
+.L179:
+	cmp	r3, #0
+	beq	.L279
+.L202:
+	mov	r5, r6
+	movs	r0, #0
+	movs	r3, #123
+.L191:
+	adds	r2, r5, #1
+	cmp	r3, #34
+	beq	.L280
+	cmp	r3, #123
+	it	eq
+	addeq	r0, r0, #1
+	beq	.L190
+	cmp	r3, #125
+	beq	.L281
+.L190:
+	mov	r5, r2
+.L187:
+	ldrb	r3, [r5]	@ zero_extendqisi2
+	cmp	r3, #0
+	bne	.L191
+.L206:
+	cmp	r0, #0
+	bne	.L282
+.L182:
+	add	r7, sp, #24
+	movs	r2, #88
+	movs	r1, #0
+	mov	r0, r7
+	bl	memset(PLT)
+	ldr	r2, .L286+20
+	mov	r1, r5
+	mov	r0, r6
+.LPIC29:
+	add	r2, pc
+	bl	object_string(PLT)
+	ldr	r2, .L286+24
+	mov	r1, r5
+	str	r0, [sp, #24]
+.LPIC30:
+	add	r2, pc
+	mov	r0, r6
+	bl	object_string(PLT)
+	ldr	r2, .L286+28
+	mov	r1, r5
+	str	r0, [sp, #28]
+.LPIC31:
+	add	r2, pc
+	mov	r0, r6
+	bl	object_string(PLT)
+	ldr	r2, .L286+32
+	mov	r1, r5
+	str	r0, [sp, #32]
+.LPIC32:
+	add	r2, pc
+	mov	r0, r6
+	bl	object_string(PLT)
+	ldr	r2, .L286+36
+	mov	r1, r5
+	str	r0, [sp, #36]
+.LPIC33:
+	add	r2, pc
+	mov	r0, r6
+	bl	object_string(PLT)
+	ldr	r2, .L286+40
+	mov	r1, r5
+	str	r0, [sp, #40]
+.LPIC34:
+	add	r2, pc
+	mov	r0, r6
+	bl	object_string(PLT)
+	ldr	r2, .L286+44
+	mov	r1, r5
+	str	r0, [sp, #44]
+.LPIC35:
+	add	r2, pc
+	mov	r0, r6
+	bl	object_long(PLT)
+	ldr	r2, .L286+48
+	str	r0, [sp, #48]
+	mov	r1, r5
+.LPIC36:
+	add	r2, pc
+	mov	r0, r6
+	bl	find_key(PLT)
+	mov	fp, r0
+	cmp	r0, #0
+	beq	.L210
+	cmp	r5, r0
+	bls	.L193
+	bl	__ctype_b_loc(PLT)
+	mov	r3, fp
+	ldr	r0, [r0]
+	b	.L194
+.L195:
+	cmp	r3, r5
+	beq	.L283
+.L194:
+	mov	fp, r3
+	ldrb	r2, [r3], #1	@ zero_extendqisi2
+	ldrh	r2, [r0, r2, lsl #1]
+	lsls	r2, r2, #18
+	bmi	.L195
+.L193:
+	mov	r0, fp
+	movs	r1, #0
+	bl	strtod(PLT)
+.L192:
+	ldr	r2, .L286+52
+	mov	r1, r5
+	mov	r0, r6
+	vstr.64	d0, [sp, #56]
+.LPIC37:
+	add	r2, pc
+	bl	object_long(PLT)
+	ldr	r3, [sp, #24]
+	str	r0, [sp, #64]
+	cbz	r3, .L197
+	ldr	r3, [sp, #28]
+	cbz	r3, .L197
+	ldr	r3, [sp, #32]
+	cbz	r3, .L197
+	ldr	r3, [sp, #36]
+	cbz	r3, .L197
+	ldr	r3, [sp, #40]
+	cbz	r3, .L197
+	ldr	r3, [sp, #44]
+	cbz	r3, .L197
+	ldr	r2, .L286+56
+	add	r3, sp, #72
+	mov	r1, r5
+	str	r3, [sp]
+.LPIC38:
+	add	r2, pc
+	add	r3, sp, #68
+	mov	r0, r6
+	bl	object_array(PLT)
+	cbz	r0, .L197
+	ldr	r2, .L286+60
+	add	r3, sp, #80
+	mov	r1, r5
+	str	r3, [sp]
+.LPIC39:
+	add	r2, pc
+	add	r3, sp, #76
+	mov	r0, r6
+	bl	object_array(PLT)
+	cmp	r0, #0
+	bne	.L284
+.L197:
+	mov	r0, r7
+	bl	package_destroy(PLT)
+	ldr	r3, [sp, #156]
+	cmp	r3, #0
+	it	ne
+	cmpne	r8, #0
+	ite	eq
+	moveq	r5, #1
+	movne	r5, #0
+	beq	.L176
+	ldr	r6, [sp, #156]
+	mov	r0, r8
+	ldr	r1, .L286+64
+	cmp	r6, #34
+	it	cs
+	movcs	r6, #34
+.LPIC43:
+	add	r1, pc
+	subs	r6, r6, #1
+	mov	r2, r6
+	bl	memcpy(PLT)
+	strb	r5, [r8, r6]
+.L176:
+	ldr	r3, [r4, #4]
+	movs	r5, #0
+	mov	r6, r5
+	cbz	r3, .L205
+.L204:
+	ldr	r0, [r4]
+	adds	r6, r6, #1
+	add	r0, r0, r5
+	adds	r5, r5, #88
+	bl	package_destroy(PLT)
+	ldr	r3, [r4, #4]
+	cmp	r6, r3
+	bcc	.L204
+.L205:
+	ldr	r0, [r4]
+	bl	free(PLT)
+	movs	r3, #0
+	mov	r10, r3
+	strd	r3, r3, [r4]
+	b	.L181
+.L281:
+	subs	r0, r0, #1
+	bne	.L190
+	mov	r5, r2
+	b	.L182
+.L280:
+	ldrb	r3, [r5, #1]	@ zero_extendqisi2
+	cmp	r3, #0
+	beq	.L208
+.L188:
+	adds	r1, r2, #1
+	cmp	r3, #92
+	mov	r5, r1
+	beq	.L285
+	ldrb	r2, [r2, #1]	@ zero_extendqisi2
+	cmp	r3, #34
+	beq	.L187
+	mov	r3, r2
+.L186:
+	mov	r2, r1
+	cmp	r3, #0
+	bne	.L188
+	mov	r5, r1
+	b	.L206
+.L285:
+	ldrb	r3, [r2, #1]	@ zero_extendqisi2
+	cmp	r3, #0
+	beq	.L206
+	ldrb	r3, [r2, #2]	@ zero_extendqisi2
+	adds	r1, r1, #1
+	b	.L186
+.L283:
+	mov	fp, r5
+	b	.L193
+.L210:
+	vmov.i64	d0, #0	@ float
+	b	.L192
+.L284:
+	ldr	r2, .L286+68
+	add	r3, sp, #88
+	mov	r1, r5
+	str	r3, [sp]
+.LPIC40:
+	add	r2, pc
+	add	r3, sp, #84
+	mov	r0, r6
+	bl	object_array(PLT)
+	cmp	r0, #0
+	beq	.L197
+	ldr	r2, .L286+72
+	add	r3, sp, #96
+	mov	r1, r5
+	str	r3, [sp]
+.LPIC41:
+	add	r2, pc
+	add	r3, sp, #92
+	mov	r0, r6
+	bl	object_array(PLT)
+	cmp	r0, #0
+	beq	.L197
+	ldr	r2, .L286+76
+	add	r3, sp, #104
+	mov	r0, r6
+	str	r3, [sp]
+.LPIC42:
+	add	r2, pc
+	add	r3, sp, #100
+	mov	r1, r5
+	bl	object_array(PLT)
+	cmp	r0, #0
+	beq	.L197
+	ldr	r1, [r4, #4]
+	movs	r2, #88
+	ldr	r0, [r4]
+	mla	r1, r1, r2, r2
+	bl	realloc(PLT)
+	cmp	r0, #0
+	beq	.L197
+	ldr	r3, [r4, #4]
+	movs	r2, #88
+	str	r0, [r4]
+	mov	r1, r7
+	mla	r0, r2, r3, r0
+	adds	r3, r3, #1
+	str	r3, [r4, #4]
+	bl	memcpy(PLT)
+	ldrb	r3, [r5]	@ zero_extendqisi2
+	cmp	r3, #0
+	bne	.L177
+.L178:
+	ldr	r3, [sp, #156]
+	cmp	r3, #0
+	it	ne
+	cmpne	r8, #0
+	ite	eq
+	moveq	r6, #1
+	movne	r6, #0
+	beq	.L176
+	cmp	r3, #26
+	mov	r5, r3
+	it	cs
+	movcs	r5, #26
+	ldr	r1, .L286+80
+	subs	r5, r5, #1
+	mov	r0, r8
+.LPIC44:
+	add	r1, pc
+	mov	r2, r5
+	bl	memcpy(PLT)
+	strb	r6, [r8, r5]
+	b	.L176
+.L279:
+	mov	r5, r6
+	b	.L182
+.L159:
+	vmov.i32	d16, #0  @ v8qi
+	ldr	r3, [sp, #156]
+	str	r0, [sp, #20]
+	cmp	r3, #0
+	it	ne
+	cmpne	r8, #0
+	ite	eq
+	moveq	r5, #1
+	movne	r5, #0
+	vst1.8	{d16}, [r4]
+	beq	.L162
+	ldr	r4, [sp, #156]
+	mov	r0, r8
+	ldr	r1, .L286+84
+	cmp	r4, #14
+	it	cs
+	movcs	r4, #14
+.LPIC21:
+	add	r1, pc
+	subs	r4, r4, #1
+	mov	r2, r4
+	bl	memcpy(PLT)
+	strb	r5, [r8, r4]
+.L162:
+	mov	r10, #0
+	mov	r0, r10
+	add	sp, sp, #116
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+.L208:
+	mov	r5, r2
+	b	.L206
+.L174:
+	ldr	r3, [sp, #156]
+	cmp	r3, #0
+	it	ne
+	cmpne	r8, #0
+	ite	eq
+	moveq	r6, #1
+	movne	r6, #0
+	beq	.L176
+	cmp	r3, #25
+	mov	r5, r3
+	it	cs
+	movcs	r5, #25
+	ldr	r1, .L286+88
+	subs	r5, r5, #1
+	mov	r0, r8
+.LPIC27:
+	add	r1, pc
+	mov	r2, r5
+	bl	memcpy(PLT)
+	strb	r6, [r8, r5]
+	b	.L176
+.L282:
+	ldr	r3, [sp, #156]
+	cmp	r3, #0
+	it	ne
+	cmpne	r8, #0
+	ite	eq
+	moveq	r6, #1
+	movne	r6, #0
+	beq	.L176
+	cmp	r3, #25
+	mov	r5, r3
+	it	cs
+	movcs	r5, #25
+	ldr	r1, .L286+92
+	subs	r5, r5, #1
+	mov	r0, r8
+.LPIC28:
+	add	r1, pc
+	mov	r2, r5
+	bl	memcpy(PLT)
+	strb	r6, [r8, r5]
+	b	.L176
+.L277:
+	mov	r0, r5
+	bl	free(PLT)
+	ldr	r2, .L286+96
+	ldr	r1, [sp, #156]
+	mov	r0, r8
+.LPIC22:
+	add	r2, pc
+	bl	set_error(PLT)
+	b	.L162
+.L287:
 	.align	2
-	.p2align 5,,15
+.L286:
+	.word	.LANCHOR0-(.LPIC19+4)
+	.word	.LC15-(.LPIC23+4)
+	.word	.LC17-(.LPIC25+4)
+	.word	.LC18-(.LPIC26+4)
+	.word	.LC16-(.LPIC24+4)
+	.word	.LC21-(.LPIC29+4)
+	.word	.LC22-(.LPIC30+4)
+	.word	.LC23-(.LPIC31+4)
+	.word	.LC24-(.LPIC32+4)
+	.word	.LC25-(.LPIC33+4)
+	.word	.LC26-(.LPIC34+4)
+	.word	.LC27-(.LPIC35+4)
+	.word	.LC28-(.LPIC36+4)
+	.word	.LC29-(.LPIC37+4)
+	.word	.LC30-(.LPIC38+4)
+	.word	.LC31-(.LPIC39+4)
+	.word	.LC35-(.LPIC43+4)
+	.word	.LC32-(.LPIC40+4)
+	.word	.LC33-(.LPIC41+4)
+	.word	.LC34-(.LPIC42+4)
+	.word	.LC36-(.LPIC44+4)
+	.word	.LC13-(.LPIC21+4)
+	.word	.LC19-(.LPIC27+4)
+	.word	.LC20-(.LPIC28+4)
+	.word	.LC13-(.LPIC22+4)
+	.align	1
+	.p2align 2,,3
 	.global	aur_response_destroy
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	aur_response_destroy, %function
 aur_response_destroy:
-	cbz	x0, .L301
-	stp	x29, x30, [sp, -48]!
-	mov	x29, sp
-	str	x21, [sp, 32]
-	mov	x21, x0
-	ldr	x0, [x0, 8]
-	cbz	x0, .L291
-	stp	x19, x20, [sp, 16]
-	mov	x20, 0
-	mov	x19, 0
-	.p2align 5,,15
-.L292:
-	ldr	x0, [x21]
-	add	x19, x19, 1
-	add	x0, x0, x20
-	bl	package_destroy
-	ldr	x0, [x21, 8]
-	add	x20, x20, 152
-	cmp	x19, x0
-	bcc	.L292
-	ldp	x19, x20, [sp, 16]
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	cbz	r0, .L300
+	ldr	r3, [r0, #4]
+	push	{r4, r5, r6, lr}
+	mov	r6, r0
+	cbz	r3, .L290
+	movs	r4, #0
+	mov	r5, r4
 .L291:
-	ldr	x0, [x21]
-	bl	free
-	stp	xzr, xzr, [x21]
-	ldr	x21, [sp, 32]
-	ldp	x29, x30, [sp], 48
-	ret
-	.p2align 2,,3
-.L301:
-	ret
-	.section	.rodata.str1.8
-	.align	3
-.LC37:
-	.string	"https://aur.archlinux.org/rpc/v5"
-	.text
+	ldr	r0, [r6]
+	adds	r5, r5, #1
+	add	r0, r0, r4
+	adds	r4, r4, #88
+	bl	package_destroy(PLT)
+	ldr	r3, [r6, #4]
+	cmp	r5, r3
+	bcc	.L291
+.L290:
+	ldr	r0, [r6]
+	bl	free(PLT)
+	movs	r3, #0
+	strd	r3, r3, [r6]
+	pop	{r4, r5, r6, pc}
+.L300:
+	bx	lr
+	.section	.rodata.str1.4
 	.align	2
-	.p2align 5,,15
+.LC37:
+	.ascii	"https://aur.archlinux.org/rpc/v5\000"
+	.text
+	.align	1
+	.p2align 2,,3
 	.global	aur_rpc_search
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	aur_rpc_search, %function
 aur_rpc_search:
-	mov	x5, x2
-	mov	x7, x3
-	cmp	x0, 0
-	adrp	x6, .LC37
-	add	x6, x6, :lo12:.LC37
-	mov	x2, x1
-	mov	x3, x5
-	csel	x0, x6, x0, eq
-	mov	x5, x4
-	adrp	x1, .LC15
-	mov	x4, x7
-	add	x1, x1, :lo12:.LC15
-	b	request
-	.section	.rodata.str1.8
-	.align	3
-.LC38:
-	.string	"info"
-	.text
+	@ args = 4, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, lr}
+	mov	r4, r3
+	mov	r3, r2
+	sub	sp, sp, #8
+	cbz	r0, .L307
+.L304:
+	mov	r2, r1
+	ldr	r1, [sp, #16]
+	str	r1, [sp, #4]
+	ldr	r1, .L308
+	str	r4, [sp]
+.LPIC46:
+	add	r1, pc
+	bl	request(PLT)
+	add	sp, sp, #8
+	@ sp needed
+	pop	{r4, pc}
+.L307:
+	ldr	r0, .L308+4
+.LPIC45:
+	add	r0, pc
+	b	.L304
+.L309:
 	.align	2
-	.p2align 5,,15
+.L308:
+	.word	.LC15-(.LPIC46+4)
+	.word	.LC37-(.LPIC45+4)
+	.section	.rodata.str1.4
+	.align	2
+.LC38:
+	.ascii	"info\000"
+	.text
+	.align	1
+	.p2align 2,,3
 	.global	aur_rpc_info
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	aur_rpc_info, %function
 aur_rpc_info:
-	mov	x5, x2
-	mov	x7, x3
-	cmp	x0, 0
-	adrp	x6, .LC37
-	add	x6, x6, :lo12:.LC37
-	mov	x2, x1
-	mov	x3, x5
-	csel	x0, x6, x0, eq
-	mov	x5, x4
-	adrp	x1, .LC38
-	mov	x4, x7
-	add	x1, x1, :lo12:.LC38
-	b	request
+	@ args = 4, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, lr}
+	mov	r4, r3
+	mov	r3, r2
+	sub	sp, sp, #8
+	cbz	r0, .L314
+.L311:
+	mov	r2, r1
+	ldr	r1, [sp, #16]
+	str	r1, [sp, #4]
+	ldr	r1, .L315
+	str	r4, [sp]
+.LPIC48:
+	add	r1, pc
+	bl	request(PLT)
+	add	sp, sp, #8
+	@ sp needed
+	pop	{r4, pc}
+.L314:
+	ldr	r0, .L315+4
+.LPIC47:
+	add	r0, pc
+	b	.L311
+.L316:
+	.align	2
+.L315:
+	.word	.LC38-(.LPIC48+4)
+	.word	.LC37-(.LPIC47+4)
 	.section	.rodata
-	.align	4
+	.align	3
 	.set	.LANCHOR0,. + 0
 	.type	hex.0, %object
 hex.0:
-	.string	"0123456789ABCDEF"
-	.section	.note.GNU-stack,"",@progbits
+	.ascii	"0123456789ABCDEF\000"
+	.section	.note.GNU-stack,"",%progbits

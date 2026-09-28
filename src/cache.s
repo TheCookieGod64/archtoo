@@ -1,81 +1,113 @@
-	.arch armv8-a
+	.arch armv7-a
+	.fpu neon
 	.text
-	.section	.rodata.str1.8,"aMS",@progbits,1
-	.align	3
-.LC0:
-	.string	" --noconfirm"
-	.align	3
-.LC1:
-	.string	""
-	.align	3
-.LC2:
-	.string	"\033[1;34m>>> Removing leftover pacman download fragments...\n\033[0m"
-	.align	3
-.LC3:
-	.string	"find /var/cache/pacman/pkg -maxdepth 1 \\( -type f -o -type d \\) -name 'download-*' -exec rm -rf {} + 2>/dev/null || true"
-	.align	3
-.LC4:
-	.string	"\033[1;34m>>> Cleaning uninstalled package cache...\n\033[0m"
-	.align	3
-.LC5:
-	.string	"%spacman -Sc%s"
-	.align	3
-.LC6:
-	.string	"\033[1;31m[-] pacman cache clean failed (exit %d).\n\033[0m"
-	.text
+	.section	.rodata.str1.4,"aMS",%progbits,1
 	.align	2
-	.p2align 5,,15
+.LC0:
+	.ascii	" --noconfirm\000"
+	.align	2
+.LC1:
+	.ascii	"\000"
+	.align	2
+.LC2:
+	.ascii	"\033[1;34m>>> Removing leftover pacman download fra"
+	.ascii	"gments...\012\033[0m\000"
+	.align	2
+.LC3:
+	.ascii	"find /var/cache/pacman/pkg -maxdepth 1 \\( -type f "
+	.ascii	"-o -type d \\) -name 'download-*' -exec rm -rf {} +"
+	.ascii	" 2>/dev/null || true\000"
+	.align	2
+.LC4:
+	.ascii	"\033[1;34m>>> Cleaning uninstalled package cache..."
+	.ascii	"\012\033[0m\000"
+	.align	2
+.LC5:
+	.ascii	"%spacman -Sc%s\000"
+	.align	2
+.LC6:
+	.ascii	"\033[1;31m[-] pacman cache clean failed (exit %d).\012"
+	.ascii	"\033[0m\000"
+	.text
+	.align	1
+	.p2align 2,,3
 	.global	cmd_clean_v2
+	.syntax unified
+	.thumb
+	.thumb_func
 	.type	cmd_clean_v2, %function
 cmd_clean_v2:
-	sub	sp, sp, #544
-	adrp	x0, .LC2
-	add	x0, x0, :lo12:.LC2
-	stp	x29, x30, [sp]
-	mov	x29, sp
-	stp	x19, x20, [sp, 16]
-	bl	printf
-	adrp	x0, .LC3
-	add	x0, x0, :lo12:.LC3
-	bl	run_cmd
-	adrp	x0, .LC4
-	add	x0, x0, :lo12:.LC4
-	bl	printf
-	add	x19, sp, 32
-	bl	priv_prefix
-	mov	x20, x0
-	bl	use_noconfirm
-	cmp	w0, 0
-	adrp	x1, .LC0
-	adrp	x4, .LC1
-	add	x1, x1, :lo12:.LC0
-	add	x4, x4, :lo12:.LC1
-	csel	x4, x4, x1, eq
-	mov	x3, x20
-	adrp	x2, .LC5
-	add	x2, x2, :lo12:.LC5
-	mov	x1, 512
-	mov	x0, x19
-	bl	xsnprintf
-	mov	x0, x19
-	bl	run_cmd
-	mov	w2, w0
-	mov	w0, 1
-	cbnz	w2, .L10
-	ldp	x29, x30, [sp]
-	ldp	x19, x20, [sp, 16]
-	add	sp, sp, 544
-	ret
-	.p2align 2,,3
+	@ args = 0, pretend = 0, frame = 512
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, lr}
+	ldr	r0, .L9
+	sub	sp, sp, #524
+	ldr	r5, .L9+4
+.LPIC2:
+	add	r0, pc
+	bl	printf(PLT)
+	ldr	r0, .L9+8
+.LPIC7:
+	add	r5, pc
+.LPIC3:
+	add	r0, pc
+	bl	run_cmd(PLT)
+	ldr	r0, .L9+12
+.LPIC4:
+	add	r0, pc
+	bl	printf(PLT)
+	bl	priv_prefix(PLT)
+	mov	r4, r0
+	bl	use_noconfirm(PLT)
+	cbz	r0, .L4
+	ldr	r1, .L9+16
+.LPIC0:
+	add	r1, pc
+.L2:
+	ldr	r2, .L9+20
+	mov	r3, r4
+	add	r4, sp, #8
+	str	r1, [sp]
+.LPIC5:
+	add	r2, pc
+	mov	r1, #512
+	mov	r0, r4
+	bl	xsnprintf(PLT)
+	mov	r0, r4
+	bl	run_cmd(PLT)
+	cbnz	r0, .L8
+	movs	r0, #1
+	add	sp, sp, #524
+	@ sp needed
+	pop	{r4, r5, pc}
+.L4:
+	ldr	r1, .L9+24
+.LPIC1:
+	add	r1, pc
+	b	.L2
+.L8:
+	ldr	r3, .L9+28
+	mov	r2, r0
+	ldr	r1, .L9+32
+.LPIC6:
+	add	r1, pc
+	ldr	r3, [r5, r3]
+	ldr	r0, [r3]
+	bl	fprintf(PLT)
+	movs	r0, #0
+	add	sp, sp, #524
+	@ sp needed
+	pop	{r4, r5, pc}
 .L10:
-	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
-	adrp	x1, .LC6
-	add	x1, x1, :lo12:.LC6
-	ldr	x0, [x0]
-	bl	fprintf
-	ldp	x29, x30, [sp]
-	mov	w0, 0
-	ldp	x19, x20, [sp, 16]
-	add	sp, sp, 544
-	ret
-	.section	.note.GNU-stack,"",@progbits
+	.align	2
+.L9:
+	.word	.LC2-(.LPIC2+4)
+	.word	_GLOBAL_OFFSET_TABLE_-(.LPIC7+4)
+	.word	.LC3-(.LPIC3+4)
+	.word	.LC4-(.LPIC4+4)
+	.word	.LC0-(.LPIC0+4)
+	.word	.LC5-(.LPIC5+4)
+	.word	.LC1-(.LPIC1+4)
+	.word	stderr(GOT)
+	.word	.LC6-(.LPIC6+4)
+	.section	.note.GNU-stack,"",%progbits
