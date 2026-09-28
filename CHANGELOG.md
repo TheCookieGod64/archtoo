@@ -1,5 +1,28 @@
 # Changelog — Archtoo Emerge Engine, ARM64 Edition
 
+## v1.2.2 — --binary auto-selects AUR binary variant (hotfix)
+
+### Added
+- Host-aware Makefile: on a native aarch64 host (Termux, ARM boards) the build uses plain
+  `gcc`/`as` with no cross packages, no sysroot paths and no symlinks, and `make check`
+  runs the binary directly; on other hosts it keeps the `aarch64-linux-gnu-*` cross
+  toolchain and drives the smoke-test through `qemu-aarch64(-static)` when installed.
+  Linking now goes through the detected compiler, so startup objects and libc come from
+  the host toolchain itself (still `-z noexecstack`).
+
+### Fixed
+- `emerge --binary NAME` now installs the AUR "-bin" variant it finds (e.g. shelly ->
+  shelly-bin) instead of only printing a tip and falling back to a source build.
+- `emerge --binary NAME-bin` no longer searches `NAME-bin-bin` and no longer mislabels a
+  prebuilt package as "source build only": the target itself is recognized as the
+  binary variant and the source path is taken directly (makepkg only repackages).
+- install_build_dependencies: split packages whose siblings depend on the build target
+  itself (e.g. shelly-bin's flatpak package: depends=("shelly-bin=${pkgver}")) no longer
+  try `pacman -S` on the package being built; names built or provided by the same
+  PKGBUILD are subtracted before resolution. Dependency parsing also matches the
+  singular srcinfo keys (depend/makedepend/checkdepend), which the old regex missed
+  entirely, so real build deps are no longer silently skipped.
+
 ## v1.2.0 — makepkg_raw: raw options for makepkg itself
 
 ### Added

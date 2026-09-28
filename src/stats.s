@@ -13,42 +13,43 @@ count_cmd_lines:
 	ldr	x22, [sp, 56]
 	cmp	w0, 1
 	bhi	.L27
-	cbz	x22, .L5
+	mov	x21, 0
+	cbz	x22, .L4
 	ldrb	w0, [x22]
-	cbz	w0, .L5
+	cbz	w0, .L4
 	stp	x19, x20, [sp, 16]
 	mov	x19, x22
-	mov	x21, 0
 	.p2align 5,,15
-.L12:
+.L10:
 	mov	x0, x19
 	mov	w1, 10
 	bl	strchr
 	mov	x20, x0
-	cbz	x0, .L6
-	subs	x0, x0, x19
-	beq	.L8
-.L7:
-	mov	x1, 0
+	cbz	x0, .L5
+	subs	x3, x0, x19
+	beq	.L7
+.L6:
+	mov	x2, x19
+	add	x3, x19, x3
 	.p2align 5,,15
+.L9:
+	ldrb	w1, [x2]
+	add	x2, x2, 1
+	cmp	w1, 32
+	and	w1, w1, -5
+	ccmp	w1, 9, 4, ne
+	bne	.L8
+	cmp	x3, x2
+	bne	.L9
 .L11:
-	ldrb	w2, [x19, x1]
-	and	w3, w2, -5
-	cmp	w2, 32
-	ccmp	w3, 9, 4, ne
-	bne	.L10
-	add	x1, x1, 1
-	cmp	x1, x0
-	bcc	.L11
-.L13:
 	cbz	x20, .L25
-.L8:
+.L7:
 	ldrb	w0, [x20, 1]
 	add	x19, x20, 1
-	cbnz	w0, .L12
+	cbnz	w0, .L10
 .L25:
 	ldp	x19, x20, [sp, 16]
-.L9:
+.L4:
 	mov	x0, x22
 	bl	free
 .L1:
@@ -57,18 +58,16 @@ count_cmd_lines:
 	ldp	x29, x30, [sp], 64
 	ret
 	.p2align 2,,3
-.L10:
+.L8:
 	add	x21, x21, 1
-	b	.L13
+	b	.L11
 	.p2align 2,,3
-.L6:
+.L5:
 	mov	x0, x19
 	bl	strlen
-	cbnz	x0, .L7
+	mov	x3, x0
+	cbnz	x0, .L6
 	b	.L25
-.L5:
-	mov	x21, 0
-	b	.L9
 .L27:
 	mov	x0, x22
 	mov	x21, -1
@@ -98,7 +97,7 @@ count_cmd_lines:
 	.string	"/usr/local/emerge/world"
 	.align	3
 .LC7:
-	.string	"1.2.0"
+	.string	"1.2.2"
 	.align	3
 .LC8:
 	.string	"Archtoo Emerge Engine"
@@ -131,68 +130,69 @@ cmd_stats_v2:
 	add	x0, x0, :lo12:.LC0
 	mov	x29, sp
 	stp	x23, x24, [sp, 48]
-	str	x25, [sp, 64]
+	stp	x25, x26, [sp, 64]
 	bl	count_cmd_lines
-	mov	x25, x0
+	mov	x26, x0
 	adrp	x0, .LC1
 	add	x0, x0, :lo12:.LC1
 	bl	count_cmd_lines
-	mov	x23, x0
-	adrp	x0, .LC2
-	add	x0, x0, :lo12:.LC2
-	bl	count_cmd_lines
 	mov	x24, x0
+	adrp	x1, .LC2
+	add	x0, x1, :lo12:.LC2
+	bl	count_cmd_lines
+	mov	x25, x0
 	adrp	x0, .LC3
 	add	x0, x0, :lo12:.LC3
 	bl	count_cmd_lines
-	cmn	x25, #1
-	ccmn	x23, #1, 4, ne
+	cmn	x26, #1
 	ccmn	x24, #1, 4, ne
+	ccmn	x25, #1, 4, ne
 	beq	.L43
+	bic	x23, x0, x0, asr #63
 	adrp	x1, .LC5
+	adrp	x0, .LC6
 	add	x1, x1, :lo12:.LC5
+	add	x0, x0, :lo12:.LC6
 	stp	x19, x20, [sp, 16]
 	mov	x19, 0
 	stp	x21, x22, [sp, 32]
-	bic	x22, x0, x0, asr #63
-	adrp	x0, .LC6
-	add	x0, x0, :lo12:.LC6
 	bl	fopen
-	mov	x20, x0
+	mov	x21, x0
 	cbz	x0, .L32
-	mov	x21, -1026
-	mov	x2, x20
-	add	x0, sp, 80
-	movk	x21, 0xfff7, lsl 32
+	add	x20, sp, 80
+	mov	x22, -1026
+	mov	x2, x21
+	mov	x0, x20
+	movk	x22, 0xfff7, lsl 32
 	mov	w1, 256
 	bl	fgets
 	cbz	x0, .L35
 	.p2align 5,,15
 .L44:
-	ldrb	w0, [sp, 80]
-	add	x1, sp, 80
-	cmp	w0, 32
-	ccmp	w0, 9, 4, ne
+	ldrb	w1, [sp, 80]
+	mov	x0, x20
+	cmp	w1, 32
+	ccmp	w1, 9, 4, ne
 	bne	.L36
 	.p2align 5,,15
 .L33:
-	ldrb	w0, [x1, 1]!
-	cmp	w0, 32
-	ccmp	w0, 9, 4, ne
+	ldrb	w1, [x0, 1]!
+	cmp	w1, 32
+	ccmp	w1, 9, 4, ne
 	beq	.L33
 .L36:
-	cmp	w0, 36
-	asr	x1, x21, x0
+	cmp	w1, 36
+	asr	x1, x22, x1
 	and	x1, x1, 1
-	mov	x2, x20
-	csinc	x0, x1, xzr, cc
+	mov	x2, x21
+	csinc	x1, x1, xzr, cc
+	mov	x0, x20
+	add	x19, x19, x1
 	mov	w1, 256
-	add	x19, x19, x0
-	add	x0, sp, 80
 	bl	fgets
 	cbnz	x0, .L44
 .L35:
-	mov	x0, x20
+	mov	x0, x21
 	bl	fclose
 .L32:
 	adrp	x2, .LC7
@@ -202,19 +202,19 @@ cmd_stats_v2:
 	add	x1, x1, :lo12:.LC8
 	add	x0, x0, :lo12:.LC9
 	bl	printf
-	mov	x1, x25
+	mov	x1, x26
 	adrp	x0, .LC10
 	add	x0, x0, :lo12:.LC10
 	bl	printf
-	mov	x1, x24
+	mov	x1, x25
 	adrp	x0, .LC11
 	add	x0, x0, :lo12:.LC11
 	bl	printf
-	mov	x1, x23
+	mov	x1, x24
 	adrp	x0, .LC12
 	add	x0, x0, :lo12:.LC12
 	bl	printf
-	mov	x1, x22
+	mov	x1, x23
 	adrp	x0, .LC13
 	add	x0, x0, :lo12:.LC13
 	bl	printf
@@ -222,27 +222,25 @@ cmd_stats_v2:
 	adrp	x0, .LC14
 	add	x0, x0, :lo12:.LC14
 	bl	printf
-	ldr	x25, [sp, 64]
 	mov	w0, 1
 	ldp	x19, x20, [sp, 16]
 	ldp	x21, x22, [sp, 32]
 	ldp	x23, x24, [sp, 48]
+	ldp	x25, x26, [sp, 64]
 	ldp	x29, x30, [sp], 336
 	ret
 	.p2align 2,,3
 .L43:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
+	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
 	mov	x2, 53
 	mov	x1, 1
-	ldr	x3, [x0]
 	adrp	x0, .LC4
 	add	x0, x0, :lo12:.LC4
+	ldr	x3, [x3]
 	bl	fwrite
-	ldr	x25, [sp, 64]
 	mov	w0, 0
 	ldp	x23, x24, [sp, 48]
+	ldp	x25, x26, [sp, 64]
 	ldp	x29, x30, [sp], 336
 	ret
 	.section	.note.GNU-stack,"",@progbits
-	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128

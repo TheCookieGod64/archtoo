@@ -25,8 +25,9 @@ state_paths.constprop.0:
 	stp	x29, x30, [sp]
 	mov	x29, sp
 	stp	x19, x20, [sp, 16]
-	mov	x19, x0
 	mov	x20, x1
+	stp	x21, x22, [sp, 32]
+	mov	x21, x0
 	bl	build_user
 	cbz	x0, .L4
 	bl	getpwnam
@@ -36,24 +37,25 @@ state_paths.constprop.0:
 	adrp	x2, .LC0
 	add	x2, x2, :lo12:.LC0
 	mov	x1, 768
-	add	x0, sp, 48
+	add	x22, sp, 48
+	mov	x0, x22
 	bl	xsnprintf
 	adrp	x0, .LC1
 	add	x0, x0, :lo12:.LC1
 	bl	getenv
-	mov	x3, x0
+	mov	x19, x0
 	cbz	x0, .L5
 	ldrb	w0, [x0]
 	cbnz	w0, .L24
 .L5:
 	adrp	x2, .LC3
-	add	x3, sp, 48
+	mov	x3, x22
 	add	x2, x2, :lo12:.LC3
-	mov	x0, x19
+	mov	x0, x21
 	mov	x1, 1024
 	bl	xsnprintf
 .L6:
-	mov	x3, x19
+	mov	x3, x21
 	mov	x0, x20
 	mov	x1, 1200
 	adrp	x2, .LC4
@@ -62,6 +64,7 @@ state_paths.constprop.0:
 	ldp	x29, x30, [sp]
 	mov	w0, 1
 	ldp	x19, x20, [sp, 16]
+	ldp	x21, x22, [sp, 32]
 	add	sp, sp, 816
 	ret
 	.p2align 2,,3
@@ -69,134 +72,20 @@ state_paths.constprop.0:
 	ldp	x29, x30, [sp]
 	mov	w0, 0
 	ldp	x19, x20, [sp, 16]
+	ldp	x21, x22, [sp, 32]
 	add	sp, sp, 816
 	ret
 	.p2align 2,,3
 .L24:
-	str	x3, [sp, 40]
 	bl	geteuid
-	ldr	x3, [sp, 40]
 	cbz	w0, .L5
-	mov	x0, x19
+	mov	x3, x19
+	mov	x0, x21
 	adrp	x2, .LC2
 	mov	x1, 1024
 	add	x2, x2, :lo12:.LC2
 	bl	xsnprintf
 	b	.L6
-	.align	2
-	.p2align 5,,15
-	.type	guide_mark_seen.part.0, %function
-guide_mark_seen.part.0:
-	sub	sp, sp, #3296
-	add	x1, sp, 2096
-	add	x0, sp, 48
-	stp	x29, x30, [sp]
-	mov	x29, sp
-	bl	state_paths.constprop.0
-	cbnz	w0, .L43
-	ldp	x29, x30, [sp]
-	add	sp, sp, 3296
-	ret
-	.p2align 2,,3
-.L43:
-	add	x3, sp, 48
-	adrp	x2, .LC0
-	add	x2, x2, :lo12:.LC0
-	mov	x1, 1024
-	add	x0, sp, 1072
-	bl	xsnprintf
-	add	x0, sp, 1072
-	mov	w1, 47
-	bl	strrchr
-	cbz	x0, .L30
-	strb	wzr, [x0]
-	mov	w1, 448
-	add	x0, sp, 1072
-	bl	mkdir
-	cbnz	w0, .L44
-.L30:
-	add	x0, sp, 48
-	mov	w1, 448
-	bl	mkdir
-	cbz	w0, .L29
-	bl	__errno_location
-	ldr	w0, [x0]
-	cmp	w0, 17
-	beq	.L29
-	mov	w0, 0
-.L45:
-	ldp	x29, x30, [sp]
-	add	sp, sp, 3296
-	ret
-	.p2align 2,,3
-.L29:
-	add	x0, sp, 2096
-	mov	w2, 384
-	mov	w1, 32961
-	bl	open
-	tbz	w0, #31, .L32
-	bl	__errno_location
-	ldr	w0, [x0]
-	ldp	x29, x30, [sp]
-	cmp	w0, 17
-	cset	w0, eq
-	add	sp, sp, 3296
-	ret
-	.p2align 2,,3
-.L44:
-	bl	__errno_location
-	ldr	w0, [x0]
-	cmp	w0, 17
-	beq	.L30
-	mov	w0, 0
-	b	.L45
-	.p2align 2,,3
-.L32:
-	adrp	x1, .LANCHOR0
-	add	x1, x1, :lo12:.LANCHOR0
-	mov	x2, 33
-	str	x19, [sp, 16]
-	str	w0, [sp, 44]
-	bl	write
-	mov	x19, x0
-	bl	__errno_location
-	ldr	w2, [x0]
-	mov	x1, x0
-	ldr	w0, [sp, 44]
-	str	x1, [sp, 32]
-	str	w2, [sp, 40]
-	bl	close
-	ldr	x1, [sp, 32]
-	cmp	x19, 33
-	ldr	w2, [sp, 40]
-	cset	w0, eq
-	ldr	x19, [sp, 16]
-	str	w2, [x1]
-	ldp	x29, x30, [sp]
-	add	sp, sp, 3296
-	ret
-	.align	2
-	.p2align 5,,15
-	.type	guide_should_show.part.0, %function
-guide_should_show.part.0:
-	sub	sp, sp, #2240
-	add	x1, sp, 1040
-	add	x0, sp, 16
-	stp	x29, x30, [sp]
-	mov	x29, sp
-	bl	state_paths.constprop.0
-	mov	w1, w0
-	mov	w0, 1
-	cbz	w1, .L46
-	add	x0, sp, 1040
-	mov	w1, 0
-	bl	access
-	cmp	w0, 0
-	cset	w0, ne
-.L46:
-	ldp	x29, x30, [sp]
-	add	sp, sp, 2240
-	ret
 	.section	.rodata.str1.8
 	.align	3
 .LC5:
@@ -215,7 +104,7 @@ guide_should_show.part.0:
 guide_policy_parse:
 	cmp	x0, 0
 	ccmp	x1, 0, 4, ne
-	beq	.L62
+	beq	.L30
 	stp	x29, x30, [sp, -32]!
 	mov	x29, sp
 	stp	x19, x20, [sp, 16]
@@ -224,62 +113,56 @@ guide_policy_parse:
 	adrp	x1, .LC5
 	add	x1, x1, :lo12:.LC5
 	bl	strcmp
-	cbnz	w0, .L55
+	cbnz	w0, .L27
 	str	wzr, [x19]
-.L57:
-	ldp	x19, x20, [sp, 16]
+.L28:
 	mov	w0, 1
+.L25:
+	ldp	x19, x20, [sp, 16]
 	ldp	x29, x30, [sp], 32
 	ret
 	.p2align 2,,3
-.L55:
+.L27:
 	adrp	x1, .LC6
 	mov	x0, x20
 	add	x1, x1, :lo12:.LC6
 	bl	strcmp
-	cbz	w0, .L63
-	adrp	x1, .LC7
+	cbz	w0, .L36
 	mov	x0, x20
+	adrp	x1, .LC7
 	add	x1, x1, :lo12:.LC7
 	bl	strcmp
-	cbnz	w0, .L58
+	mov	w1, w0
+	mov	w0, 0
+	cbnz	w1, .L25
 	mov	w0, 2
 	str	w0, [x19]
-	b	.L57
+	b	.L28
 	.p2align 2,,3
-.L62:
+.L30:
 	mov	w0, 0
 	ret
 	.p2align 2,,3
-.L63:
+.L36:
 	mov	w0, 1
 	str	w0, [x19]
-	b	.L57
-	.p2align 2,,3
-.L58:
-	ldp	x19, x20, [sp, 16]
-	mov	w0, 0
-	ldp	x29, x30, [sp], 32
-	ret
+	b	.L28
 	.align	2
 	.p2align 5,,15
 	.global	guide_policy_name
 	.type	guide_policy_name, %function
 guide_policy_name:
 	cmp	w0, 1
-	beq	.L66
+	beq	.L39
 	cmp	w0, 2
-	beq	.L67
-	adrp	x0, .LC5
-	add	x0, x0, :lo12:.LC5
-	ret
-	.p2align 2,,3
-.L67:
+	adrp	x1, .LC5
 	adrp	x0, .LC7
+	add	x1, x1, :lo12:.LC5
 	add	x0, x0, :lo12:.LC7
+	csel	x0, x0, x1, eq
 	ret
 	.p2align 2,,3
-.L66:
+.L39:
 	adrp	x0, .LC6
 	add	x0, x0, :lo12:.LC6
 	ret
@@ -288,45 +171,69 @@ guide_policy_name:
 	.global	guide_set_policy
 	.type	guide_set_policy, %function
 guide_set_policy:
-	adrp	x1, .LANCHOR1
-	str	w0, [x1, #:lo12:.LANCHOR1]
+	adrp	x1, .LANCHOR0
+	str	w0, [x1, #:lo12:.LANCHOR0]
 	ret
 	.align	2
 	.p2align 5,,15
 	.global	guide_get_policy
 	.type	guide_get_policy, %function
 guide_get_policy:
-	adrp	x0, .LANCHOR1
-	ldr	w0, [x0, #:lo12:.LANCHOR1]
+	adrp	x0, .LANCHOR0
+	ldr	w0, [x0, #:lo12:.LANCHOR0]
 	ret
 	.align	2
 	.p2align 5,,15
 	.global	guide_request_explicit
 	.type	guide_request_explicit, %function
 guide_request_explicit:
-	adrp	x0, .LANCHOR1+4
+	adrp	x0, .LANCHOR0+4
 	mov	w1, 1
-	str	w1, [x0, #:lo12:.LANCHOR1+4]
+	str	w1, [x0, #:lo12:.LANCHOR0+4]
 	ret
 	.align	2
 	.p2align 5,,15
 	.global	guide_should_show
 	.type	guide_should_show, %function
 guide_should_show:
-	adrp	x1, .LANCHOR1
-	add	x0, x1, :lo12:.LANCHOR1
+	adrp	x1, .LANCHOR0
+	add	x0, x1, :lo12:.LANCHOR0
 	ldr	w0, [x0, 4]
-	cbnz	w0, .L74
-	ldr	w1, [x1, #:lo12:.LANCHOR1]
+	cbnz	w0, .L58
+	ldr	w1, [x1, #:lo12:.LANCHOR0]
 	cmp	w1, 1
-	beq	.L74
+	beq	.L58
 	cmp	w1, 2
-	beq	.L71
-	b	guide_should_show.part.0
-	.p2align 2,,3
-.L74:
+	beq	.L59
+	sub	sp, sp, #2256
+	add	x0, sp, 32
+	stp	x29, x30, [sp]
+	mov	x29, sp
+	str	x19, [sp, 16]
+	add	x19, sp, 1056
+	mov	x1, x19
+	bl	state_paths.constprop.0
+	cbnz	w0, .L62
+	ldr	x19, [sp, 16]
 	mov	w0, 1
-.L71:
+	ldp	x29, x30, [sp]
+	add	sp, sp, 2256
+	ret
+	.p2align 2,,3
+.L58:
+	mov	w0, 1
+.L59:
+	ret
+	.p2align 2,,3
+.L62:
+	mov	x0, x19
+	mov	w1, 0
+	bl	access
+	cmp	w0, 0
+	ldr	x19, [sp, 16]
+	cset	w0, ne
+	ldp	x29, x30, [sp]
+	add	sp, sp, 2256
 	ret
 	.section	.rodata.str1.8
 	.align	3
@@ -415,26 +322,17 @@ guide_print:
 	adrp	x0, .LC19
 	add	x0, x0, :lo12:.LC19
 	bl	puts
-	adrp	x0, .LANCHOR1
-	ldr	w0, [x0, #:lo12:.LANCHOR1]
+	adrp	x0, .LANCHOR0
+	ldr	w0, [x0, #:lo12:.LANCHOR0]
 	cmp	w0, 1
-	beq	.L83
+	beq	.L65
 	cmp	w0, 2
-	bne	.L86
 	adrp	x1, .LC7
-	adrp	x0, .LC20
+	adrp	x0, .LC5
 	add	x1, x1, :lo12:.LC7
-	add	x0, x0, :lo12:.LC20
-	bl	printf
-	ldp	x29, x30, [sp], 16
-	adrp	x0, .LC21
-	add	x0, x0, :lo12:.LC21
-	b	puts
-	.p2align 2,,3
-.L86:
-	adrp	x1, .LC5
+	add	x0, x0, :lo12:.LC5
+	csel	x1, x1, x0, eq
 	adrp	x0, .LC20
-	add	x1, x1, :lo12:.LC5
 	add	x0, x0, :lo12:.LC20
 	bl	printf
 	ldp	x29, x30, [sp], 16
@@ -442,7 +340,7 @@ guide_print:
 	add	x0, x0, :lo12:.LC21
 	b	puts
 	.p2align 2,,3
-.L83:
+.L65:
 	adrp	x1, .LC6
 	adrp	x0, .LC20
 	add	x1, x1, :lo12:.LC6
@@ -457,17 +355,101 @@ guide_print:
 	.global	guide_mark_seen
 	.type	guide_mark_seen, %function
 guide_mark_seen:
-	adrp	x1, .LANCHOR1
-	add	x0, x1, :lo12:.LANCHOR1
-	ldr	w1, [x1, #:lo12:.LANCHOR1]
-	ldr	w0, [x0, 4]
-	orr	w0, w0, w1
-	cbz	w0, .L89
-	mov	w0, 1
+	sub	sp, sp, #3296
+	adrp	x0, .LANCHOR0
+	add	x1, x0, :lo12:.LANCHOR0
+	stp	x29, x30, [sp]
+	mov	x29, sp
+	ldr	w0, [x0, #:lo12:.LANCHOR0]
+	stp	x19, x20, [sp, 16]
+	ldr	w19, [x1, 4]
+	orr	w19, w19, w0
+	cbz	w19, .L85
+	mov	w19, 1
+.L68:
+	ldp	x29, x30, [sp]
+	mov	w0, w19
+	ldp	x19, x20, [sp, 16]
+	add	sp, sp, 3296
 	ret
 	.p2align 2,,3
-.L89:
-	b	guide_mark_seen.part.0
+.L85:
+	add	x20, sp, 48
+	stp	x21, x22, [sp, 32]
+	add	x21, sp, 2096
+	mov	x1, x21
+	mov	x0, x20
+	bl	state_paths.constprop.0
+	cbnz	w0, .L86
+.L84:
+	ldp	x21, x22, [sp, 32]
+	mov	w0, w19
+	ldp	x29, x30, [sp]
+	ldp	x19, x20, [sp, 16]
+	add	sp, sp, 3296
+	ret
+	.p2align 2,,3
+.L86:
+	mov	x3, x20
+	adrp	x2, .LC0
+	add	x2, x2, :lo12:.LC0
+	add	x22, sp, 1072
+	mov	x1, 1024
+	mov	x0, x22
+	bl	xsnprintf
+	mov	x0, x22
+	mov	w1, 47
+	bl	strrchr
+	cbz	x0, .L74
+	strb	wzr, [x0]
+	mov	w1, 448
+	mov	x0, x22
+	bl	mkdir
+	cbz	w0, .L74
+	bl	__errno_location
+	ldr	w0, [x0]
+	cmp	w0, 17
+	bne	.L84
+.L74:
+	mov	x0, x20
+	mov	w1, 448
+	bl	mkdir
+	cbz	w0, .L73
+	bl	__errno_location
+	ldr	w0, [x0]
+	cmp	w0, 17
+	bne	.L84
+.L73:
+	mov	x0, x21
+	mov	w2, 384
+	mov	w1, 32961
+	bl	open
+	mov	w19, w0
+	tbz	w0, #31, .L76
+	bl	__errno_location
+	ldr	w0, [x0]
+	ldp	x21, x22, [sp, 32]
+	cmp	w0, 17
+	cset	w19, eq
+	b	.L68
+	.p2align 2,,3
+.L76:
+	adrp	x1, .LANCHOR1
+	add	x1, x1, :lo12:.LANCHOR1
+	mov	x2, 33
+	bl	write
+	mov	x20, x0
+	bl	__errno_location
+	mov	x1, x0
+	mov	w0, w19
+	mov	x19, x1
+	ldr	w21, [x1]
+	bl	close
+	str	w21, [x19]
+	cmp	x20, 33
+	cset	w19, eq
+	ldp	x21, x22, [sp, 32]
+	b	.L68
 	.section	.rodata.str1.8
 	.align	3
 .LC22:
@@ -478,54 +460,38 @@ guide_mark_seen:
 	.global	guide_maybe_show
 	.type	guide_maybe_show, %function
 guide_maybe_show:
-	adrp	x1, .LANCHOR1
-	add	x0, x1, :lo12:.LANCHOR1
 	stp	x29, x30, [sp, -16]!
 	mov	x29, sp
-	ldr	w0, [x0, 4]
-	cbnz	w0, .L94
-	ldr	w0, [x1, #:lo12:.LANCHOR1]
-	cmp	w0, 1
-	beq	.L94
-	cmp	w0, 2
-	beq	.L92
-	bl	guide_should_show.part.0
-	cbnz	w0, .L94
-.L92:
+	bl	guide_should_show
+	cbnz	w0, .L92
+.L89:
 	mov	w0, 1
 	ldp	x29, x30, [sp], 16
 	ret
 	.p2align 2,,3
-.L94:
+.L92:
 	bl	guide_print
-	adrp	x1, .LANCHOR1
-	add	x0, x1, :lo12:.LANCHOR1
-	ldr	w1, [x1, #:lo12:.LANCHOR1]
-	ldr	w0, [x0, 4]
-	orr	w0, w0, w1
-	cbnz	w0, .L92
-	bl	guide_mark_seen.part.0
-	cbnz	w0, .L92
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
+	bl	guide_mark_seen
+	cbnz	w0, .L89
+	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
 	mov	x2, 74
 	mov	x1, 1
-	ldr	x3, [x0]
 	adrp	x0, .LC22
 	add	x0, x0, :lo12:.LC22
+	ldr	x3, [x3]
 	bl	fwrite
 	mov	w0, 1
 	ldp	x29, x30, [sp], 16
 	ret
 	.section	.rodata
 	.align	4
-	.set	.LANCHOR0,. + 0
+	.set	.LANCHOR1,. + 0
 	.type	text.0, %object
 text.0:
 	.string	"Archtoo command guide displayed.\n"
 	.bss
 	.align	2
-	.set	.LANCHOR1,. + 0
+	.set	.LANCHOR0,. + 0
 	.type	g_policy, %object
 g_policy:
 	.zero	4
@@ -533,4 +499,3 @@ g_policy:
 g_explicit:
 	.zero	4
 	.section	.note.GNU-stack,"",@progbits
-	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128

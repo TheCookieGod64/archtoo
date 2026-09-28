@@ -30,16 +30,14 @@ cmd_transaction_check_v2:
 	ret
 	.p2align 2,,3
 .L6:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
+	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
 	mov	x2, 227
 	mov	x1, 1
-	ldr	x3, [x0]
 	adrp	x0, .LC1
 	add	x0, x0, :lo12:.LC1
+	ldr	x3, [x3]
 	bl	fwrite
 	mov	w0, 0
 	ldp	x29, x30, [sp], 16
 	ret
 	.section	.note.GNU-stack,"",@progbits
-	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128

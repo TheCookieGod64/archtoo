@@ -7,4 +7,3 @@
 cmd_upgrade_v2:
 	b	cmd_world_update
 	.section	.note.GNU-stack,"",@progbits
-	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128

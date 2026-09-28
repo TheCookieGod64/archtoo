@@ -1,15 +1,42 @@
-# Archtoo Emerge Engine — ARM64 (aarch64) edition v1.0.0
-# Hand-assembled GAS sources (src/*.s) — geen C, geen bloatware.
-# Op een x86-64 host heb je de cross-toolchain nodig:
-#   Arch:   sudo pacman -S aarch64-linux-gnu-gcc
-#   Debian: sudo apt install gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
-# Op een native ARM64 host: make AS=as LD=ld SYSROOT=/usr
+# Archtoo Emerge Engine — ARM64 (aarch64) edition
+#
+# Toolchain auto-detection (v1.2.2+): the build adapts to the HOST it runs on.
+#   - aarch64 host (Termux on a phone, any ARM board): fully NATIVE — plain
+#     gcc/as, no cross packages, no sysroot, and `make check` actually RUNS
+#     the binary. No random symlinks needed anymore.
+#   - anything else (x86_64 workstation): cross-compiles via the
+#     aarch64-linux-gnu-* toolchain and `make check` runs the result under
+#     qemu-aarch64(-static) when available, else reports the skip politely.
+# Linking goes through $(CC) in both cases so startup objects/libc come from
+# the host's own toolchain — that is what makes Termux "just work" while the
+# cross branch keeps the same -z noexecstack hardening.
 
-CC      := aarch64-linux-gnu-gcc
-AS      := aarch64-linux-gnu-as
-LD      := aarch64-linux-gnu-ld
-SYSROOT := /usr/aarch64-linux-gnu
-VERSION := 1.0.0
+VERSION := 1.2.2
+
+HOST_ARCH := $(shell uname -m)
+ifeq ($(HOST_ARCH),aarch64)
+  TC        :=
+  RUN_BIN   := ./bin/emerge
+  HOSTMODE  := native aarch64
+else
+  TC        := aarch64-linux-gnu-
+  SYSROOT   := /usr/aarch64-linux-gnu
+  QEMU      := $(firstword $(shell command -v qemu-aarch64-static || command -v qemu-aarch64))
+  ifneq ($(QEMU),)
+    RUN_BIN := $(QEMU) -L $(SYSROOT) ./bin/emerge
+  else
+    RUN_BIN := :
+  endif
+  HOSTMODE  := cross $(TC) -> aarch64
+endif
+
+CC      := $(TC)gcc
+AS      := $(TC)as
+LD      := $(TC)ld
+AR      := $(TC)ar
+STRIP   := $(TC)strip
+
+SYSROOT ?= /usr/aarch64-linux-gnu
 
 SRCS := $(wildcard src/*.s)
 OBJS := $(patsubst src/%.s,build/%.o,$(SRCS))
@@ -23,29 +50,22 @@ build/%.o: src/%.s | build
 	$(AS) -o $@ $<
 
 bin/emerge: $(OBJS) | bin
-	$(LD) -o $@ $(SYSROOT)/lib/crt1.o $(SYSROOT)/lib/crti.o $(OBJS) $(SYSROOT)/lib/crtn.o \
-	  $(SYSROOT)/lib/libc.so.6 -dynamic-linker /lib/ld-linux-aarch64.so.1 -z noexecstack
-	@echo "[+] ARM64 binary built at bin/emerge (v$(VERSION))"
+	$(CC) -Wl,-z,noexecstack -o $@ $(OBJS)
+	@echo "[+] ARM64 binary built at $@ (v$(VERSION), $(HOSTMODE))"
 
 check: all
 	@echo "[*] bin/emerge ELF check:"; file bin/emerge
-	@if command -v qemu-aarch64-static >/dev/null 2>&1; then \
-	  echo "[*] qemu smoke-test:"; \
-	  qemu-aarch64-static -L $(SYSROOT) ./bin/emerge --version; \
-	  qemu-aarch64-static -L $(SYSROOT) ./bin/emerge --help >/dev/null && echo "[+] help ok"; \
+	@if [ -n "$(QEMU)$(filter aarch64,$(HOST_ARCH))" ] && [ "$(RUN_BIN)" != ":" ]; then \
+	  echo "[*] runtime smoke-test ($(HOSTMODE)):"; \
+	  $(RUN_BIN) --version; \
+	  $(RUN_BIN) --help >/dev/null && echo "[+] help ok"; \
 	else \
-	  echo "[!] qemu-aarch64-static niet gevonden — overslaand runtime-test (bouw is wel OK)"; \
+	  echo "[!] no qemu-aarch64 found for the cross-run smoke-test — skipping (the build itself is OK; install e.g. 'qemu-user-static' to enable it)"; \
 	fi
 
-install: all
-	install -Dm755 bin/emerge /usr/local/bin/emerge
-	@echo "[+] Installed to /usr/local/bin/emerge (op een ARM64 host)"
-
-uninstall:
-	rm -f /usr/local/bin/emerge
-
+# ---- regen: (re)generate src/*.s from c_src/*.c with the detected $(CC) ----
 regen:
-	@echo "[*] BOEM: GAS-modules regenereren uit c_src/ ..."
+	@echo "[*] BOEM: GAS-modules regenereren uit c_src/ ($(HOSTMODE))..."
 	@mkdir -p build/regen
 	@for c in $(wildcard c_src/*.c); do \
 	  m=$$(basename $$c .c); \
@@ -61,4 +81,4 @@ regen:
 clean:
 	rm -rf build bin
 
-.PHONY: all check install uninstall clean regen
+.PHONY: all check regen clean

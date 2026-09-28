@@ -12,31 +12,35 @@
 	.p2align 5,,15
 	.type	has_reusable_source_tree, %function
 has_reusable_source_tree:
-	sub	sp, sp, #1728
+	sub	sp, sp, #1744
 	mov	x3, x0
 	adrp	x2, .LC0
 	add	x2, x2, :lo12:.LC0
 	mov	x1, 700
-	add	x0, sp, 24
 	stp	x29, x30, [sp]
 	mov	x29, sp
+	str	x19, [sp, 16]
+	add	x19, sp, 40
+	mov	x0, x19
 	bl	xsnprintf
-	add	x0, sp, 24
+	mov	x0, x19
 	bl	dir_exists
 	cbz	w0, .L1
-	add	x3, sp, 24
+	mov	x3, x19
 	adrp	x2, .LC1
 	add	x2, x2, :lo12:.LC1
+	add	x0, sp, 744
 	mov	x1, 1000
-	add	x0, sp, 728
+	mov	x19, x0
 	bl	xsnprintf
-	add	x0, sp, 728
+	mov	x0, x19
 	bl	run_cmd_quiet
 	cmp	w0, 0
 	cset	w0, eq
 .L1:
+	ldr	x19, [sp, 16]
 	ldp	x29, x30, [sp]
-	add	sp, sp, 1728
+	add	sp, sp, 1744
 	ret
 	.section	.rodata.str1.8
 	.align	3
@@ -50,31 +54,35 @@ has_reusable_source_tree:
 	.p2align 5,,15
 	.type	is_aur_checkout, %function
 is_aur_checkout:
-	sub	sp, sp, #1632
+	sub	sp, sp, #1648
 	mov	x3, x0
 	adrp	x2, .LC2
 	add	x2, x2, :lo12:.LC2
 	mov	x1, 700
-	add	x0, sp, 24
 	stp	x29, x30, [sp]
 	mov	x29, sp
+	str	x19, [sp, 16]
+	add	x19, sp, 40
+	mov	x0, x19
 	bl	xsnprintf
-	add	x0, sp, 24
+	mov	x0, x19
 	bl	file_exists
 	cbz	w0, .L8
-	add	x3, sp, 24
+	mov	x3, x19
 	adrp	x2, .LC3
 	add	x2, x2, :lo12:.LC3
+	add	x0, sp, 744
 	mov	x1, 900
-	add	x0, sp, 728
+	mov	x19, x0
 	bl	xsnprintf
-	add	x0, sp, 728
+	mov	x0, x19
 	bl	run_cmd_quiet
 	cmp	w0, 0
 	cset	w0, eq
 .L8:
+	ldr	x19, [sp, 16]
 	ldp	x29, x30, [sp]
-	add	sp, sp, 1632
+	add	sp, sp, 1648
 	ret
 	.align	2
 	.p2align 5,,15
@@ -121,58 +129,61 @@ restore_on_signal:
 	.p2align 5,,15
 	.type	restore_backup.part.0, %function
 restore_backup.part.0:
-	sub	sp, sp, #1760
+	sub	sp, sp, #1776
 	mov	x2, 48
 	mov	x1, 1
 	adrp	x0, .LC4
 	add	x0, x0, :lo12:.LC4
 	stp	x29, x30, [sp]
 	mov	x29, sp
-	stp	x21, x22, [sp, 32]
-	adrp	x22, :got:stderr
-	ldr	x22, [x22, :got_lo12:stderr]
+	str	x23, [sp, 48]
+	adrp	x23, :got:stderr;ldr	x23, [x23, :got_lo12:stderr]
 	stp	x19, x20, [sp, 16]
 	adrp	x19, .LANCHOR0
+	stp	x21, x22, [sp, 32]
 	add	x20, x19, :lo12:.LANCHOR0
-	ldr	x3, [x22]
-	add	x21, x20, 16
+	add	x22, x20, 16
+	ldr	x3, [x23]
+	add	x21, sp, 72
+	add	x20, x20, 784
 	bl	fwrite
-	mov	x3, x21
+	mov	x3, x22
 	adrp	x2, .LC5
 	add	x2, x2, :lo12:.LC5
 	mov	x1, 1700
-	add	x0, sp, 56
+	mov	x0, x21
 	bl	xsnprintf
-	add	x0, sp, 56
+	mov	x0, x21
 	bl	run_cmd_quiet
-	mov	x1, x21
-	add	x0, x20, 784
+	mov	x0, x20
+	mov	x1, x22
 	bl	rename
 	cbnz	w0, .L27
 .L22:
-	ldr	x0, [x22]
-	add	x2, x19, :lo12:.LANCHOR0
-	add	x2, x2, 16
+	ldr	x0, [x23]
+	add	x19, x19, :lo12:.LANCHOR0
+	add	x2, x19, 16
 	adrp	x1, .LC7
 	add	x1, x1, :lo12:.LC7
-	str	wzr, [x2, -12]
+	str	wzr, [x19, 4]
 	bl	fprintf
+	ldr	x23, [sp, 48]
 	ldp	x29, x30, [sp]
 	ldp	x19, x20, [sp, 16]
 	ldp	x21, x22, [sp, 32]
-	add	sp, sp, 1760
+	add	sp, sp, 1776
 	ret
 	.p2align 2,,3
 .L27:
-	add	x5, x20, 784
-	mov	x4, x21
-	mov	x3, x5
+	mov	x4, x22
+	mov	x5, x20
+	mov	x3, x20
 	adrp	x2, .LC6
 	add	x2, x2, :lo12:.LC6
 	mov	x1, 1700
-	add	x0, sp, 56
+	mov	x0, x21
 	bl	xsnprintf
-	add	x0, sp, 56
+	mov	x0, x21
 	bl	run_cmd_quiet
 	b	.L22
 	.section	.rodata.str1.8
@@ -255,181 +266,189 @@ restore_backup.part.0:
 	.type	fetch_sources, %function
 fetch_sources:
 	sub	sp, sp, #3008
+	mov	x4, x0
 	mov	x1, 512
 	stp	x29, x30, [sp]
 	mov	x29, sp
 	stp	x21, x22, [sp, 32]
-	mov	x21, x0
 	adrp	x22, .LANCHOR0
-	add	x0, x22, :lo12:.LANCHOR0
-	mov	x4, x21
+	add	x5, x22, :lo12:.LANCHOR0
 	stp	x23, x24, [sp, 48]
 	adrp	x23, .LC8
-	add	x3, x23, :lo12:.LC8
-	str	x25, [sp, 64]
-	adrp	x25, .LC9
-	add	x2, x25, :lo12:.LC9
+	add	x21, x23, :lo12:.LC8
+	mov	x3, x21
+	adrp	x24, .LC9
+	add	x2, x24, :lo12:.LC9
 	stp	x19, x20, [sp, 16]
-	str	wzr, [x0, 1552]
-	add	x0, sp, 88
+	add	x20, sp, 88
+	mov	x19, x0
+	mov	x0, x20
+	str	wzr, [x5, 1552]
 	bl	xsnprintf
-	add	x0, x23, :lo12:.LC8
+	mov	x0, x21
 	bl	chdir
-	cbnz	w0, .L77
-	mov	w19, w0
+	cbnz	w0, .L82
+	str	x25, [sp, 64]
 	bl	get_resume
-	cbnz	w0, .L78
+	cbnz	w0, .L83
 .L31:
 	bl	get_aur_sync
-	cbnz	w0, .L36
-	add	x0, sp, 88
-	bl	dir_exists
-	cbnz	w0, .L79
-.L36:
-	add	x24, x22, :lo12:.LANCHOR0
-	mov	x4, x21
-	add	x20, x24, 16
-	add	x3, x23, :lo12:.LC8
-	add	x2, x25, :lo12:.LC9
+	cbnz	w0, .L37
 	mov	x0, x20
+	bl	dir_exists
+	cbnz	w0, .L84
+.L37:
+	add	x21, x22, :lo12:.LANCHOR0
+	add	x2, x24, :lo12:.LC9
+	add	x24, x21, 16
+	mov	x4, x19
+	add	x3, x23, :lo12:.LC8
 	mov	x1, 768
+	mov	x0, x24
 	bl	xsnprintf
-	mov	x4, x21
+	mov	x4, x19
 	adrp	x3, .LC18
 	adrp	x2, .LC19
 	add	x3, x3, :lo12:.LC18
 	add	x2, x2, :lo12:.LC19
 	mov	x1, 768
-	add	x0, x24, 784
+	add	x21, x21, 784
+	add	x25, sp, 1304
+	mov	x0, x21
 	bl	xsnprintf
-	mov	x0, x20
-	add	x20, sp, 1304
+	mov	x0, x24
 	bl	dir_exists
-	cbz	w0, .L39
-	add	x0, x24, 784
+	cbz	w0, .L40
+	mov	x0, x21
 	bl	dir_exists
-	cbnz	w0, .L80
-.L40:
-	mov	x1, x21
-	add	x24, x22, :lo12:.LANCHOR0
+	cbnz	w0, .L85
+.L41:
+	mov	x1, x19
+	add	x21, x22, :lo12:.LANCHOR0
 	adrp	x0, .LC20
 	add	x0, x0, :lo12:.LC20
 	bl	printf
-	add	x25, x24, 784
+	add	x24, x21, 784
 	adrp	x0, .LC21
+	add	x21, x21, 16
 	add	x0, x0, :lo12:.LC21
 	bl	puts
-	mov	x1, x25
-	add	x0, x24, 16
+	mov	x1, x24
+	mov	x0, x21
 	bl	rename
-	cbnz	w0, .L81
-.L41:
-	add	x1, x22, :lo12:.LANCHOR0
-	mov	w0, 1
-	str	w0, [x1, 4]
+	cbnz	w0, .L86
+.L42:
+	add	x2, x22, :lo12:.LANCHOR0
+	mov	w3, 1
 	adrp	x0, .LC23
-	add	x1, x1, 784
+	add	x1, x2, 784
 	add	x0, x0, :lo12:.LC23
+	str	w3, [x2, 4]
 	bl	printf
-.L39:
+.L40:
 	adrp	x0, .LC24
 	add	x0, x0, :lo12:.LC24
 	bl	puts
 	add	x4, x23, :lo12:.LC8
-	mov	x3, x21
+	mov	x3, x19
 	adrp	x2, .LC25
 	add	x2, x2, :lo12:.LC25
 	mov	x1, 1024
-	mov	x0, x20
+	mov	x0, x25
 	bl	xsnprintf
-	mov	x0, x20
+	mov	x0, x25
 	mov	x1, 0
 	bl	run_as_user
-	cbz	w0, .L82
-.L42:
+	cbz	w0, .L43
+.L46:
 	bl	get_aur_sync
-	cbz	w0, .L83
+	cbz	w0, .L87
 	adrp	x0, .LC28
 	add	x0, x0, :lo12:.LC28
 	bl	printf
 	add	x4, x23, :lo12:.LC8
-	mov	x3, x21
+	mov	x3, x19
 	adrp	x2, .LC29
 	add	x2, x2, :lo12:.LC29
 	mov	x1, 1024
-	mov	x0, x20
+	mov	x0, x25
 	bl	xsnprintf
-	mov	x0, x20
+	mov	x0, x25
 	mov	x1, 0
 	bl	run_as_user
-	cbnz	w0, .L45
-	add	x3, sp, 88
+	cbnz	w0, .L51
+	mov	x3, x20
 	adrp	x2, .LC26
 	add	x2, x2, :lo12:.LC26
+	add	x21, sp, 600
 	mov	x1, 700
-	add	x0, sp, 600
+	mov	x0, x21
 	bl	xsnprintf
-	add	x0, sp, 600
+	mov	x0, x21
 	bl	file_exists
-	cbnz	w0, .L43
-.L45:
-	add	x0, sp, 88
+	cbnz	w0, .L39
+.L51:
+	mov	x0, x20
 	bl	dir_exists
-	cbnz	w0, .L84
-.L46:
-	adrp	x20, :got:stderr
-	ldr	x20, [x20, :got_lo12:stderr]
-	mov	x2, x21
+	cbnz	w0, .L88
+.L52:
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	mov	x2, x19
 	adrp	x1, .LC30
 	add	x1, x1, :lo12:.LC30
-	ldr	x0, [x20]
+	mov	x19, x0
+	ldr	x0, [x0]
 	bl	fprintf
-	ldr	x0, [x20]
+	ldr	x0, [x19]
 	add	x2, x23, :lo12:.LC8
 	adrp	x1, .LC31
 	add	x1, x1, :lo12:.LC31
 	bl	fprintf
 	ldr	x25, [sp, 64]
-	mov	w0, w19
+	.p2align 5,,15
+.L30:
+	mov	w21, 0
+.L28:
 	ldp	x29, x30, [sp]
+	mov	w0, w21
 	ldp	x19, x20, [sp, 16]
 	ldp	x21, x22, [sp, 32]
 	ldp	x23, x24, [sp, 48]
 	add	sp, sp, 3008
 	ret
 	.p2align 2,,3
-.L78:
-	add	x3, sp, 88
+.L83:
+	mov	x3, x20
 	adrp	x2, .LC11
 	add	x2, x2, :lo12:.LC11
+	add	x25, sp, 1304
 	mov	x1, 600
-	add	x0, sp, 1304
+	mov	x0, x25
 	bl	xsnprintf
-	add	x0, sp, 88
+	mov	x0, x20
 	bl	dir_exists
 	cbz	w0, .L32
 	bl	get_aur_sync
 	cbnz	w0, .L33
-	add	x0, sp, 88
+	mov	x0, x20
 	bl	is_aur_checkout
 	cbz	w0, .L33
-	add	x0, sp, 88
+	mov	x0, x20
 	bl	has_reusable_source_tree
-	mov	w19, w0
-	cbz	w0, .L85
+	mov	w21, w0
+	cbz	w0, .L89
 .L33:
-	add	x1, sp, 88
+	mov	x1, x20
 	adrp	x0, .LC13
 	add	x0, x0, :lo12:.LC13
 	bl	printf
-	add	x0, sp, 1304
+	mov	x0, x25
 	bl	dir_exists
-	cbz	w0, .L86
-.L43:
-	mov	w19, 1
-.L87:
+	cbz	w0, .L90
+.L39:
+	mov	w21, 1
+	mov	w0, w21
 	ldr	x25, [sp, 64]
-	mov	w0, w19
 	ldp	x29, x30, [sp]
 	ldp	x19, x20, [sp, 16]
 	ldp	x21, x22, [sp, 32]
@@ -437,159 +456,145 @@ fetch_sources:
 	add	sp, sp, 3008
 	ret
 	.p2align 2,,3
-.L77:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
+.L82:
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	mov	x2, x21
 	adrp	x1, .LC10
-	add	x2, x23, :lo12:.LC8
 	add	x1, x1, :lo12:.LC10
-	mov	w19, 0
 	ldr	x0, [x0]
 	bl	fprintf
-.L28:
-	ldr	x25, [sp, 64]
-	mov	w0, w19
-	ldp	x29, x30, [sp]
-	ldp	x19, x20, [sp, 16]
-	ldp	x21, x22, [sp, 32]
-	ldp	x23, x24, [sp, 48]
-	add	sp, sp, 3008
-	ret
+	b	.L30
 	.p2align 2,,3
 .L32:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x21
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	mov	x2, x19
 	adrp	x1, .LC15
 	add	x1, x1, :lo12:.LC15
 	ldr	x0, [x0]
 	bl	fprintf
 	b	.L31
 	.p2align 2,,3
-.L81:
-	add	x5, x24, 16
-	mov	x4, x25
-	add	x3, x24, 16
+.L86:
+	mov	x4, x24
+	mov	x5, x21
+	mov	x3, x21
 	adrp	x2, .LC6
 	add	x2, x2, :lo12:.LC6
 	mov	x1, 1700
-	mov	x0, x20
+	mov	x0, x25
 	bl	xsnprintf
-	mov	x0, x20
+	mov	x0, x25
 	bl	run_cmd_quiet
-	cbz	w0, .L41
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	add	x2, x24, 16
+	cbz	w0, .L42
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	mov	x2, x21
 	adrp	x1, .LC22
 	add	x1, x1, :lo12:.LC22
 	ldr	x0, [x0]
 	bl	fprintf
-	b	.L28
+	ldr	x25, [sp, 64]
+	b	.L30
 	.p2align 2,,3
-.L82:
-	add	x3, sp, 88
+.L43:
+	mov	x3, x20
 	adrp	x2, .LC26
 	add	x2, x2, :lo12:.LC26
+	add	x21, sp, 600
 	mov	x1, 700
-	add	x0, sp, 600
+	mov	x0, x21
 	bl	xsnprintf
-	add	x0, sp, 600
+	mov	x0, x21
 	bl	file_exists
-	cbz	w0, .L42
-	mov	w19, 1
-	b	.L87
+	cbz	w0, .L46
+	b	.L39
 	.p2align 2,,3
-.L79:
-	add	x0, sp, 88
+.L84:
+	mov	x0, x20
 	bl	is_aur_checkout
-	cbz	w0, .L36
-	add	x0, sp, 88
+	cbz	w0, .L37
+	mov	x0, x20
 	bl	has_reusable_source_tree
-	mov	w19, w0
-	cbnz	w0, .L37
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x21
+	cbnz	w0, .L38
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	mov	x2, x19
 	adrp	x1, .LC16
 	add	x1, x1, :lo12:.LC16
 	ldr	x0, [x0]
 	bl	fprintf
-	b	.L28
+	ldr	x25, [sp, 64]
+	b	.L30
 	.p2align 2,,3
-.L80:
-	add	x3, x24, 784
+.L85:
+	mov	x3, x21
 	adrp	x2, .LC5
 	add	x2, x2, :lo12:.LC5
 	mov	x1, 1700
-	mov	x0, x20
+	mov	x0, x25
 	bl	xsnprintf
-	mov	x0, x20
+	mov	x0, x25
 	bl	run_cmd_quiet
-	b	.L40
+	b	.L41
 	.p2align 2,,3
-.L83:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x21
+.L87:
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	mov	x2, x19
 	adrp	x1, .LC27
-	mov	w19, 0
 	add	x1, x1, :lo12:.LC27
 	ldr	x0, [x0]
 	bl	fprintf
-	b	.L28
+	ldr	x25, [sp, 64]
+	b	.L30
 	.p2align 2,,3
-.L86:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
+.L90:
+	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
+	adrp	x0, .LC14
 	mov	x2, 52
 	mov	x1, 1
-	mov	w19, 1
-	ldr	x3, [x0]
-	adrp	x0, .LC14
 	add	x0, x0, :lo12:.LC14
+	ldr	x3, [x3]
 	bl	fwrite
-	b	.L87
+	b	.L39
 	.p2align 2,,3
-.L85:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x21
+.L89:
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	mov	x2, x19
 	adrp	x1, .LC12
 	add	x1, x1, :lo12:.LC12
 	ldr	x0, [x0]
 	bl	fprintf
+	ldr	x25, [sp, 64]
 	b	.L28
 	.p2align 2,,3
-.L84:
-	add	x3, sp, 88
+.L88:
+	mov	x3, x20
 	adrp	x2, .LC26
 	add	x2, x2, :lo12:.LC26
+	add	x21, sp, 600
 	mov	x1, 700
-	add	x0, sp, 600
+	mov	x0, x21
 	bl	xsnprintf
-	add	x0, sp, 600
+	mov	x0, x21
 	bl	file_exists
-	cbnz	w0, .L46
-	add	x3, sp, 88
+	cbnz	w0, .L52
+	mov	x3, x20
 	adrp	x2, .LC5
 	add	x2, x2, :lo12:.LC5
 	mov	x1, 1024
-	mov	x0, x20
+	mov	x0, x25
 	bl	xsnprintf
-	mov	x0, x20
+	mov	x0, x25
 	bl	run_cmd_quiet
-	b	.L46
+	b	.L52
 	.p2align 2,,3
-.L37:
-	add	x1, sp, 88
+.L38:
+	mov	x1, x20
 	adrp	x0, .LC17
 	add	x0, x0, :lo12:.LC17
 	bl	printf
-	add	x1, x22, :lo12:.LANCHOR0
+	add	x2, x22, :lo12:.LANCHOR0
 	mov	w0, 1
-	str	w0, [x1, 1552]
-	b	.L28
+	str	w0, [x2, 1552]
+	b	.L39
 	.section	.rodata.str1.8
 	.align	3
 .LC32:
@@ -642,59 +647,67 @@ fetch_sources:
 	.string	"\033[1;31m[-] Could not inspect PKGBUILD dependencies.\n\033[0m"
 	.align	3
 .LC47:
-	.ascii	"deps=$(awk '$1 ~ /^(depends|makedepends|checkdepends)(_[A-Za"
-	.ascii	"-z0-9_]+)?$/ { print $3 }' .archtoo-"
-	.string	"srcinfo | sed 's/[<>=].*$//' | sort -u); missing=; if [ -n \"$deps\" ]; then missing=$(pacman -T $deps 2>/dev/null || true); fi; if [ -n \"$missing\" ]; then echo '>>> Installing missing repository build dependencies...'; pacman -S --needed%s%s -- $missing; fi"
+	.ascii	"deps=$(awk '$1 ~ /^(depends|makedepends|checkdepends|depend|"
+	.ascii	"makedepend|checkdepend)(_[A-Za-z0-9_]+)?$/ && $2 == \"=\" { "
+	.ascii	"print $3 }' .archtoo-srcinfo | sed 's/[<>=].*$//' | sort -u)"
+	.ascii	"; own=$(awk '$1 ~ /^(pkgname|pkgbase|provides|provide)(_[A-Z"
+	.ascii	"a-z0-9_]+)?$/ && $2 == \"=\" { print $3 }' .archtoo-srcinfo "
+	.ascii	"| sed 's/[<>=].*$//' | sort -u); printf '%%s\\n' $own > .arc"
+	.ascii	"htoo-"
+	.string	"ownpkgs; missing=; if [ -n \"$deps\" ]; then missing=$(pacman -T $deps 2>/dev/null | grep -vxF -f .archtoo-ownpkgs || true); fi; if [ -n \"$missing\" ]; then echo '>>> Installing missing repository build dependencies...'; pacman -S --needed%s%s -- $missing; fi"
 	.align	3
 .LC48:
 	.string	".archtoo-srcinfo"
 	.align	3
 .LC49:
-	.string	"\033[1;31m[-] Could not install required repository build dependencies (exit %d).\n\033[0m"
+	.string	".archtoo-ownpkgs"
 	.align	3
 .LC50:
-	.string	"\033[1;33m[!] Existing checkout has no reusable source tree; makepkg will fetch and extract it again.\n\033[0m"
+	.string	"\033[1;31m[-] Could not install required repository build dependencies (exit %d).\n\033[0m"
 	.align	3
 .LC51:
-	.string	" %s"
+	.string	"\033[1;33m[!] Existing checkout has no reusable source tree; makepkg will fetch and extract it again.\n\033[0m"
 	.align	3
 .LC52:
-	.string	"makepkg -f%s --config '%s'%s%s"
+	.string	" %s"
 	.align	3
 .LC53:
-	.string	"systemd-inhibit"
+	.string	"makepkg -f%s --config '%s'%s%s"
 	.align	3
 .LC54:
-	.string	"systemd-inhibit --what=idle --who=archtoo --why=probe true"
+	.string	"systemd-inhibit"
 	.align	3
 .LC55:
-	.string	"\033[1;34m>>> Suspend and idle inhibited for the duration of the build.\n\033[0m"
+	.string	"systemd-inhibit --what=idle --who=archtoo --why=probe true"
 	.align	3
 .LC56:
-	.string	"systemd-inhibit --what=sleep:idle:handle-lid-switch --who=archtoo --why='Compiling %s' --mode=block -- %s"
+	.string	"\033[1;34m>>> Suspend and idle inhibited for the duration of the build.\n\033[0m"
 	.align	3
 .LC57:
-	.string	"\033[1;33m[!] systemd-inhibit is present but not usable here (no logind session?);\n    building without suspend inhibition.\n\033[0m"
+	.string	"systemd-inhibit --what=sleep:idle:handle-lid-switch --who=archtoo --why='Compiling %s' --mode=block -- %s"
 	.align	3
 .LC58:
-	.string	"%s"
+	.string	"\033[1;33m[!] systemd-inhibit is present but not usable here (no logind session?);\n    building without suspend inhibition.\n\033[0m"
 	.align	3
 .LC59:
-	.string	"\033[1;33m[!] systemd-inhibit not found; the machine may suspend mid-build.\n\033[0m"
+	.string	"%s"
 	.align	3
 .LC60:
-	.string	"-march=%s -O%s%s"
+	.string	"\033[1;33m[!] systemd-inhibit not found; the machine may suspend mid-build.\n\033[0m"
 	.align	3
 .LC61:
-	.string	"export KCFLAGS='%s'\nexport KCPPFLAGS='%s'\nexport MAKEFLAGS='-j%ld'\n"
+	.string	"-march=%s -O%s%s"
 	.align	3
 .LC62:
-	.string	"\033[1;31m\n[-] Build interrupted by user.\n\033[0m"
+	.string	"export KCFLAGS='%s'\nexport KCPPFLAGS='%s'\nexport MAKEFLAGS='-j%ld'\n"
 	.align	3
 .LC63:
-	.string	"\033[1;31m[-] Compilation failed (exit %d).\n\033[0m"
+	.string	"\033[1;31m\n[-] Build interrupted by user.\n\033[0m"
 	.align	3
 .LC64:
+	.string	"\033[1;31m[-] Compilation failed (exit %d).\n\033[0m"
+	.align	3
+.LC65:
 	.ascii	"remove_debug=; for archive in ./*.pkg.tar.*; do [ -f \"$arch"
 	.ascii	"ive\" ] || continue; case $archive in *.sig) continue;; esac"
 	.ascii	"; pkgname=$(bsdtar -xOf \"$archive\" .PKGINFO 2>/dev/null | "
@@ -706,22 +719,22 @@ fetch_sources:
 	.ascii	"name\" ] && continue; case \" $remo"
 	.string	"ve_debug \" in *\" $owner \"*) ;; *) remove_debug=\"$remove_debug $owner\";; esac; done < <(bsdtar -tf \"$archive\"); done; if [ -n \"$remove_debug\" ]; then echo \">>> Removing conflicting debug package(s):$remove_debug\"; pacman -R%s -- $remove_debug || exit $?; fi"
 	.align	3
-.LC65:
+.LC66:
 	.string	"\033[1;31m[-] Could not remove conflicting debug package(s).\n\033[0m"
 	.align	3
-.LC66:
+.LC67:
 	.string	"\033[1;34m>>> Installing built package(s) with pacman...\n\033[0m"
 	.align	3
-.LC67:
+.LC68:
 	.string	"find . -maxdepth 1 -type f -name '*.pkg.tar.*' ! -name '*.sig' -exec pacman -U%s -- {} +"
 	.align	3
-.LC68:
+.LC69:
 	.string	"\033[1;31m[-] Package installation failed (exit %d).\n\033[0m"
 	.align	3
-.LC69:
+.LC70:
 	.string	" [reusing sources]"
 	.align	3
-.LC70:
+.LC71:
 	.string	"\033[1;34m>>> Compiling with makepkg (%s, -j%ld)%s...\n\033[0m"
 	.text
 	.align	2
@@ -729,29 +742,29 @@ fetch_sources:
 	.global	compile_package
 	.type	compile_package, %function
 compile_package:
-	mov	x12, 14880
+	mov	x12, 14896
 	sub	sp, sp, x12
-	mov	x4, x0
 	adrp	x3, .LC8
 	adrp	x2, .LC9
 	add	x3, x3, :lo12:.LC8
-	stp	x29, x30, [sp]
 	add	x2, x2, :lo12:.LC9
+	stp	x29, x30, [sp]
 	mov	x29, sp
 	mov	x1, 512
 	stp	x19, x20, [sp, 16]
-	stp	x21, x22, [sp, 32]
-	mov	x21, x0
-	add	x0, sp, 544
+	mov	x19, x0
+	mov	x4, x19
+	add	x20, sp, 560
+	mov	x0, x20
 	bl	xsnprintf
-	add	x0, sp, 544
+	mov	x0, x20
 	bl	chdir
-	cbnz	w0, .L161
-	adrp	x20, .LC38
-	add	x0, x20, :lo12:.LC38
+	cbnz	w0, .L166
+	stp	x21, x22, [sp, 32]
+	adrp	x21, .LC38
+	add	x0, x21, :lo12:.LC38
 	bl	file_exists
-	mov	w19, w0
-	cbz	w0, .L162
+	cbz	w0, .L167
 	adrp	x0, .LC40
 	add	x0, x0, :lo12:.LC40
 	bl	printf
@@ -759,442 +772,448 @@ compile_package:
 	mov	w1, 0
 	add	x0, x0, :lo12:.LC41
 	bl	ask_yes_no
-	cbnz	w0, .L163
-.L92:
+	cbnz	w0, .L168
+.L96:
 	bl	get_import_keys
-	cbz	w0, .L93
-	add	x0, x20, :lo12:.LC38
+	cbz	w0, .L98
+	add	x0, x21, :lo12:.LC38
 	bl	file_exists
-	cbnz	w0, .L164
-.L93:
-	mov	x1, 0
+	cbnz	w0, .L169
+.L98:
 	adrp	x0, .LC45
+	mov	x1, 0
 	add	x0, x0, :lo12:.LC45
 	bl	run_as_user
-	mov	w19, w0
-	cbnz	w0, .L165
-.L94:
+	cbnz	w0, .L170
+.L100:
+	stp	x23, x24, [sp, 48]
 	bl	use_noconfirm
-	cbnz	w0, .L166
-	adrp	x20, .LC33
-	add	x3, x20, :lo12:.LC33
-.L95:
-	str	x3, [sp, 56]
+	cbnz	w0, .L171
+	adrp	x21, .LC33
+	add	x23, x21, :lo12:.LC33
+.L101:
 	bl	use_noconfirm
-	ldr	x3, [sp, 56]
-	add	x4, x20, :lo12:.LC33
+	add	x22, sp, 2608
+	mov	x3, x23
+	add	x4, x21, :lo12:.LC33
 	adrp	x2, .LC47
 	add	x2, x2, :lo12:.LC47
 	mov	x1, 4096
-	add	x0, sp, 2592
+	mov	x0, x22
 	bl	xsnprintf
-	add	x0, sp, 2592
+	mov	x0, x22
 	bl	run_cmd
-	mov	w2, w0
+	mov	w23, w0
 	adrp	x0, .LC48
 	add	x0, x0, :lo12:.LC48
-	str	w2, [sp, 56]
 	bl	unlink
-	ldr	w2, [sp, 56]
-	cbnz	w2, .L167
+	adrp	x0, .LC49
+	add	x0, x0, :lo12:.LC49
+	bl	unlink
+	cbnz	w23, .L172
 	bl	set_build_env
-	add	x0, sp, 1056
+	add	x24, sp, 1072
+	mov	x0, x24
 	mov	x1, 512
 	bl	write_makepkg_conf
-	mov	w19, w0
-	cbz	w0, .L88
-	adrp	x0, .LANCHOR0
-	add	x0, x0, :lo12:.LANCHOR0
+	cbz	w0, .L162
+	adrp	x23, .LANCHOR0
+	add	x0, x23, :lo12:.LANCHOR0
+	stp	x25, x26, [sp, 64]
 	ldr	w0, [x0, 1552]
-	cbz	w0, .L168
-.L97:
+	cbz	w0, .L173
+.L103:
 	bl	get_resume
-	add	x22, sp, 88
-	add	x0, sp, 2592
+	add	x26, sp, 104
+	mov	x0, x22
 	mov	x1, 256
 	bl	render_build_flags
 	bl	get_jobs
 	mov	x2, x0
-	add	x1, sp, 2592
-	adrp	x3, .LC69
-	add	x3, x3, :lo12:.LC69
-	adrp	x0, .LC70
-	add	x0, x0, :lo12:.LC70
+	mov	x1, x22
+	adrp	x3, .LC70
+	add	x3, x3, :lo12:.LC70
+	adrp	x0, .LC71
+	add	x0, x0, :lo12:.LC71
 	bl	printf
-	strb	wzr, [sp, 88]
+	strb	wzr, [sp, 104]
 	bl	get_makepkg_raw
 	ldrb	w0, [x0]
-	cbnz	w0, .L169
-.L121:
-	adrp	x19, .LC34
-	add	x19, x19, :lo12:.LC34
-.L108:
+	cbnz	w0, .L174
+.L133:
+	adrp	x20, .LC34
+	add	x20, x20, :lo12:.LC34
+.L116:
 	bl	use_noconfirm
 	cmp	w0, 0
-	add	x5, x20, :lo12:.LC33
-	adrp	x1, .LC35
-	add	x1, x1, :lo12:.LC35
-	mov	x6, x22
-	csel	x5, x5, x1, eq
-	add	x4, sp, 1056
-	mov	x3, x19
-	adrp	x2, .LC52
-	add	x2, x2, :lo12:.LC52
+	add	x5, x21, :lo12:.LC33
+	adrp	x0, .LC35
+	add	x0, x0, :lo12:.LC35
+	mov	x6, x26
+	csel	x5, x5, x0, eq
+	mov	x4, x24
+	mov	x3, x20
+	adrp	x2, .LC53
+	add	x2, x2, :lo12:.LC53
+	add	x25, sp, 1584
 	mov	x1, 1024
-	add	x0, sp, 1568
+	mov	x0, x25
 	bl	xsnprintf
 	bl	get_inhibit
-	cbz	w0, .L110
-	adrp	x0, .LC53
-	add	x0, x0, :lo12:.LC53
+	cbz	w0, .L119
+	adrp	x0, .LC54
+	add	x0, x0, :lo12:.LC54
 	bl	have_cmd
-	cbnz	w0, .L170
-.L110:
-	add	x3, sp, 1568
-	adrp	x19, .LC58
-	add	x2, x19, :lo12:.LC58
-	mov	x0, 6688
+	cbnz	w0, .L175
+.L119:
+	mov	x3, x25
+	adrp	x19, .LC59
+	add	x2, x19, :lo12:.LC59
+	mov	x0, 6704
 	mov	x1, 8192
-	add	x0, sp, x0
-	mov	x22, x0
+	add	x20, sp, x0
+	mov	x0, x20
 	bl	xsnprintf
 	bl	get_inhibit
-	cbnz	w0, .L171
-.L112:
+	cbnz	w0, .L176
+.L122:
 	bl	get_use_pipe
-	add	x20, x20, :lo12:.LC33
+	add	x21, x21, :lo12:.LC33
 	cmp	w0, 0
 	adrp	x3, .LC36
 	add	x3, x3, :lo12:.LC36
-	add	x2, x19, :lo12:.LC58
-	csel	x3, x20, x3, eq
+	add	x2, x19, :lo12:.LC59
+	csel	x3, x21, x3, eq
 	mov	x1, 16
-	add	x0, sp, 72
+	add	x24, sp, 88
+	add	x19, sp, 304
+	mov	x0, x24
 	bl	xsnprintf
 	bl	get_target_arch
-	mov	x19, x0
+	mov	x25, x0
 	bl	get_opt_level
 	mov	x4, x0
-	mov	x3, x19
-	add	x5, sp, 72
-	adrp	x2, .LC60
-	add	x2, x2, :lo12:.LC60
+	mov	x5, x24
+	mov	x3, x25
+	adrp	x2, .LC61
+	add	x2, x2, :lo12:.LC61
 	mov	x1, 256
-	add	x0, sp, 288
+	mov	x0, x19
 	bl	xsnprintf
 	bl	get_jobs
 	mov	x5, x0
-	add	x4, sp, 288
-	adrp	x2, .LC61
-	mov	x3, x4
-	add	x2, x2, :lo12:.LC61
+	mov	x4, x19
+	mov	x3, x19
+	adrp	x2, .LC62
+	add	x2, x2, :lo12:.LC62
 	mov	x1, 1024
-	add	x0, sp, 2592
-	bl	xsnprintf
-	add	x1, sp, 2592
 	mov	x0, x22
+	bl	xsnprintf
+	mov	x1, x22
+	mov	x0, x20
 	bl	run_as_user
-	mov	w19, w0
-	cmp	w19, 143
+	cmp	w0, 143
+	mov	w2, w0
 	sub	w0, w0, #129
 	ccmp	w0, 2, 0, ne
-	bls	.L172
-	cbnz	w19, .L173
+	bls	.L177
+	cbnz	w2, .L178
 	bl	use_noconfirm
 	cmp	w0, 0
 	adrp	x3, .LC35
 	add	x3, x3, :lo12:.LC35
-	csel	x3, x20, x3, eq
-	adrp	x2, .LC64
-	add	x2, x2, :lo12:.LC64
+	csel	x3, x21, x3, eq
+	adrp	x2, .LC65
+	add	x2, x2, :lo12:.LC65
 	mov	x1, 8192
-	mov	x0, x22
+	mov	x0, x20
 	bl	xsnprintf
-	mov	x0, x22
+	mov	x0, x20
 	bl	run_cmd
-	cbnz	w0, .L174
-	adrp	x0, .LC66
-	add	x0, x0, :lo12:.LC66
+	cbnz	w0, .L179
+	adrp	x0, .LC67
+	add	x0, x0, :lo12:.LC67
 	bl	printf
-	mov	w19, 1
 	bl	use_noconfirm
 	cmp	w0, 0
 	adrp	x3, .LC32
 	add	x3, x3, :lo12:.LC32
-	csel	x3, x20, x3, eq
-	adrp	x2, .LC67
-	add	x2, x2, :lo12:.LC67
+	csel	x3, x21, x3, eq
+	adrp	x2, .LC68
+	add	x2, x2, :lo12:.LC68
 	mov	x1, 8192
-	mov	x0, x22
+	mov	x0, x20
 	bl	xsnprintf
-	mov	x0, x22
+	mov	x0, x20
 	bl	run_cmd
-	cbz	w0, .L88
 	mov	w2, w0
-	adrp	x1, .LC68
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	add	x1, x1, :lo12:.LC68
-	mov	w19, 0
-	ldr	x0, [x0]
-	bl	fprintf
-	b	.L88
+	mov	w0, 1
+	cbnz	w2, .L180
+	ldp	x21, x22, [sp, 32]
+	ldp	x23, x24, [sp, 48]
+	ldp	x25, x26, [sp, 64]
+	b	.L91
 	.p2align 2,,3
-.L162:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
+.L167:
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	mov	x2, x20
 	adrp	x1, .LC39
-	add	x2, sp, 544
 	add	x1, x1, :lo12:.LC39
 	ldr	x0, [x0]
 	bl	fprintf
-.L88:
-	ldp	x29, x30, [sp]
-	mov	w0, w19
-	ldp	x19, x20, [sp, 16]
-	mov	x12, 14880
 	ldp	x21, x22, [sp, 32]
-	add	sp, sp, x12
-	ret
-	.p2align 2,,3
-.L161:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	add	x2, sp, 544
-	mov	w19, 0
-	adrp	x1, .LC37
-	add	x1, x1, :lo12:.LC37
-	ldr	x0, [x0]
-	bl	fprintf
+.L93:
+	mov	w0, 0
+.L91:
 	ldp	x29, x30, [sp]
-	mov	w0, w19
+	mov	x12, 14896
 	ldp	x19, x20, [sp, 16]
-	mov	x12, 14880
-	ldp	x21, x22, [sp, 32]
 	add	sp, sp, x12
 	ret
 	.p2align 2,,3
 .L166:
-	adrp	x3, .LC32
-	adrp	x20, .LC33
-	add	x3, x3, :lo12:.LC32
-	b	.L95
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	mov	x2, x20
+	adrp	x1, .LC37
+	add	x1, x1, :lo12:.LC37
+	ldr	x0, [x0]
+	bl	fprintf
+	b	.L93
 	.p2align 2,,3
-.L164:
+.L171:
+	adrp	x23, .LC32
+	adrp	x21, .LC33
+	add	x23, x23, :lo12:.LC32
+	b	.L101
+	.p2align 2,,3
+.L169:
 	adrp	x2, .LC43
 	add	x2, x2, :lo12:.LC43
 	mov	x1, 2048
-	add	x0, sp, 2592
+	add	x21, sp, 2608
+	mov	x0, x21
 	bl	xsnprintf
 	adrp	x0, .LC44
 	add	x0, x0, :lo12:.LC44
 	bl	printf
 	mov	x1, 0
-	add	x0, sp, 2592
+	mov	x0, x21
 	bl	run_as_user
-	mov	x1, 0
 	adrp	x0, .LC45
+	mov	x1, 0
 	add	x0, x0, :lo12:.LC45
 	bl	run_as_user
-	mov	w19, w0
-	cbz	w0, .L94
-.L165:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, 56
-	mov	x1, 1
-	mov	w19, 0
-	ldr	x3, [x0]
-	adrp	x0, .LC46
-	add	x0, x0, :lo12:.LC46
-	bl	fwrite
-	ldp	x29, x30, [sp]
-	mov	w0, w19
-	ldp	x19, x20, [sp, 16]
-	mov	x12, 14880
-	ldp	x21, x22, [sp, 32]
-	add	sp, sp, x12
-	ret
-	.p2align 2,,3
-.L163:
-	bl	get_editor
-	mov	x3, x0
-	mov	x4, 6688
-	mov	x1, 8192
-	add	x0, sp, x4
-	adrp	x2, .LC42
-	add	x2, x2, :lo12:.LC42
-	bl	xsnprintf
-	mov	x5, 6688
-	mov	x1, 0
-	add	x0, sp, x5
-	bl	run_as_user
-	b	.L92
-	.p2align 2,,3
-.L167:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	adrp	x1, .LC49
-	add	x1, x1, :lo12:.LC49
-	ldr	x0, [x0]
-	bl	fprintf
-	b	.L88
-	.p2align 2,,3
+	cbz	w0, .L100
 .L170:
-	adrp	x0, .LC54
-	add	x0, x0, :lo12:.LC54
-	bl	run_cmd_quiet
-	cbnz	w0, .L111
-	adrp	x0, .LC55
-	add	x0, x0, :lo12:.LC55
-	bl	printf
-	adrp	x19, .LC58
-	mov	x1, 6688
-	add	x0, sp, x1
-	mov	x22, x0
-	add	x4, sp, 1568
-	mov	x3, x21
-	adrp	x2, .LC56
-	mov	x1, 8192
-	add	x2, x2, :lo12:.LC56
-	bl	xsnprintf
-	b	.L112
-	.p2align 2,,3
-.L173:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	mov	w2, w19
-	adrp	x1, .LC63
-	mov	w19, 0
-	add	x1, x1, :lo12:.LC63
-	ldr	x0, [x0]
-	bl	fprintf
-	b	.L88
+	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
+	adrp	x0, .LC46
+	mov	x2, 56
+	add	x0, x0, :lo12:.LC46
+	mov	x1, 1
+	ldr	x3, [x3]
+	bl	fwrite
+	ldp	x21, x22, [sp, 32]
+	b	.L93
 	.p2align 2,,3
 .L168:
-	bl	get_resume
-	cbnz	w0, .L175
-.L98:
-	bl	get_resume
-	cbz	w0, .L156
-	adrp	x0, .LC50
-	add	x0, x0, :lo12:.LC50
-	bl	printf
-.L156:
-	add	x0, sp, 2592
-	mov	x1, 256
-	bl	render_build_flags
-	add	x22, sp, 88
-	bl	get_jobs
-	mov	x2, x0
-	add	x3, x20, :lo12:.LC33
-	add	x1, sp, 2592
-	adrp	x0, .LC70
-	add	x0, x0, :lo12:.LC70
-	bl	printf
-	strb	wzr, [sp, 88]
-	bl	get_makepkg_raw
-	ldrb	w0, [x0]
-	cbnz	w0, .L176
-	add	x19, x20, :lo12:.LC33
-	b	.L108
-	.p2align 2,,3
-.L176:
-	bl	get_makepkg_raw
-	add	x22, sp, 88
+	bl	get_editor
 	mov	x3, x0
-	adrp	x2, .LC51
-	add	x0, sp, 88
-	add	x2, x2, :lo12:.LC51
-	mov	x1, 194
-	add	x19, x20, :lo12:.LC33
+	mov	x2, 6704
+	add	x22, sp, x2
+	adrp	x2, .LC42
+	add	x2, x2, :lo12:.LC42
+	mov	x0, x22
+	mov	x1, 8192
 	bl	xsnprintf
-	b	.L108
+	mov	x0, x22
+	mov	x1, 0
+	bl	run_as_user
+	b	.L96
 	.p2align 2,,3
-.L171:
-	adrp	x0, .LC53
-	add	x0, x0, :lo12:.LC53
-	bl	have_cmd
-	cbnz	w0, .L112
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, 77
-	mov	x1, 1
-	ldr	x3, [x0]
-	adrp	x0, .LC59
-	add	x0, x0, :lo12:.LC59
-	bl	fwrite
-	b	.L112
+.L162:
+	ldp	x21, x22, [sp, 32]
+	ldp	x23, x24, [sp, 48]
+	b	.L93
 	.p2align 2,,3
-.L169:
-	bl	get_makepkg_raw
-	add	x22, sp, 88
-	mov	x3, x0
-	adrp	x2, .LC51
-	add	x0, sp, 88
-	add	x2, x2, :lo12:.LC51
-	mov	x1, 194
-	bl	xsnprintf
-	b	.L121
-	.p2align 2,,3
-.L174:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, 62
-	mov	x1, 1
-	ldr	x3, [x0]
-	adrp	x0, .LC65
-	add	x0, x0, :lo12:.LC65
-	bl	fwrite
-	b	.L88
+.L172:
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	mov	w2, w23
+	adrp	x1, .LC50
+	add	x1, x1, :lo12:.LC50
+	ldr	x0, [x0]
+	bl	fprintf
+	ldp	x21, x22, [sp, 32]
+	ldp	x23, x24, [sp, 48]
+	b	.L93
 	.p2align 2,,3
 .L175:
-	add	x0, sp, 544
+	adrp	x0, .LC55
+	add	x0, x0, :lo12:.LC55
+	bl	run_cmd_quiet
+	cbnz	w0, .L121
+	adrp	x0, .LC56
+	add	x0, x0, :lo12:.LC56
+	bl	printf
+	mov	x1, 6704
+	add	x20, sp, x1
+	mov	x3, x19
+	mov	x4, x25
+	mov	x0, x20
+	adrp	x2, .LC57
+	mov	x1, 8192
+	add	x2, x2, :lo12:.LC57
+	adrp	x19, .LC59
+	bl	xsnprintf
+	b	.L122
+	.p2align 2,,3
+.L180:
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	adrp	x1, .LC69
+	add	x1, x1, :lo12:.LC69
+.L164:
+	ldr	x0, [x0]
+	bl	fprintf
+	ldp	x21, x22, [sp, 32]
+	ldp	x23, x24, [sp, 48]
+	ldp	x25, x26, [sp, 64]
+	b	.L93
+	.p2align 2,,3
+.L178:
+	adrp	x1, .LC64
+	add	x1, x1, :lo12:.LC64
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	b	.L164
+	.p2align 2,,3
+.L173:
+	bl	get_resume
+	cbnz	w0, .L181
+.L104:
+	bl	get_resume
+	cbnz	w0, .L106
+	mov	x0, x22
+	mov	x1, 256
+	bl	render_build_flags
+	bl	get_jobs
+	mov	x2, x0
+.L112:
+	add	x3, x21, :lo12:.LC33
+	mov	x1, x22
+	adrp	x0, .LC71
+	add	x0, x0, :lo12:.LC71
+	bl	printf
+	strb	wzr, [sp, 104]
+	bl	get_makepkg_raw
+	ldrb	w0, [x0]
+	add	x26, sp, 104
+	cbnz	w0, .L182
+	add	x20, x21, :lo12:.LC33
+	b	.L116
+	.p2align 2,,3
+.L182:
+	bl	get_makepkg_raw
+	add	x26, sp, 104
+	mov	x3, x0
+	adrp	x2, .LC52
+	mov	x0, x26
+	add	x2, x2, :lo12:.LC52
+	mov	x1, 194
+	add	x20, x21, :lo12:.LC33
+	bl	xsnprintf
+	b	.L116
+	.p2align 2,,3
+.L176:
+	adrp	x0, .LC54
+	add	x0, x0, :lo12:.LC54
+	bl	have_cmd
+	cbnz	w0, .L122
+	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
+	adrp	x0, .LC60
+	mov	x2, 77
+	mov	x1, 1
+	add	x0, x0, :lo12:.LC60
+	ldr	x3, [x3]
+	bl	fwrite
+	b	.L122
+	.p2align 2,,3
+.L179:
+	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
+	adrp	x0, .LC66
+	mov	x2, 62
+	add	x0, x0, :lo12:.LC66
+	mov	x1, 1
+	ldr	x3, [x3]
+	bl	fwrite
+	ldp	x21, x22, [sp, 32]
+	ldp	x23, x24, [sp, 48]
+	ldp	x25, x26, [sp, 64]
+	b	.L93
+	.p2align 2,,3
+.L106:
+	adrp	x0, .LC51
+	add	x0, x0, :lo12:.LC51
+	bl	printf
+	mov	x0, x22
+	mov	x1, 256
+	bl	render_build_flags
+	bl	get_jobs
+	mov	x2, x0
+	b	.L112
+	.p2align 2,,3
+.L174:
+	bl	get_makepkg_raw
+	add	x26, sp, 104
+	mov	x3, x0
+	adrp	x2, .LC52
+	mov	x0, x26
+	add	x2, x2, :lo12:.LC52
+	mov	x1, 194
+	bl	xsnprintf
+	b	.L133
+	.p2align 2,,3
+.L181:
+	mov	x0, x20
 	bl	has_reusable_source_tree
-	cbz	w0, .L98
-	b	.L97
-.L111:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
+	cbnz	w0, .L103
+	b	.L104
+.L121:
+	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
+	adrp	x0, .LC58
 	mov	x2, 125
 	mov	x1, 1
-	ldr	x3, [x0]
-	adrp	x0, .LC57
-	add	x0, x0, :lo12:.LC57
+	add	x0, x0, :lo12:.LC58
+	ldr	x3, [x3]
 	bl	fwrite
-	b	.L110
-.L172:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
+	b	.L119
+.L177:
+	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
+	add	x23, x23, :lo12:.LANCHOR0
+	adrp	x0, .LC63
 	mov	x2, 43
+	add	x0, x0, :lo12:.LC63
 	mov	x1, 1
-	ldr	x3, [x0]
-	adrp	x0, .LC62
-	add	x0, x0, :lo12:.LC62
+	ldr	x3, [x3]
 	bl	fwrite
-	adrp	x0, .LANCHOR0
-	add	x0, x0, :lo12:.LANCHOR0
-	ldr	w0, [x0, 4]
-	cbz	w0, .L115
+	ldr	w0, [x23, 4]
+	cbz	w0, .L127
 	bl	restore_backup.part.0
-.L115:
+.L127:
 	mov	w0, 130
 	bl	exit
 	.section	.rodata.str1.8
 	.align	3
-.LC71:
+.LC72:
 	.string	"/etc/pacman.conf"
 	.align	3
-.LC72:
+.LC73:
 	.string	"grep -qE '^[[:space:]]*IgnorePkg[[:space:]]*=.*([[:space:]]|=)[[:space:]]*%s([[:space:]]|$)' '%s'"
 	.align	3
-.LC73:
+.LC74:
 	.string	"\033[1;32m[+] %s is already locked in IgnorePkg\n\033[0m"
 	.align	3
-.LC74:
+.LC75:
 	.string	"%scp -n '%s' '%s.archtoo.bak'"
 	.align	3
-.LC75:
+.LC76:
 	.ascii	"if grep -qE '^[[:space:]]*IgnorePkg[[:space:]]*=' '%s'; then"
 	.ascii	" %ssed -i -E '0,/^[[:space:]]*IgnorePkg[[:space:]]*=/{ /^[[:"
 	.ascii	"space:]]*IgnorePkg[[:space:]]*=/{ s/[[:space:]]*$//; s/$/ %s"
@@ -1202,10 +1221,10 @@ compile_package:
 	.ascii	"Pkg[[:space:]]*=' "
 	.string	"'%s'; then %ssed -i -E '0,/^[[:space:]]*#[[:space:]]*IgnorePkg[[:space:]]*=/{ /^[[:space:]]*#[[:space:]]*IgnorePkg[[:space:]]*=/{ s/^[[:space:]]*#[[:space:]]*//; s/[[:space:]]*$//; s/$/ %s/ } }' '%s'; else %ssed -i '/^\\[options\\]/a IgnorePkg = %s' '%s'; fi"
 	.align	3
-.LC76:
+.LC77:
 	.string	"\033[1;31m[-] Failed to lock %s in %s -- check the file by hand.\n\033[0m"
 	.align	3
-.LC77:
+.LC78:
 	.string	"\033[1;32m[+] %s locked in pacman.conf\n\033[0m"
 	.text
 	.align	2
@@ -1213,127 +1232,132 @@ compile_package:
 	.global	lock_pacman_pkg
 	.type	lock_pacman_pkg, %function
 lock_pacman_pkg:
-	sub	sp, sp, #2480
+	sub	sp, sp, #2496
 	mov	x2, 320
-	add	x1, sp, 112
 	stp	x29, x30, [sp, 48]
 	add	x29, sp, 48
+	stp	x23, x24, [sp, 96]
+	add	x23, sp, 128
+	mov	x1, x23
 	stp	x19, x20, [sp, 64]
 	mov	x20, x0
 	bl	regex_escape
-	cbnz	w0, .L186
+	cbnz	w0, .L193
+.L184:
 	ldp	x29, x30, [sp, 48]
+	mov	w0, 0
 	ldp	x19, x20, [sp, 64]
-	add	sp, sp, 2480
+	ldp	x23, x24, [sp, 96]
+	add	sp, sp, 2496
 	ret
 	.p2align 2,,3
-.L186:
-	adrp	x19, .LC71
-	add	x19, x19, :lo12:.LC71
-	adrp	x0, .LC72
+.L193:
+	adrp	x19, .LC72
+	add	x19, x19, :lo12:.LC72
+	stp	x21, x22, [sp, 80]
+	adrp	x22, .LC73
+	add	x22, x22, :lo12:.LC73
 	mov	x4, x19
-	add	x2, x0, :lo12:.LC72
-	add	x3, sp, 112
+	mov	x2, x22
+	mov	x3, x23
+	add	x21, sp, 448
 	mov	x1, 2048
-	str	x21, [sp, 80]
-	add	x21, x0, :lo12:.LC72
-	add	x0, sp, 432
+	mov	x0, x21
 	bl	xsnprintf
-	add	x0, sp, 432
+	mov	x0, x21
 	bl	run_cmd_quiet
-	cbz	w0, .L187
+	cbz	w0, .L194
+	str	x25, [sp, 112]
 	bl	priv_prefix
-	mov	x3, x0
 	mov	x5, x19
+	mov	x3, x0
 	mov	x4, x19
-	adrp	x2, .LC74
-	add	x2, x2, :lo12:.LC74
+	adrp	x2, .LC75
+	add	x2, x2, :lo12:.LC75
 	mov	x1, 2048
-	add	x0, sp, 432
+	mov	x0, x21
 	bl	xsnprintf
-	add	x0, sp, 432
+	mov	x0, x21
 	bl	run_cmd_quiet
 	bl	priv_prefix
-	str	x0, [sp, 104]
+	mov	x24, x0
 	bl	priv_prefix
-	str	x0, [sp, 96]
+	mov	x25, x0
 	bl	priv_prefix
-	stp	x19, x0, [sp, 16]
+	stp	x25, x20, [sp]
+	mov	x4, x24
 	mov	x7, x19
-	ldp	x1, x4, [sp, 96]
 	mov	x6, x19
 	mov	x5, x20
 	mov	x3, x19
-	adrp	x2, .LC75
-	add	x2, x2, :lo12:.LC75
-	stp	x1, x20, [sp]
+	adrp	x2, .LC76
+	add	x2, x2, :lo12:.LC76
+	stp	x19, x0, [sp, 16]
 	mov	x1, 2048
-	add	x0, sp, 432
+	mov	x0, x21
 	stp	x20, x19, [sp, 32]
 	bl	xsnprintf
-	add	x0, sp, 432
+	mov	x0, x21
 	bl	run_cmd
 	mov	x4, x19
-	add	x3, sp, 112
-	mov	x2, x21
+	mov	x3, x23
+	mov	x2, x22
 	mov	x1, 2048
-	add	x0, sp, 432
+	mov	x0, x21
 	bl	xsnprintf
-	add	x0, sp, 432
+	mov	x0, x21
 	bl	run_cmd_quiet
-	cbnz	w0, .L188
-	adrp	x0, .LC77
+	cbnz	w0, .L195
 	mov	x1, x20
-	add	x0, x0, :lo12:.LC77
+	adrp	x0, .LC78
+	add	x0, x0, :lo12:.LC78
 	bl	printf
-.L181:
-	ldr	x21, [sp, 80]
+	ldr	x25, [sp, 112]
+.L186:
 	mov	w0, 1
+	ldp	x21, x22, [sp, 80]
 	ldp	x29, x30, [sp, 48]
 	ldp	x19, x20, [sp, 64]
-	add	sp, sp, 2480
+	ldp	x23, x24, [sp, 96]
+	add	sp, sp, 2496
 	ret
 	.p2align 2,,3
-.L187:
+.L194:
 	mov	x1, x20
-	adrp	x0, .LC73
-	add	x0, x0, :lo12:.LC73
+	adrp	x0, .LC74
+	add	x0, x0, :lo12:.LC74
 	bl	printf
-	b	.L181
+	b	.L186
 	.p2align 2,,3
-.L188:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
+.L195:
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
 	mov	x3, x19
 	mov	x2, x20
-	adrp	x1, .LC76
-	add	x1, x1, :lo12:.LC76
+	adrp	x1, .LC77
+	add	x1, x1, :lo12:.LC77
 	ldr	x0, [x0]
 	bl	fprintf
-	ldr	x21, [sp, 80]
-	mov	w0, 0
-	ldp	x29, x30, [sp, 48]
-	ldp	x19, x20, [sp, 64]
-	add	sp, sp, 2480
-	ret
+	ldr	x25, [sp, 112]
+	ldp	x21, x22, [sp, 80]
+	b	.L184
 	.section	.rodata.str1.8
 	.align	3
-.LC78:
+.LC79:
 	.string	"\033[1;33m[-] Build directory kept (--resume): %s/%s\n\033[0m"
 	.align	3
-.LC79:
+.LC80:
 	.string	"\033[1;34m>>> Clean up build directory?\n\033[0m"
 	.align	3
-.LC80:
+.LC81:
 	.string	"Remove directory"
 	.align	3
-.LC81:
+.LC82:
 	.string	"\033[1;33m[-] Build directory preserved in %s/%s\n\033[0m"
 	.align	3
-.LC82:
+.LC83:
 	.string	"rm -rf '%s/%s'"
 	.align	3
-.LC83:
+.LC84:
 	.string	"\033[1;32m[+] Build directory cleaned up.\n\033[0m"
 	.text
 	.align	2
@@ -1341,105 +1365,108 @@ lock_pacman_pkg:
 	.global	cleanup_build_dir
 	.type	cleanup_build_dir, %function
 cleanup_build_dir:
-	sub	sp, sp, #656
+	sub	sp, sp, #640
 	stp	x29, x30, [sp]
 	mov	x29, sp
-	str	x19, [sp, 16]
+	stp	x19, x20, [sp, 16]
 	mov	x19, x0
 	bl	get_resume
-	cbnz	w0, .L195
-	adrp	x0, .LC79
-	add	x0, x0, :lo12:.LC79
-	bl	printf
+	cbnz	w0, .L203
 	adrp	x0, .LC80
-	mov	w1, 0
 	add	x0, x0, :lo12:.LC80
-	bl	ask_yes_no
-	cbz	w0, .L196
-	adrp	x3, .LC8
-	add	x3, x3, :lo12:.LC8
-	mov	x0, x3
-	str	x3, [sp, 40]
-	bl	chdir
-	cbnz	w0, .L189
-	ldr	x3, [sp, 40]
-	mov	x4, x19
-	adrp	x2, .LC82
-	add	x2, x2, :lo12:.LC82
-	mov	x1, 600
-	add	x0, sp, 56
-	bl	xsnprintf
-	add	x0, sp, 56
-	bl	run_cmd
-	adrp	x0, .LC83
-	add	x0, x0, :lo12:.LC83
 	bl	printf
-.L189:
-	ldr	x19, [sp, 16]
-	ldp	x29, x30, [sp]
-	add	sp, sp, 656
-	ret
-	.p2align 2,,3
+	adrp	x0, .LC81
+	mov	w1, 0
+	add	x0, x0, :lo12:.LC81
+	bl	ask_yes_no
+	cbz	w0, .L204
+	adrp	x20, .LC8
+	add	x20, x20, :lo12:.LC8
+	mov	x0, x20
+	bl	chdir
+	cbnz	w0, .L196
+	mov	x4, x19
+	mov	x3, x20
+	adrp	x2, .LC83
+	add	x2, x2, :lo12:.LC83
+	add	x0, sp, 40
+	mov	x1, 600
+	mov	x19, x0
+	bl	xsnprintf
+	mov	x0, x19
+	bl	run_cmd
+	adrp	x0, .LC84
+	add	x0, x0, :lo12:.LC84
+	bl	printf
 .L196:
 	ldp	x29, x30, [sp]
-	mov	x2, x19
-	ldr	x19, [sp, 16]
-	adrp	x1, .LC8
-	add	sp, sp, 656
-	add	x1, x1, :lo12:.LC8
-	adrp	x0, .LC81
-	add	x0, x0, :lo12:.LC81
-	b	printf
+	ldp	x19, x20, [sp, 16]
+	add	sp, sp, 640
+	ret
 	.p2align 2,,3
-.L195:
+.L204:
 	ldp	x29, x30, [sp]
 	mov	x2, x19
-	ldr	x19, [sp, 16]
+	ldp	x19, x20, [sp, 16]
 	adrp	x1, .LC8
-	add	sp, sp, 656
+	add	sp, sp, 640
 	add	x1, x1, :lo12:.LC8
-	adrp	x0, .LC78
-	add	x0, x0, :lo12:.LC78
+	adrp	x0, .LC82
+	add	x0, x0, :lo12:.LC82
+	b	printf
+	.p2align 2,,3
+.L203:
+	ldp	x29, x30, [sp]
+	mov	x2, x19
+	ldp	x19, x20, [sp, 16]
+	adrp	x1, .LC8
+	add	sp, sp, 640
+	add	x1, x1, :lo12:.LC8
+	adrp	x0, .LC79
+	add	x0, x0, :lo12:.LC79
 	b	printf
 	.section	.rodata.str1.8
 	.align	3
-.LC84:
+.LC85:
 	.string	"\033[1;31m[-] Invalid package name: '%s'\n\033[0m"
 	.align	3
-.LC85:
-	.string	"\033[1;33m[!] Binary install failed for %s, falling back to source build\n\033[0m"
-	.align	3
 .LC86:
-	.string	"Continue with source build?"
+	.string	"\033[1;32m[+] --binary: proceeding with %s (not %s)\n\033[0m"
 	.align	3
 .LC87:
-	.string	"."
+	.string	"\033[1;33m[!] Binary install failed for %s, falling back to source build\n\033[0m"
 	.align	3
 .LC88:
-	.string	"\033[1;34m>>> [%d/%d] Fetching sources for %s...\n\033[0m"
+	.string	"Continue with source build?"
 	.align	3
 .LC89:
-	.string	"\033[1;34m>>> [%d/%d] Compiling package...\n\033[0m"
+	.string	"."
 	.align	3
 .LC90:
-	.string	"\033[1;34m>>> [%d/%d] Running kernel hooks...\n\033[0m"
+	.string	"\033[1;34m>>> [%d/%d] Fetching sources for %s...\n\033[0m"
 	.align	3
 .LC91:
-	.string	"%s-headers"
+	.string	"\033[1;34m>>> [%d/%d] Compiling package...\n\033[0m"
 	.align	3
 .LC92:
-	.string	"\033[1;34m>>> [%d/%d] Locking in pacman.conf...\n\033[0m"
+	.string	"\033[1;34m>>> [%d/%d] Running kernel hooks...\n\033[0m"
 	.align	3
 .LC93:
-	.string	"\033[1;34m>>> [%d/%d] Cleaning up...\n\033[0m"
+	.string	"%s-headers"
 	.align	3
 .LC94:
-	.string	"\033[1;32m\n>>> DONE! %s is custom built and installed.\n\033[0m"
+	.string	"\033[1;34m>>> [%d/%d] Locking in pacman.conf...\n\033[0m"
 	.align	3
 .LC95:
-	.string	"\033[1;33m[!] Reboot to load your new kernel.\n\033[0m"
+	.string	"\033[1;34m>>> [%d/%d] Cleaning up...\n\033[0m"
 	.align	3
 .LC96:
+	.string	"\033[1;32m\n>>> DONE! %s is custom built and installed.\n\033[0m"
+	.align	3
+.LC97:
+	.string	"\033[1;33m[!] Reboot to load your new kernel.\n\033[0m"
+	.align	3
+.LC98:
 	.string	"\033[1;33m[!] %s is named like a kernel, but the built package contains no\n    usr/lib/modules/<kver>/vmlinuz; skipping kernel hooks and the -headers lock.\n\033[0m"
 	.text
 	.align	2
@@ -1447,229 +1474,284 @@ cleanup_build_dir:
 	.global	cmd_build
 	.type	cmd_build, %function
 cmd_build:
-	sub	sp, sp, #976
+	sub	sp, sp, #1296
+	mov	x2, 300
+	mov	w1, 0
 	stp	x29, x30, [sp]
 	mov	x29, sp
+	stp	x21, x22, [sp, 32]
+	add	x21, sp, 88
 	stp	x19, x20, [sp, 16]
 	mov	x19, x0
+	mov	x0, x21
+	bl	memset
+	mov	x0, x19
 	bl	valid_pkgname
-	cbz	w0, .L232
+	cbz	w0, .L245
 	bl	get_use_binary
-	cbnz	w0, .L233
-.L200:
+	cbnz	w0, .L246
+.L243:
+	stp	x23, x24, [sp, 48]
+	str	x25, [sp, 64]
+.L209:
 	mov	w1, 524288
-	adrp	x0, .LC87
-	add	x0, x0, :lo12:.LC87
-	stp	x21, x22, [sp, 32]
-	str	x23, [sp, 48]
+	adrp	x0, .LC89
+	add	x0, x0, :lo12:.LC89
 	bl	open
 	movi	v31.4s, 0
+	add	x1, sp, 400
+	adrp	x2, restore_on_signal
 	mov	w22, w0
-	adrp	x0, restore_on_signal
-	add	x0, x0, :lo12:restore_on_signal
-	str	x0, [sp, 72]
-	add	x0, sp, 80
-	str	q31, [sp, 80]
-	stp	q31, q31, [sp, 96]
-	stp	q31, q31, [sp, 128]
-	stp	q31, q31, [sp, 160]
-	stp	q31, q31, [sp, 192]
+	mov	x0, x1
+	add	x1, x2, :lo12:restore_on_signal
+	str	x1, [sp, 392]
+	add	x23, sp, 392
+	str	q31, [sp, 400]
+	adrp	x21, .LANCHOR0
+	stp	q31, q31, [x0, 16]
+	stp	q31, q31, [x0, 48]
+	stp	q31, q31, [x0, 80]
+	stp	q31, q31, [x0, 112]
 	bl	sigemptyset
-	add	x1, sp, 72
+	mov	x1, x23
 	mov	x2, 0
 	mov	w0, 2
 	bl	sigaction
-	add	x1, sp, 72
+	mov	x1, x23
 	mov	x2, 0
 	mov	w0, 15
 	bl	sigaction
-	add	x1, sp, 72
 	mov	x2, 0
+	mov	x1, x23
 	mov	w0, 1
 	bl	sigaction
-	adrp	x0, .LANCHOR0
-	add	x0, x0, :lo12:.LANCHOR0
-	str	wzr, [x0, 4]
+	add	x1, x21, :lo12:.LANCHOR0
 	mov	x0, x19
+	str	wzr, [x1, 4]
 	bl	is_kernel
-	cmp	w0, 0
-	cset	w2, ne
+	mov	w24, w0
 	mov	x3, x19
-	add	w20, w2, 4
+	cmp	w24, 0
 	mov	w1, 1
-	mov	w2, w20
-	mov	w21, w0
-	adrp	x0, .LC88
-	add	x0, x0, :lo12:.LC88
+	cset	w2, ne
+	adrp	x0, .LC90
+	add	w25, w2, 4
+	add	x0, x0, :lo12:.LC90
+	mov	w2, w25
 	bl	printf
-	mov	w23, w20
 	mov	x0, x19
 	bl	fetch_sources
-	cbz	w0, .L202
-	mov	w2, w20
+	cbz	w0, .L214
+	mov	w2, w25
 	mov	w1, 2
-	adrp	x0, .LC89
-	add	x0, x0, :lo12:.LC89
+	adrp	x0, .LC91
+	add	x0, x0, :lo12:.LC91
 	bl	printf
 	mov	x0, x19
 	bl	compile_package
 	mov	w20, w0
-	cbz	w0, .L202
-	cbnz	w21, .L234
-.L231:
-	mov	w2, w23
+	cbz	w0, .L214
+	cbnz	w24, .L247
+	mov	w2, w25
 	mov	w1, 3
-	adrp	x0, .LC92
-	add	x0, x0, :lo12:.LC92
+	adrp	x0, .LC94
+	add	x0, x0, :lo12:.LC94
 	bl	printf
 	mov	x0, x19
 	bl	lock_pacman_pkg
 	mov	x0, x19
 	bl	add_to_world
-	mov	w2, w23
+	mov	w2, w25
 	mov	w1, 4
-	adrp	x0, .LC93
-	add	x0, x0, :lo12:.LC93
+	adrp	x0, .LC95
+	add	x0, x0, :lo12:.LC95
 	bl	printf
 	mov	x0, x19
 	bl	cleanup_build_dir
-	adrp	x0, .LC94
+	adrp	x0, .LC96
 	mov	x1, x19
-	add	x0, x0, :lo12:.LC94
+	add	x0, x0, :lo12:.LC96
 	bl	printf
-.L205:
-	adrp	x0, .LANCHOR0
-	add	x19, x0, :lo12:.LANCHOR0
-	ldr	w0, [x19, 4]
-	cbz	w0, .L207
-	add	x3, x19, 784
+.L217:
+	add	x21, x21, :lo12:.LANCHOR0
+	ldr	w0, [x21, 4]
+	cbz	w0, .L221
+	add	x3, x21, 784
 	adrp	x2, .LC5
 	add	x2, x2, :lo12:.LC5
 	mov	x1, 900
-	add	x0, sp, 72
+	mov	x0, x23
 	bl	xsnprintf
-	add	x0, sp, 72
+	mov	x0, x23
 	bl	run_cmd_quiet
-	str	wzr, [x19, 4]
-.L207:
-	mov	w0, w22
-	tbz	w22, #31, .L235
-.L230:
-	ldp	x21, x22, [sp, 32]
-	ldr	x23, [sp, 48]
-.L197:
+	str	wzr, [x21, 4]
+.L221:
+	tbz	w22, #31, .L248
+.L244:
+	ldp	x23, x24, [sp, 48]
+	ldr	x25, [sp, 64]
+.L205:
 	mov	w0, w20
 	ldp	x29, x30, [sp]
 	ldp	x19, x20, [sp, 16]
-	add	sp, sp, 976
+	ldp	x21, x22, [sp, 32]
+	add	sp, sp, 1296
 	ret
 	.p2align 2,,3
-.L233:
+.L246:
+	mov	x1, x21
 	mov	x0, x19
-	mov	w20, 1
+	mov	x2, 300
 	bl	cmd_binary_install
-	cbnz	w0, .L197
-	mov	x1, x19
-	adrp	x0, .LC85
-	add	x0, x0, :lo12:.LC85
-	bl	printf
-	mov	w1, 0
-	adrp	x0, .LC86
-	add	x0, x0, :lo12:.LC86
-	bl	ask_yes_no
 	mov	w20, w0
-	cbnz	w0, .L200
-	b	.L197
+	cmp	w0, 1
+	beq	.L205
+	cmp	w0, 2
+	bne	.L211
+	ldrb	w0, [sp, 88]
+	stp	x23, x24, [sp, 48]
+	str	x25, [sp, 64]
+	cbz	w0, .L209
+	mov	x1, x19
+	mov	x0, x21
+	bl	strcmp
+	cbz	w0, .L209
+	mov	x2, x19
+	mov	x1, x21
+	adrp	x0, .LC86
+	mov	x19, x21
+	add	x0, x0, :lo12:.LC86
+	bl	printf
+	b	.L209
 	.p2align 2,,3
-.L202:
-	adrp	x0, .LANCHOR0
-	add	x0, x0, :lo12:.LANCHOR0
-	ldr	w20, [x0, 4]
-	cbz	w20, .L207
-	bl	restore_backup.part.0
+.L214:
+	add	x21, x21, :lo12:.LANCHOR0
+	ldr	w0, [x21, 4]
+	cbnz	w0, .L220
 	mov	w20, 0
+	.p2align 5,,15
+.L249:
+	tbnz	w22, #31, .L244
+.L248:
 	mov	w0, w22
-	tbnz	w22, #31, .L230
-.L235:
 	bl	fchdir
 	mov	w0, w22
 	bl	close
-	ldr	x23, [sp, 48]
+	ldr	x25, [sp, 64]
 	mov	w0, w20
-	ldp	x21, x22, [sp, 32]
+	ldp	x23, x24, [sp, 48]
 	ldp	x29, x30, [sp]
 	ldp	x19, x20, [sp, 16]
-	add	sp, sp, 976
+	ldp	x21, x22, [sp, 32]
+	add	sp, sp, 1296
 	ret
 	.p2align 2,,3
-.L232:
-	mov	w20, w0
+.L245:
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	mov	w20, 0
 	mov	x2, x19
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	adrp	x1, .LC84
-	add	x1, x1, :lo12:.LC84
+	adrp	x1, .LC85
+	add	x1, x1, :lo12:.LC85
 	ldr	x0, [x0]
 	bl	fprintf
+.L250:
 	ldp	x29, x30, [sp]
 	mov	w0, w20
 	ldp	x19, x20, [sp, 16]
-	add	sp, sp, 976
+	ldp	x21, x22, [sp, 32]
+	add	sp, sp, 1296
 	ret
 	.p2align 2,,3
-.L234:
+.L220:
+	mov	w20, 0
+	bl	restore_backup.part.0
+	b	.L249
+	.p2align 2,,3
+.L211:
+	mov	x1, x19
+	adrp	x0, .LC87
+	add	x0, x0, :lo12:.LC87
+	bl	printf
+	adrp	x0, .LC88
+	mov	w1, 0
+	add	x0, x0, :lo12:.LC88
+	bl	ask_yes_no
+	cbnz	w0, .L243
+	mov	w20, 0
+	b	.L250
+	.p2align 2,,3
+.L247:
 	mov	x0, x19
 	bl	pkg_ships_kernel
-	cbnz	w0, .L236
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x19
-	adrp	x1, .LC96
-	add	x1, x1, :lo12:.LC96
-	ldr	x0, [x0]
-	bl	fprintf
-	b	.L231
-	.p2align 2,,3
-.L236:
-	mov	w2, w23
+	cbz	w0, .L216
+	mov	w2, w25
 	mov	w1, 3
-	adrp	x0, .LC90
-	add	x0, x0, :lo12:.LC90
+	adrp	x0, .LC92
+	add	x0, x0, :lo12:.LC92
 	bl	printf
 	mov	x0, x19
 	bl	run_kernel_hooks
 	mov	x3, x19
-	adrp	x2, .LC91
-	add	x2, x2, :lo12:.LC91
+	adrp	x2, .LC93
+	add	x2, x2, :lo12:.LC93
 	mov	x1, 256
-	add	x0, sp, 72
+	mov	x0, x23
 	bl	xsnprintf
-	add	x0, sp, 72
+	mov	x0, x23
 	bl	lock_pacman_pkg
-	mov	w2, w23
+	mov	w2, w25
 	mov	w1, 4
-	adrp	x0, .LC92
-	add	x0, x0, :lo12:.LC92
+	adrp	x0, .LC94
+	add	x0, x0, :lo12:.LC94
 	bl	printf
 	mov	x0, x19
 	bl	lock_pacman_pkg
 	mov	x0, x19
 	bl	add_to_world
-	mov	w2, w23
+	mov	w2, w25
 	mov	w1, 5
-	adrp	x0, .LC93
-	add	x0, x0, :lo12:.LC93
+	adrp	x0, .LC95
+	add	x0, x0, :lo12:.LC95
 	bl	printf
 	mov	x0, x19
 	bl	cleanup_build_dir
 	mov	x1, x19
+	adrp	x0, .LC96
+	add	x0, x0, :lo12:.LC96
+	bl	printf
+	adrp	x0, .LC97
+	add	x0, x0, :lo12:.LC97
+	bl	printf
+	b	.L217
+	.p2align 2,,3
+.L216:
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	mov	x2, x19
+	adrp	x1, .LC98
+	add	x1, x1, :lo12:.LC98
+	ldr	x0, [x0]
+	bl	fprintf
+	mov	w2, w25
+	mov	w1, 3
 	adrp	x0, .LC94
 	add	x0, x0, :lo12:.LC94
 	bl	printf
+	mov	x0, x19
+	bl	lock_pacman_pkg
+	mov	x0, x19
+	bl	add_to_world
+	mov	w2, w25
+	mov	w1, 4
 	adrp	x0, .LC95
 	add	x0, x0, :lo12:.LC95
 	bl	printf
-	b	.L205
+	mov	x0, x19
+	bl	cleanup_build_dir
+	mov	x1, x19
+	adrp	x0, .LC96
+	add	x0, x0, :lo12:.LC96
+	bl	printf
+	b	.L217
 	.section	.rodata
 	.align	4
 	.set	.LANCHOR1,. + 0
@@ -1696,4 +1778,3 @@ g_backup:
 g_reused_local_sources:
 	.zero	4
 	.section	.note.GNU-stack,"",@progbits
-	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128

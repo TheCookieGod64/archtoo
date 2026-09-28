@@ -294,10 +294,19 @@ static int install_build_dependencies(void) {
     }
 
     xsnprintf(cmd, sizeof(cmd),
-             "deps=$(awk '$1 ~ /^(depends|makedepends|checkdepends)(_[A-Za-z0-9_]+)?$/ "
-             "{ print $3 }' .archtoo-srcinfo | sed 's/[<>=].*$//' | sort -u); "
+             /* printsrcinfo writes SINGULAR keys ("depend = x"); the old regex
+                only matched "depends" and silently missed every dependency.
+                Match both spellings, split on whitespace, strip version
+                comparators. Then subtract every name this PKGBUILD itself
+                builds or provides: for a split package like shelly-bin whose
+                sibling declares depends=("shelly-bin=3.1.6-1"), that name is
+                being built RIGHT HERE - pacman -S must never be told to
+                install it (fout: doel niet gevonden, and the build dies). */
+             "deps=$(awk '$1 ~ /^(depends|makedepends|checkdepends|depend|makedepend|checkdepend)(_[A-Za-z0-9_]+)?$/ && $2 == \"=\" { print $3 }' .archtoo-srcinfo | sed 's/[<>=].*$//' | sort -u); "
+             "own=$(awk '$1 ~ /^(pkgname|pkgbase|provides|provide)(_[A-Za-z0-9_]+)?$/ && $2 == \"=\" { print $3 }' .archtoo-srcinfo | sed 's/[<>=].*$//' | sort -u); "
+             "printf '%%s\\n' $own > .archtoo-ownpkgs; "
              "missing=; "
-             "if [ -n \"$deps\" ]; then missing=$(pacman -T $deps 2>/dev/null || true); fi; "
+             "if [ -n \"$deps\" ]; then missing=$(pacman -T $deps 2>/dev/null | grep -vxF -f .archtoo-ownpkgs || true); fi; "
              "if [ -n \"$missing\" ]; then "
              "echo '>>> Installing missing repository build dependencies...'; "
              "pacman -S --needed%s%s -- $missing; "
@@ -307,6 +316,7 @@ static int install_build_dependencies(void) {
 
     int rc = run_cmd(cmd);
     unlink(".archtoo-srcinfo");
+    unlink(".archtoo-ownpkgs");
     if (rc != 0) {
         fprintf(stderr, COLOR_RED
                 "[-] Could not install required repository build dependencies "
@@ -590,19 +600,36 @@ void cleanup_build_dir(const char *pkg) {
 }
 
 int cmd_build(const char *pkg) {
+    char chosen[300] = {0};
+
     if (!valid_pkgname(pkg)) {
         fprintf(stderr, COLOR_RED "[-] Invalid package name: '%s'\n" COLOR_RESET, pkg);
         return 0;
     }
 
-    /* Binary mode: against Gentoo principles but like yay, only long flag */
+    /* Binary mode: against Gentoo principles but like yay, only long flag.
+       chosen lives at function scope: pkg may be pointed at it and then used
+       for the rest of the build (a block-scoped buffer dangles instantly). */
     if (get_use_binary()) {
-        if (cmd_binary_install(pkg)) {
+        int brc = cmd_binary_install(pkg, chosen, sizeof(chosen));
+        if (brc == 1) {
             return 1;
         }
-        printf(COLOR_YELLOW "[!] Binary install failed for %s, falling back to source build\n" COLOR_RESET, pkg);
-        if (!ask_yes_no("Continue with source build?", 0)) {
-            return 0;
+        if (brc == 2) {
+            /* --binary resolved the target (e.g. shelly → shelly-bin, or
+               shelly-bin recognized as its own prebuilt variant). Proceed to
+               the source path with that name: no failure nag, no prompt -
+               a prebuilt -bin "source build" is just repackaging. */
+            if (chosen[0] && strcmp(chosen, pkg) != 0) {
+                printf(COLOR_GREEN "[+] --binary: proceeding with %s (not %s)\n" COLOR_RESET,
+                       chosen, pkg);
+                pkg = chosen;
+            }
+        } else {
+            printf(COLOR_YELLOW "[!] Binary install failed for %s, falling back to source build\n" COLOR_RESET, pkg);
+            if (!ask_yes_no("Continue with source build?", 0)) {
+                return 0;
+            }
         }
     }
 

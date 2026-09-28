@@ -23,32 +23,34 @@ is_in_world:
 	mov	x29, sp
 	stp	x19, x20, [sp, 16]
 	stp	x21, x22, [sp, 32]
-	mov	x22, x0
+	mov	x21, x0
 	adrp	x0, .LC1
 	add	x0, x0, :lo12:.LC1
 	bl	fopen_nofollow
 	cbz	x0, .L6
-	adrp	x21, .LC2
+	adrp	x22, .LC2
 	mov	x20, x0
 	add	x19, sp, 48
-	add	x21, x21, :lo12:.LC2
+	add	x22, x22, :lo12:.LC2
 	b	.L3
 	.p2align 2,,3
 .L5:
+	bl	strcspn
+	mov	x3, x0
 	mov	x1, x21
 	mov	x0, x19
-	bl	strcspn
-	strb	wzr, [x19, x0]
-	mov	x1, x22
-	mov	x0, x19
+	strb	wzr, [x19, x3]
 	bl	strcmp
 	cbz	w0, .L7
 .L3:
+	mov	w1, 512
 	mov	x2, x20
 	mov	x0, x19
-	mov	w1, 512
 	bl	fgets
-	cbnz	x0, .L5
+	mov	x1, x22
+	mov	x3, x0
+	mov	x0, x19
+	cbnz	x3, .L5
 	mov	w19, 0
 .L4:
 	mov	x0, x20
@@ -91,57 +93,56 @@ is_in_world:
 	.global	add_to_world
 	.type	add_to_world, %function
 add_to_world:
-	stp	x29, x30, [sp, -64]!
+	stp	x29, x30, [sp, -48]!
 	mov	x29, sp
 	stp	x19, x20, [sp, 16]
 	mov	x19, x0
 	bl	valid_pkgname
-	cbnz	w0, .L17
+	cbnz	w0, .L16
 .L10:
 	ldp	x19, x20, [sp, 16]
-	ldp	x29, x30, [sp], 64
+	ldp	x29, x30, [sp], 48
 	ret
 	.p2align 2,,3
-.L17:
+.L16:
 	mov	x0, x19
 	bl	is_in_world
 	cbnz	w0, .L10
-	adrp	x0, .LC1
-	add	x0, x0, :lo12:.LC1
+	adrp	x20, .LC1
+	add	x20, x20, :lo12:.LC1
+	mov	x0, x20
 	adrp	x1, .LC3
 	add	x1, x1, :lo12:.LC3
 	str	x21, [sp, 32]
-	mov	x21, x0
 	bl	fopen_nofollow
-	cbz	x0, .L18
+	mov	x21, x0
+	cbz	x0, .L17
 	mov	x2, x19
 	adrp	x1, .LC5
 	add	x1, x1, :lo12:.LC5
-	str	x0, [sp, 56]
 	bl	fprintf
-	ldr	x0, [sp, 56]
-	bl	fclose
 	mov	x0, x21
+	bl	fclose
+	mov	x0, x20
 	bl	fix_owner
-	mov	x2, x21
-	mov	x1, x19
 	ldr	x21, [sp, 32]
+	mov	x2, x20
+	mov	x1, x19
 	adrp	x0, .LC6
 	ldp	x19, x20, [sp, 16]
 	add	x0, x0, :lo12:.LC6
-	ldp	x29, x30, [sp], 64
+	ldp	x29, x30, [sp], 48
 	b	printf
 	.p2align 2,,3
-.L18:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, x21
+.L17:
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
+	mov	x2, x20
 	ldr	x21, [sp, 32]
 	adrp	x1, .LC4
-	ldr	x0, [x0]
-	add	x1, x1, :lo12:.LC4
 	ldp	x19, x20, [sp, 16]
-	ldp	x29, x30, [sp], 64
+	add	x1, x1, :lo12:.LC4
+	ldp	x29, x30, [sp], 48
+	ldr	x0, [x0]
 	b	fprintf
 	.section	.rodata.str1.8
 	.align	3
@@ -165,119 +166,122 @@ add_to_world:
 	.global	remove_from_world
 	.type	remove_from_world, %function
 remove_from_world:
-	sub	sp, sp, #1616
+	sub	sp, sp, #1632
 	adrp	x1, .LC0
 	add	x1, x1, :lo12:.LC0
 	stp	x29, x30, [sp]
 	mov	x29, sp
-	stp	x23, x24, [sp, 48]
-	mov	x23, x0
-	str	x25, [sp, 64]
-	adrp	x25, .LC1
-	add	x0, x25, :lo12:.LC1
+	stp	x19, x20, [sp, 16]
+	stp	x25, x26, [sp, 64]
+	adrp	x26, .LC1
+	add	x19, x26, :lo12:.LC1
+	stp	x21, x22, [sp, 32]
+	mov	x22, x0
+	mov	x0, x19
 	bl	fopen_nofollow
-	cbz	x0, .L19
-	add	x3, x25, :lo12:.LC1
+	cbz	x0, .L18
+	mov	x3, x19
 	adrp	x2, .LC7
 	add	x2, x2, :lo12:.LC7
+	str	x27, [sp, 80]
+	add	x27, sp, 96
 	mov	x1, 512
-	stp	x19, x20, [sp, 16]
-	mov	x20, x0
-	add	x0, sp, 80
+	mov	x21, x0
+	mov	x0, x27
 	bl	xsnprintf
-	add	x0, sp, 80
+	add	x20, sp, 608
+	mov	x0, x27
 	adrp	x1, .LC8
 	add	x1, x1, :lo12:.LC8
 	bl	fopen_nofollow
-	mov	x24, x0
+	mov	x25, x0
 	cbz	x0, .L33
-	stp	x21, x22, [sp, 32]
-	adrp	x22, .LC10
-	adrp	x21, .LC2
-	add	x22, x22, :lo12:.LC10
-	add	x21, x21, :lo12:.LC2
+	stp	x23, x24, [sp, 48]
+	adrp	x23, .LC10
+	adrp	x24, .LC2
+	add	x23, x23, :lo12:.LC10
+	add	x24, x24, :lo12:.LC2
 	.p2align 5,,15
-.L21:
-	mov	x2, x20
-	add	x0, sp, 592
+.L20:
+	mov	x2, x21
 	mov	w1, 512
+	mov	x0, x20
+	add	x19, sp, 1120
 	bl	fgets
-	cbz	x0, .L35
-.L23:
-	add	x3, sp, 592
-	mov	x2, x22
-	add	x19, sp, 1104
-	mov	x1, 512
+	mov	x4, x0
+	mov	x3, x20
+	mov	x2, x23
 	mov	x0, x19
+	mov	x1, 512
+	cbz	x4, .L35
 	bl	xsnprintf
-	mov	x1, x21
+	mov	x1, x24
 	mov	x0, x19
 	bl	strcspn
-	strb	wzr, [x19, x0]
-	mov	x1, x23
+	mov	x2, x0
+	mov	x1, x22
 	mov	x0, x19
+	strb	wzr, [x19, x2]
 	bl	strcmp
-	cbz	w0, .L21
-	mov	x1, x24
-	add	x0, sp, 592
-	bl	fputs
-	mov	x2, x20
-	add	x0, sp, 592
-	mov	w1, 512
-	bl	fgets
-	cbnz	x0, .L23
-.L35:
+	cbz	w0, .L20
+	mov	x1, x25
 	mov	x0, x20
+	bl	fputs
+	b	.L20
+	.p2align 2,,3
+.L35:
+	mov	x0, x21
 	bl	fclose
-	mov	x0, x24
+	mov	x0, x25
+	add	x26, x26, :lo12:.LC1
 	bl	fclose
-	add	x1, x25, :lo12:.LC1
-	add	x0, sp, 80
+	mov	x0, x27
+	mov	x1, x26
 	bl	rename
 	cbnz	w0, .L36
-	add	x0, x25, :lo12:.LC1
+	mov	x0, x26
 	bl	fix_owner
+	ldp	x23, x24, [sp, 48]
+	ldr	x27, [sp, 80]
+.L18:
+	ldp	x29, x30, [sp]
 	ldp	x19, x20, [sp, 16]
 	ldp	x21, x22, [sp, 32]
-.L19:
-	ldr	x25, [sp, 64]
-	ldp	x29, x30, [sp]
-	ldp	x23, x24, [sp, 48]
-	add	sp, sp, 1616
+	ldp	x25, x26, [sp, 64]
+	add	sp, sp, 1632
 	ret
 	.p2align 2,,3
 .L36:
-	add	x0, sp, 80
+	mov	x0, x27
 	bl	remove
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
+	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
 	mov	x2, 45
 	mov	x1, 1
-	ldr	x3, [x0]
 	adrp	x0, .LC11
 	add	x0, x0, :lo12:.LC11
+	ldr	x3, [x3]
 	bl	fwrite
-	ldr	x25, [sp, 64]
+	ldr	x27, [sp, 80]
+	ldp	x23, x24, [sp, 48]
+	ldp	x29, x30, [sp]
 	ldp	x19, x20, [sp, 16]
 	ldp	x21, x22, [sp, 32]
-	ldp	x29, x30, [sp]
-	ldp	x23, x24, [sp, 48]
-	add	sp, sp, 1616
+	ldp	x25, x26, [sp, 64]
+	add	sp, sp, 1632
 	ret
 	.p2align 2,,3
 .L33:
-	mov	x0, x20
+	mov	x0, x21
 	bl	fclose
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, 44
-	mov	x1, 1
-	ldr	x3, [x0]
+	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
 	adrp	x0, .LC9
+	mov	x2, 44
 	add	x0, x0, :lo12:.LC9
+	mov	x1, 1
+	ldr	x3, [x3]
 	bl	fwrite
-	ldp	x19, x20, [sp, 16]
-	b	.L19
+	ldr	x27, [sp, 80]
+	b	.L18
 	.section	.rodata.str1.8
 	.align	3
 .LC12:
@@ -290,7 +294,7 @@ remove_from_world:
 	.string	"\033[1;35m\n=========================================================="
 	.align	3
 .LC15:
-	.string	"1.2.0"
+	.string	"1.2.2"
 	.align	3
 .LC16:
 	.string	"   ARCHTOO WORLD UPDATE v%s\n"
@@ -367,25 +371,29 @@ cmd_world_update:
 	add	x0, x0, :lo12:.LC17
 	bl	printf
 	bl	get_sync
-	cbz	w0, .L82
+	cbz	w0, .L83
 	adrp	x0, .LC18
 	add	x0, x0, :lo12:.LC18
 	bl	printf
+	add	x19, sp, 96
 	bl	priv_prefix
 	mov	x20, x0
 	bl	use_noconfirm
-	cbnz	w0, .L83
+	cmp	w0, 0
+	adrp	x1, .LC12
 	adrp	x4, .LC13
+	add	x1, x1, :lo12:.LC12
 	add	x4, x4, :lo12:.LC13
-.L39:
+	csel	x4, x4, x1, eq
 	mov	x3, x20
 	adrp	x2, .LC19
 	add	x2, x2, :lo12:.LC19
 	mov	x1, 256
-	add	x0, sp, 96
+	mov	x0, x19
 	bl	xsnprintf
-	add	x0, sp, 96
+	mov	x0, x19
 	bl	run_cmd
+	mov	w2, w0
 	cbnz	w0, .L84
 	adrp	x0, .LC21
 	add	x0, x0, :lo12:.LC21
@@ -403,107 +411,104 @@ cmd_world_update:
 	add	x1, x1, :lo12:.LC0
 	add	x0, x0, :lo12:.LC1
 	bl	fopen_nofollow
-	mov	x22, x0
+	mov	x21, x0
 	cbz	x0, .L86
-	stp	x25, x26, [sp, 64]
-	add	x19, sp, 96
-	adrp	x25, .LC25
-	adrp	x26, :got:stderr
-	ldr	x26, [x26, :got_lo12:stderr]
-	add	x25, x25, :lo12:.LC25
 	stp	x23, x24, [sp, 48]
-	adrp	x23, .LC2
-	add	x23, x23, :lo12:.LC2
-	mov	x24, 0
+	adrp	x22, .LC2
+	add	x19, sp, 96
+	adrp	x24, :got:stderr;ldr	x24, [x24, :got_lo12:stderr]
+	add	x22, x22, :lo12:.LC2
+	mov	x23, 0
 	mov	x20, 0
-	mov	x21, 0
-	str	x27, [sp, 80]
+	stp	x25, x26, [sp, 64]
+	mov	x25, 0
 	.p2align 5,,15
-.L44:
-	mov	x2, x22
+.L46:
+	mov	x2, x21
 	mov	x0, x19
 	mov	w1, 512
 	bl	fgets
-	cbz	x0, .L52
-.L53:
-	mov	x1, x23
+	cbz	x0, .L51
+.L52:
+	mov	x1, x22
 	mov	x0, x19
 	bl	strcspn
 	strb	wzr, [x19, x0]
-	ldrb	w0, [sp, 96]
-	cmp	w0, 35
-	ccmp	w0, 0, 4, ne
-	beq	.L44
+	ldrb	w1, [sp, 96]
+	cmp	w1, 35
+	ccmp	w1, 0, 4, ne
+	beq	.L46
 	mov	x0, x19
 	bl	valid_pkgname
 	cbz	w0, .L87
-	cmp	x20, x24
+	cmp	x23, x20
 	bne	.L66
-	cbz	x20, .L67
-	lsl	x1, x20, 4
-	lsl	x24, x20, 1
+	cbz	x23, .L67
+	lsl	x1, x23, 4
+	lsl	x23, x23, 1
 .L50:
-	mov	x0, x21
+	mov	x0, x25
 	bl	realloc
-	mov	x27, x0
+	mov	x26, x0
 	cbz	x0, .L88
 .L49:
 	mov	x0, x19
 	bl	strdup
-	str	x0, [x27, x20, lsl 3]
+	str	x0, [x26, x20, lsl 3]
 	cbz	x0, .L68
 	add	x20, x20, 1
-	mov	x21, x27
-	mov	x2, x22
+	mov	x25, x26
+	mov	x2, x21
 	mov	x0, x19
 	mov	w1, 512
 	bl	fgets
-	cbnz	x0, .L53
-.L52:
-	mov	x0, x22
+	cbnz	x0, .L52
+.L51:
+	mov	x0, x21
 	bl	fclose
 	cbz	x20, .L89
 	mov	x0, x20
 	mov	x1, 1
-	adrp	x25, .LC28
+	adrp	x26, .LC28
+	add	x26, x26, :lo12:.LC28
+	str	x27, [sp, 80]
 	bl	calloc
-	add	x25, x25, :lo12:.LC28
-	mov	x22, x0
+	mov	x21, x0
 	mov	x19, 0
+	mov	x22, 0
 	mov	x24, 0
-	mov	x26, 0
 	.p2align 5,,15
 .L58:
 	mov	x23, x19
 	add	x19, x19, 1
-	mov	x2, x20
 	mov	x1, x19
-	mov	x0, x25
-	ldr	x27, [x21, x23, lsl 3]
+	mov	x2, x20
+	mov	x0, x26
+	ldr	x27, [x25, x23, lsl 3]
 	mov	x3, x27
 	bl	printf
 	mov	x0, x27
 	bl	cmd_build
-	cbz	x22, .L55
-	strb	w0, [x22, x23]
+	cbz	x21, .L55
+	strb	w0, [x21, x23]
 .L55:
 	cbz	w0, .L56
-	add	x26, x26, 1
+	add	x24, x24, 1
 .L57:
 	cmp	x19, x20
 	bne	.L58
 	adrp	x0, .LC29
 	add	x0, x0, :lo12:.LC29
 	bl	printf
-	cbnz	x24, .L59
+	mov	x1, x24
+	cbnz	x22, .L59
 	adrp	x0, .LC30
-	mov	x1, x26
 	add	x0, x0, :lo12:.LC30
 	bl	printf
 .L60:
-	mov	x19, x21
-	add	x20, x21, x20, lsl 3
-	mov	x0, x22
+	add	x20, x25, x20, lsl 3
+	mov	x19, x25
+	mov	x0, x21
 	bl	free
 	.p2align 5,,15
 .L63:
@@ -511,9 +516,9 @@ cmd_world_update:
 	bl	free
 	cmp	x20, x19
 	bne	.L63
-	mov	x0, x21
+	mov	x0, x25
 	bl	free
-	cmp	x24, 0
+	cmp	x22, 0
 	ldr	x27, [sp, 80]
 	cset	w0, eq
 	ldp	x21, x22, [sp, 32]
@@ -524,7 +529,7 @@ cmd_world_update:
 	add	sp, sp, 608
 	ret
 	.p2align 2,,3
-.L82:
+.L83:
 	stp	x21, x22, [sp, 32]
 	bl	get_aur_sync
 	cbz	w0, .L42
@@ -534,42 +539,37 @@ cmd_world_update:
 	bl	printf
 	b	.L43
 	.p2align 2,,3
-.L83:
-	adrp	x4, .LC12
-	add	x4, x4, :lo12:.LC12
-	b	.L39
-	.p2align 2,,3
 .L66:
-	mov	x27, x21
+	mov	x26, x25
 	b	.L49
 	.p2align 2,,3
 .L67:
 	mov	x1, 128
-	mov	x24, 16
+	mov	x23, 16
 	b	.L50
 	.p2align 2,,3
 .L56:
-	add	x24, x24, 1
+	add	x22, x22, 1
 	b	.L57
 	.p2align 2,,3
 .L87:
-	ldr	x0, [x26]
+	ldr	x0, [x24]
 	mov	x2, x19
-	mov	x1, x25
+	adrp	x1, .LC25
+	add	x1, x1, :lo12:.LC25
 	bl	fprintf
-	b	.L44
+	b	.L46
 	.p2align 2,,3
 .L89:
 	adrp	x0, .LC27
 	add	x0, x0, :lo12:.LC27
 	bl	printf
-	mov	x0, x21
+	mov	x0, x25
 	bl	free
 	ldp	x21, x22, [sp, 32]
 	mov	w0, 0
 	ldp	x23, x24, [sp, 48]
 	ldp	x25, x26, [sp, 64]
-	ldr	x27, [sp, 80]
 .L91:
 	ldp	x29, x30, [sp]
 	ldp	x19, x20, [sp, 16]
@@ -578,11 +578,10 @@ cmd_world_update:
 	.p2align 2,,3
 .L59:
 	adrp	x0, .LC31
-	mov	x2, x24
-	mov	x1, x26
+	mov	x2, x22
 	add	x0, x0, :lo12:.LC31
 	bl	printf
-	cbz	x22, .L60
+	cbz	x21, .L60
 	adrp	x0, .LC32
 	adrp	x23, .LC33
 	add	x0, x0, :lo12:.LC32
@@ -596,9 +595,9 @@ cmd_world_update:
 	cmp	x20, x19
 	beq	.L90
 .L62:
-	ldrb	w0, [x22, x19]
+	ldrb	w0, [x21, x19]
 	cbnz	w0, .L61
-	ldr	x1, [x21, x19, lsl 3]
+	ldr	x1, [x25, x19, lsl 3]
 	mov	x0, x23
 	add	x19, x19, 1
 	bl	printf
@@ -609,39 +608,34 @@ cmd_world_update:
 	bl	putchar
 	b	.L60
 .L84:
-	mov	w2, w0
+	adrp	x0, :got:stderr;ldr	x0, [x0, :got_lo12:stderr]
 	adrp	x1, .LC20
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
 	add	x1, x1, :lo12:.LC20
 	ldr	x0, [x0]
 	bl	fprintf
 	mov	w0, 0
 	b	.L91
 .L86:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
-	mov	x2, 36
-	mov	x1, 1
-	ldr	x3, [x0]
+	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
 	adrp	x0, .LC24
+	mov	x2, 36
 	add	x0, x0, :lo12:.LC24
+	mov	x1, 1
+	ldr	x3, [x3]
 	bl	fwrite
 	mov	w0, 0
 	ldp	x21, x22, [sp, 32]
 	b	.L91
 .L68:
-	mov	x21, x27
-	b	.L52
+	mov	x25, x26
+	b	.L51
 .L88:
-	adrp	x0, :got:stderr
-	ldr	x0, [x0, :got_lo12:stderr]
+	adrp	x3, :got:stderr;ldr	x3, [x3, :got_lo12:stderr]
+	adrp	x0, .LC26
 	mov	x2, 30
 	mov	x1, 1
-	ldr	x3, [x0]
-	adrp	x0, .LC26
 	add	x0, x0, :lo12:.LC26
+	ldr	x3, [x3]
 	bl	fwrite
-	b	.L52
+	b	.L51
 	.section	.note.GNU-stack,"",@progbits
-	.aeabi_subsection aeabi_feature_and_bits, optional, ULEB128
