@@ -1,5 +1,21 @@
 # Changelog
 
+## v3.2.2 — host-aware build (Termux/ARM boards can now build this tree too)
+
+### Added
+- The Makefile detects the host: on x86_64 it builds fully native (behaviour unchanged);
+  on any other host (e.g. Termux on aarch64) it cross-builds the x86-64 binary through
+  the `x86_64-linux-gnu-*` toolchain for crt/libc resolution and linking. NASM itself is
+  a cross-assembler, so the same `.asm` sources assemble everywhere.
+- `make check` is now a real smoke-test: it verifies the ELF, then runs `--version` and
+  `--help`; on cross hosts that goes through qemu-x86_64(-static) when available, and is
+  skipped with a polite notice when qemu is not installed.
+- Missing cross toolchain on a foreign host now fails with an actionable hint instead of
+  a linker mystery.
+
+### Changed
+- `VERSION` in the Makefile synced to 3.2.2 (it feeds the dist archive name).
+
 ## v3.2.1 — --binary auto-selects AUR binary variant (hotfix)
 
 ### Fixed
