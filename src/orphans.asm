@@ -1,19 +1,16 @@
 ; ---------------------------------------------------------
 ;  archtoo v3.0.0 - Gentoo-style compile engine for Arch
-;  orphans.asm - x86-64, SysV ABI
-;  assemble: nasm -f elf64 orphans.asm -o orphans.o
+;  orphans.asm - i686, cdecl (32-bit SysV)
+;  assemble: nasm -f elf32 orphans.asm -o orphans.o
 ; ---------------------------------------------------------
-
-default rel
 
 global cmd_orphans_v2: function
 
-extern __stack_chk_fail
+extern putc
 extern fwrite
 extern stderr
-extern free
 extern puts
-extern putc
+extern free
 extern strlen
 extern fputs
 extern stdout
@@ -23,93 +20,115 @@ extern run_cmd_capture
 SECTION .text   align=16 exec
 
 cmd_orphans_v2:; Function begin
-	sub     rsp, 40
-	lea     rdi, [rel str_LC0]
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	mov     rax, qword [fs:abs 0x28]
-	mov     qword [rsp+0x18], rax
-	xor     eax, eax
-	lea     rsi, [rsp+0x10]
-	mov     qword [rsp+0x10], 0
+	push    ebx
+	sub     esp, 32
+	lea     eax, [esp+0x14]
+	mov     dword [esp+0x14], 0
+	push    eax
+	push    loc_005
 	call    run_cmd_capture
+	add     esp, 16
 	cmp     eax, 1
-	ja      loc_004
-	mov     rdx, qword [rsp+0x10]
-	test    rdx, rdx
+	ja      loc_003
+	mov     edx, dword [esp+0x0C]
+	test    edx, edx
 	jz      loc_001
-	cmp     byte [rdx], 0
+	cmp     byte [edx], 0
 	jz      loc_001
 	test    eax, eax
-	jne     loc_004
-	lea     rdi, [rel str_LC3]
-	xor     eax, eax
+	jnz     loc_003
+	sub     esp, 12
+	push    loc_008
 	call    printf
-	mov     rsi, qword [rel stdout]
-	mov     rdi, qword [rsp+0x10]
+	pop     eax
+	pop     edx
+	push    dword [stdout]
+	push    dword [esp+0x18]
 	call    fputs
-	mov     rdi, qword [rsp+0x10]
-	mov     qword [rsp+0x8], rdi
+	mov     ebx, dword [esp+0x1C]
+	mov     dword [esp], ebx
 	call    strlen
-	mov     rdi, qword [rsp+0x8]
-	cmp     byte [rdi+rax-0x1], 10
-	jz      loc_002
-	mov     rsi, qword [rel stdout]
-	mov     edi, 10
-	call    putc
-	mov     rdi, qword [rsp+0x10]
+	add     esp, 16
+	cmp     byte [ebx+eax-0x1], 10
+	jnz     loc_004
+	sub     esp, 12
+	push    ebx
+	call    free
+	add     esp, 16
 	jmp     loc_002
 
-loc_001:  lea     rdi, [rel str_LC1]
+; Filling space: 0x6
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x0B6, 0x00, 0x00, 0x00, 0x00
+
+ALIGN   8
+loc_001:  sub     esp, 12
+	push    loc_006
 	call    puts
-	mov     rdi, qword [rsp+0x10]
-loc_002:  call    free
+	pop     ebx
+	push    dword [esp+0x18]
+	call    free
+	add     esp, 16
+loc_002:  add     esp, 24
 	mov     eax, 1
-loc_003:  mov     rdx, qword [rsp+0x18]
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	sub     rdx, qword [fs:abs 0x28]
-	jnz     loc_005
-	add     rsp, 40
+	pop     ebx
 	ret
 
-loc_004:  mov     rcx, qword [rel stderr]
-	mov     edx, 50
-	mov     esi, 1
-	lea     rdi, [rel str_LC2]
-	call    fwrite
-	mov     rdi, qword [rsp+0x10]
-	call    free
-	xor     eax, eax
-	jmp     loc_003
+; Filling space: 0x4
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x74, 0x26, 0x00
 
-loc_005:
-; Note: Function does not end with ret or jmp
-	call    __stack_chk_fail
+ALIGN   8
+loc_003:  push    dword [stderr]
+	push    50
+	push    1
+	push    loc_007
+	call    fwrite
+	pop     ecx
+	push    dword [esp+0x18]
+	call    free
+	add     esp, 16
+	xor     eax, eax
+	add     esp, 24
+	pop     ebx
+	ret
+
+loc_004:
+	sub     esp, 8
+	push    dword [stdout]
+	push    10
+	call    putc
+	mov     ebx, dword [esp+0x1C]
+	add     esp, 16
+	sub     esp, 12
+	push    ebx
+	call    free
+	add     esp, 16
+	jmp     loc_002
 
 SECTION .rodata.str1.1 align=1 noexec
 
-str_LC0:
+loc_005:
 	db 0x70, 0x61, 0x63, 0x6D, 0x61, 0x6E, 0x20, 0x2D
 	db 0x51, 0x64, 0x74, 0x71, 0x00
 
-str_LC1:
+loc_006:
 	db 0x4E, 0x6F, 0x20, 0x6F, 0x72, 0x70, 0x68, 0x61
 	db 0x6E, 0x65, 0x64, 0x20, 0x70, 0x61, 0x63, 0x6B
 	db 0x61, 0x67, 0x65, 0x73, 0x2E, 0x00
 
-SECTION .rodata.str1.8 align=8 noexec
+SECTION .rodata.str1.4 align=4 noexec
 
-str_LC2:
+loc_007:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x43, 0x6F, 0x75, 0x6C, 0x64
 	db 0x20, 0x6E, 0x6F, 0x74, 0x20, 0x71, 0x75, 0x65
 	db 0x72, 0x79, 0x20, 0x6F, 0x72, 0x70, 0x68, 0x61
 	db 0x6E, 0x65, 0x64, 0x20, 0x70, 0x61, 0x63, 0x6B
 	db 0x61, 0x67, 0x65, 0x73, 0x2E, 0x0A, 0x1B, 0x5B
-	db 0x30, 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x30, 0x6D, 0x00, 0x00
 
-str_LC3:
+loc_008:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x36, 0x6D, 0x3E
 	db 0x3E, 0x3E, 0x20, 0x4F, 0x72, 0x70, 0x68, 0x61
 	db 0x6E, 0x65, 0x64, 0x20, 0x64, 0x65, 0x70, 0x65

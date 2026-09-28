@@ -16,6 +16,21 @@
 ### Changed
 - `VERSION` in the Makefile synced to 3.2.2 (it feeds the dist archive name).
 
+## v1.0.0-x86 — x86 branch (i686) starts its own version line: 32-bit x86 build of the NASM engine
+
+### Added
+- This branch targets i686 (32-bit x86): NASM modules are regenerated with the 32-bit
+  pipeline (`nasm -f elf32`, `ld -m elf_i386`, cdecl ABI) from the same c_src/ sources —
+  everything v3.2.x can do (binary auto-select, dep resolution, ...), for 32-bit x86
+  systems and multilib workstations.
+- Host-aware Makefile: native on an i686 host; on x86_64 it builds through the gcc
+  multilib route (-m32 + lib32 glibc); any other host stops with an actionable hint.
+  `make check` runs the result under qemu-i386(-static) when available.
+
+### Changed
+- c_src -> asm regeneration flags switched to -march=i686 (baseline: SSE-less pentium4
+  era i686), objconv/strip_asm banner updated to "i686, cdecl (32-bit SysV)".
+
 ## v3.2.1 — --binary auto-selects AUR binary variant (hotfix)
 
 ### Fixed

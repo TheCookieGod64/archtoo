@@ -1,14 +1,11 @@
 ; ---------------------------------------------------------
 ;  archtoo v3.0.0 - Gentoo-style compile engine for Arch
-;  completion.asm - x86-64, SysV ABI
-;  assemble: nasm -f elf64 completion.asm -o completion.o
+;  completion.asm - i686, cdecl (32-bit SysV)
+;  assemble: nasm -f elf32 completion.asm -o completion.o
 ; ---------------------------------------------------------
-
-default rel
 
 global cmd_completion_v2: function
 
-extern __stack_chk_fail
 extern fputs
 extern stdout
 extern free
@@ -18,64 +15,63 @@ extern puts
 SECTION .text   align=16 exec
 
 cmd_completion_v2:; Function begin
-	push    rbx
-	lea     rdi, [rel str_LC0]
-	lea     rbx, [rel flags.0]
-	sub     rsp, 16
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	mov     rax, qword [fs:abs 0x28]
-	mov     qword [rsp+0x8], rax
-	xor     eax, eax
-	mov     qword [rsp], 0
-; Filling space: 0x5
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
+	push    ebx
+	mov     eax, loc_004
+	xor     ebx, ebx
+	sub     esp, 24
+	mov     dword [esp+0x0C], 0
+; Filling space: 0x0D
+; Filler type: lea with same source and destination
+;       db 0x2E, 0x8D, 0x0B4, 0x26, 0x00, 0x00, 0x00, 0x00
+;       db 0x2E, 0x8D, 0x74, 0x26, 0x00
 
-ALIGN   8
-loc_001:  call    puts
-	mov     rdi, qword [rbx+0x8]
-	add     rbx, 8
-	test    rdi, rdi
-	jnz     loc_001
-	lea     rdi, [rel str_LC1]
-	mov     rsi, rsp
-	call    run_cmd_capture
-	mov     rdi, qword [rsp]
+ALIGN   16
+loc_001:  sub     esp, 12
+	add     ebx, 1
+	push    eax
+	call    puts
+	mov     eax, dword [flags.0+ebx*4]
+	add     esp, 16
 	test    eax, eax
+	jnz     loc_001
+	sub     esp, 8
+	lea     eax, [esp+0x14]
+	push    eax
+	push    loc_005
+	call    run_cmd_capture
+	mov     edx, eax
+	mov     eax, dword [esp+0x1C]
+	add     esp, 16
+	test    edx, edx
 	jnz     loc_002
-	test    rdi, rdi
+	test    eax, eax
 	jz      loc_002
-	cmp     byte [rdi], 0
+	cmp     byte [eax], 0
 	jnz     loc_003
-loc_002:  call    free
-	mov     rax, qword [rsp+0x8]
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	sub     rax, qword [fs:abs 0x28]
-	jnz     loc_004
-	add     rsp, 16
+loc_002:  sub     esp, 12
+	push    eax
+	call    free
+	add     esp, 40
 	mov     eax, 1
-	pop     rbx
+	pop     ebx
 	ret
 
-; Filling space: 0x5
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
+; Filling space: 0x3
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x76, 0x00
 
 ALIGN   8
-loc_003:  mov     rsi, qword [rel stdout]
+loc_003:  sub     esp, 8
+	push    dword [stdout]
+	push    eax
 	call    fputs
-	mov     rdi, qword [rsp]
+	mov     eax, dword [esp+0x1C]
+	add     esp, 16
 	jmp     loc_002
-
-loc_004:
-; Note: Function does not end with ret or jmp
-	call    __stack_chk_fail
 
 SECTION .rodata.str1.1 align=1 noexec
 
-str_LC0:
+loc_004:
 	db 0x2D, 0x53, 0x00, 0x2D, 0x49, 0x00, 0x2D, 0x51
 	db 0x00, 0x2D, 0x41, 0x00, 0x2D, 0x47, 0x00, 0x2D
 	db 0x42, 0x00, 0x2D, 0x43, 0x00, 0x2D, 0x55, 0x00
@@ -158,90 +154,90 @@ str_LC0:
 	db 0x65, 0x63, 0x74, 0x00, 0x2D, 0x2D, 0x75, 0x70
 	db 0x64, 0x61, 0x74, 0x65, 0x00
 
-SECTION .rodata.str1.8 align=8 noexec
+SECTION .rodata.str1.4 align=4 noexec
 
-str_LC1:
+loc_005:
 	db 0x70, 0x61, 0x63, 0x6D, 0x61, 0x6E, 0x20, 0x2D
 	db 0x53, 0x6C, 0x71, 0x20, 0x32, 0x3E, 0x2F, 0x64
 	db 0x65, 0x76, 0x2F, 0x6E, 0x75, 0x6C, 0x6C, 0x20
 	db 0x7C, 0x20, 0x73, 0x6F, 0x72, 0x74, 0x20, 0x2D
 	db 0x75, 0x00
 
-SECTION .data.rel.ro.local align=32 noexec
+SECTION .rodata align=32 noexec
 
 flags.0:
-	dq str_LC0
-	dq str_LC0+0x3
-	dq str_LC0+0x6
-	dq str_LC0+0x9
-	dq str_LC0+0x0C
-	dq str_LC0+0x0F
-	dq str_LC0+0x12
-	dq str_LC0+0x15
-	dq str_LC0+0x18
-	dq str_LC0+0x1B
-	dq str_LC0+0x1E
-	dq str_LC0+0x21
-	dq str_LC0+0x24
-	dq str_LC0+0x27
-	dq str_LC0+0x2A
-	dq str_LC0+0x2E
-	dq str_LC0+0x32
-	dq str_LC0+0x36
-	dq str_LC0+0x3A
-	dq str_LC0+0x3E
-	dq str_LC0+0x45
-	dq str_LC0+0x49
-	dq str_LC0+0x4D
-	dq str_LC0+0x54
-	dq str_LC0+0x5E
-	dq str_LC0+0x6A
-	dq str_LC0+0x78
-	dq str_LC0+0x89
-	dq str_LC0+0x90
-	dq str_LC0+0x96
-	dq str_LC0+0x9F
-	dq str_LC0+0x0A7
-	dq str_LC0+0x0AD
-	dq str_LC0+0x0B9
-	dq str_LC0+0x0BF
-	dq str_LC0+0x0CE
-	dq str_LC0+0x0D5
-	dq str_LC0+0x0DF
-	dq str_LC0+0x0EF
-	dq str_LC0+0x0FB
-	dq str_LC0+0x10F
-	dq str_LC0+0x122
-	dq str_LC0+0x135
-	dq str_LC0+0x144
-	dq str_LC0+0x152
-	dq str_LC0+0x15B
-	dq str_LC0+0x168
-	dq str_LC0+0x172
-	dq str_LC0+0x178
-	dq str_LC0+0x183
-	dq str_LC0+0x192
-	dq str_LC0+0x19D
-	dq str_LC0+0x1AA
-	dq str_LC0+0x1B6
-	dq str_LC0+0x1C6
-	dq str_LC0+0x1CF
-	dq str_LC0+0x1D8
-	dq str_LC0+0x1E2
-	dq str_LC0+0x1EF
-	dq str_LC0+0x1F9
-	dq str_LC0+0x207
-	dq str_LC0+0x217
-	dq str_LC0+0x221
-	dq str_LC0+0x229
-	dq str_LC0+0x231
-	dq str_LC0+0x238
-	dq str_LC0+0x243
-	dq str_LC0+0x24B
-	dq str_LC0+0x257
-	dq str_LC0+0x25E
-	dq str_LC0+0x267
-	dq str_LC0+0x271
-	dq str_LC0+0x27C
-	dq 0x0000000000000000
+	dd loc_004
+	dd loc_004+0x3
+	dd loc_004+0x6
+	dd loc_004+0x9
+	dd loc_004+0x0C
+	dd loc_004+0x0F
+	dd loc_004+0x12
+	dd loc_004+0x15
+	dd loc_004+0x18
+	dd loc_004+0x1B
+	dd loc_004+0x1E
+	dd loc_004+0x21
+	dd loc_004+0x24
+	dd loc_004+0x27
+	dd loc_004+0x2A
+	dd loc_004+0x2E
+	dd loc_004+0x32
+	dd loc_004+0x36
+	dd loc_004+0x3A
+	dd loc_004+0x3E
+	dd loc_004+0x45
+	dd loc_004+0x49
+	dd loc_004+0x4D
+	dd loc_004+0x54
+	dd loc_004+0x5E
+	dd loc_004+0x6A
+	dd loc_004+0x78
+	dd loc_004+0x89
+	dd loc_004+0x90
+	dd loc_004+0x96
+	dd loc_004+0x9F
+	dd loc_004+0x0A7
+	dd loc_004+0x0AD
+	dd loc_004+0x0B9
+	dd loc_004+0x0BF
+	dd loc_004+0x0CE
+	dd loc_004+0x0D5
+	dd loc_004+0x0DF
+	dd loc_004+0x0EF
+	dd loc_004+0x0FB
+	dd loc_004+0x10F
+	dd loc_004+0x122
+	dd loc_004+0x135
+	dd loc_004+0x144
+	dd loc_004+0x152
+	dd loc_004+0x15B
+	dd loc_004+0x168
+	dd loc_004+0x172
+	dd loc_004+0x178
+	dd loc_004+0x183
+	dd loc_004+0x192
+	dd loc_004+0x19D
+	dd loc_004+0x1AA
+	dd loc_004+0x1B6
+	dd loc_004+0x1C6
+	dd loc_004+0x1CF
+	dd loc_004+0x1D8
+	dd loc_004+0x1E2
+	dd loc_004+0x1EF
+	dd loc_004+0x1F9
+	dd loc_004+0x207
+	dd loc_004+0x217
+	dd loc_004+0x221
+	dd loc_004+0x229
+	dd loc_004+0x231
+	dd loc_004+0x238
+	dd loc_004+0x243
+	dd loc_004+0x24B
+	dd loc_004+0x257
+	dd loc_004+0x25E
+	dd loc_004+0x267
+	dd loc_004+0x271
+	dd loc_004+0x27C
+	dd 0x00000000
 

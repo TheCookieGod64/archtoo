@@ -12,8 +12,8 @@ $src =~ s/\r\n/\n/g;
 $src =~ s/\A(?:;[^\n]*\n)+//;
 my $header = "; ---------------------------------------------------------\n"
            . ";  archtoo v3.0.0 - Gentoo-style compile engine for Arch\n"
-           . ";  $mod.asm - x86-64, SysV ABI\n"
-           . ";  assemble: nasm -f elf64 $mod.asm -o $mod.o\n"
+           . ";  $mod.asm - i686, cdecl (32-bit SysV)\n"
+           . ";  assemble: nasm -f elf32 $mod.asm -o $mod.o\n"
            . "; ---------------------------------------------------------\n";
 $src = $header . $src;
 

@@ -1,21 +1,14 @@
 ; ---------------------------------------------------------
 ;  archtoo v3.0.0 - Gentoo-style compile engine for Arch
-;  cli.asm - x86-64, SysV ABI
-;  assemble: nasm -f elf64 cli.asm -o cli.o
+;  cli.asm - i686, cdecl (32-bit SysV)
+;  assemble: nasm -f elf32 cli.asm -o cli.o
 ; ---------------------------------------------------------
-
-default rel
 
 global archtoo_cli_main: function
 
 extern get_resume
-extern cmd_dependency_plan_v2
-extern cmd_provider_v2
-extern cmd_unmerge
 extern cmd_local_build_v2
-extern cmd_clean_v2
 extern cmd_world_update
-extern cmd_deselect
 extern set_use_binary
 extern set_portage_imitation
 extern set_gentoo_chroot
@@ -25,29 +18,33 @@ extern set_raw_flags
 extern valid_raw_flags
 extern strlen
 extern print_known_opt_levels
-extern cmd_gentoo_imitation_build
-extern valid_pkgname
 extern set_opt_level
-extern cmd_get_pkgbuild_v2
-extern cmd_build
+extern cmd_unmerge
+extern cmd_clean_v2
 extern valid_opt_level
+extern cmd_dependency_plan_v2
+extern cmd_provider_v2
+extern valid_pkgname
+extern cmd_get_pkgbuild_v2
+extern cmd_gentoo_imitation_build
+extern print_known_targets
 extern cmd_devel_v2
-extern init_system
+extern cmd_build
 extern acquire_sudo
 extern cmd_review_v2
-extern print_known_targets
+extern cmd_stats_v2
 extern cmd_news_v2
 extern cmd_completion_v2
-extern cmd_stats_v2
 extern cmd_orphans_v2
-extern __stack_chk_fail
 extern set_target_arch
 extern cmd_search_v2
 extern get_jobs
+extern cmd_deselect
+extern init_system
 extern set_jobs
-extern set_use_pipe
 extern cmd_query_v2
 extern cmd_available_info_v2
+extern set_use_pipe
 extern set_aur_sync
 extern set_sync
 extern valid_target_arch
@@ -68,7 +65,7 @@ extern get_makepkg_raw
 extern guide_policy_parse
 extern fwrite
 extern stderr
-extern __isoc23_strtol
+extern strtol
 extern strncmp
 extern strcmp
 extern get_target_arch
@@ -85,2316 +82,2893 @@ extern printf
 SECTION .text   align=16 exec
 
 print_usage:
-	sub     rsp, 8
-	lea     rdx, [rel str_LC0]
-	lea     rsi, [rel str_LC1]
-	xor     eax, eax
-	lea     rdi, [rel str_LC2]
+	sub     esp, 16
+	push    loc_169
+	push    loc_170
+	push    loc_171
 	call    printf
-	lea     rdi, [rel str_LC3]
+	mov     dword [esp], loc_172
 	call    puts
-	lea     rdi, [rel str_LC4]
+	mov     dword [esp], loc_264
 	call    puts
-	lea     rdi, [rel str_LC5]
+	mov     dword [esp], loc_265
 	call    puts
-	lea     rdi, [rel str_LC6]
+	mov     dword [esp], loc_266
 	call    puts
-	lea     rdi, [rel str_LC7]
+	mov     dword [esp], loc_267
 	call    puts
-	lea     rdi, [rel str_LC8]
+	mov     dword [esp], loc_268
 	call    puts
-	lea     rdi, [rel str_LC9]
+	mov     dword [esp], loc_269
 	call    puts
-	lea     rdi, [rel str_LC10]
+	mov     dword [esp], loc_270
 	call    puts
-	lea     rdi, [rel str_LC11]
+	mov     dword [esp], loc_271
 	call    puts
-	lea     rdi, [rel str_LC12]
+	mov     dword [esp], loc_272
 	call    puts
-	lea     rdi, [rel str_LC13]
+	mov     dword [esp], loc_273
 	call    puts
-	lea     rdi, [rel str_LC14]
+	mov     dword [esp], loc_274
 	call    puts
-	lea     rdi, [rel str_LC15]
+	mov     dword [esp], loc_275
 	call    puts
-	lea     rdi, [rel str_LC16]
+	mov     dword [esp], loc_276
 	call    puts
-	lea     rdi, [rel str_LC17]
+	mov     dword [esp], loc_277
 	call    puts
-	lea     rdi, [rel str_LC18]
+	mov     dword [esp], loc_278
 	call    puts
-	lea     rdi, [rel str_LC19]
+	mov     dword [esp], loc_279
 	call    puts
-	lea     rdi, [rel str_LC20]
+	mov     dword [esp], loc_280
 	call    puts
-	lea     rdi, [rel str_LC21]
+	mov     dword [esp], loc_281
 	call    puts
-	lea     rdi, [rel str_LC22]
+	mov     dword [esp], loc_282
 	call    puts
-	lea     rdi, [rel str_LC23]
+	mov     dword [esp], loc_283
 	call    puts
-	lea     rdi, [rel str_LC24]
+	mov     dword [esp], loc_284
 	call    puts
-	lea     rdi, [rel str_LC25]
+	mov     dword [esp], loc_173
 	call    puts
-	lea     rdi, [rel str_LC26]
+	mov     dword [esp], loc_285
 	call    puts
-	lea     rdi, [rel str_LC27]
+	mov     dword [esp], loc_286
 	call    puts
-	lea     rdi, [rel str_LC28]
+	mov     dword [esp], loc_287
 	call    puts
-	lea     rdi, [rel str_LC29]
+	mov     dword [esp], loc_288
 	call    puts
-	lea     rdi, [rel str_LC30]
+	mov     dword [esp], loc_289
 	call    puts
-	lea     rdi, [rel str_LC31]
+	mov     dword [esp], loc_290
 	call    puts
-	lea     rdi, [rel str_LC32]
+	mov     dword [esp], loc_291
 	call    puts
-	lea     rdi, [rel str_LC33]
+	mov     dword [esp], loc_292
 	call    puts
-	lea     rdi, [rel str_LC34]
+	mov     dword [esp], loc_293
 	call    puts
-	lea     rdi, [rel str_LC35]
+	mov     dword [esp], loc_294
 	call    puts
-	lea     rdi, [rel str_LC36]
+	mov     dword [esp], loc_295
 	call    puts
-	lea     rdi, [rel str_LC37]
+	mov     dword [esp], loc_296
 	call    puts
-	lea     rdi, [rel str_LC38]
+	mov     dword [esp], loc_297
 	call    puts
-	lea     rdi, [rel str_LC39]
+	mov     dword [esp], loc_298
 	call    puts
-	lea     rdi, [rel str_LC40]
+	mov     dword [esp], loc_299
 	call    puts
-	lea     rdi, [rel str_LC41]
+	mov     dword [esp], loc_300
 	call    puts
-	lea     rdi, [rel str_LC42]
+	mov     dword [esp], loc_301
 	call    puts
-	lea     rdi, [rel str_LC43]
+	mov     dword [esp], loc_302
 	call    puts
-	lea     rdi, [rel str_LC44]
+	mov     dword [esp], loc_303
 	call    puts
-	lea     rdi, [rel str_LC45]
+	mov     dword [esp], loc_304
 	call    puts
-	lea     rdi, [rel str_LC46]
+	mov     dword [esp], loc_305
 	call    puts
-	lea     rdi, [rel str_LC47]
+	mov     dword [esp], loc_306
 	call    puts
-	lea     rdi, [rel str_LC48]
+	mov     dword [esp], loc_307
 	call    puts
-	lea     rdi, [rel str_LC49]
+	mov     dword [esp], loc_308
 	call    puts
-	lea     rdi, [rel str_LC50]
+	mov     dword [esp], loc_309
 	call    puts
-	lea     rdi, [rel str_LC51]
+	mov     dword [esp], loc_310
 	call    puts
-	lea     rdi, [rel str_LC52]
+	mov     dword [esp], loc_311
 	call    puts
-	lea     rdi, [rel str_LC53]
+	mov     dword [esp], loc_312
 	call    puts
-	lea     rdi, [rel str_LC54]
+	mov     dword [esp], loc_313
 	call    puts
-	lea     rdi, [rel str_LC55]
+	mov     dword [esp], loc_314
 	call    puts
-	lea     rdi, [rel str_LC56]
+	mov     dword [esp], loc_315
 	call    puts
-	lea     rdi, [rel str_LC57]
+	mov     dword [esp], loc_316
 	call    puts
-	lea     rdi, [rel str_LC58]
+	mov     dword [esp], loc_317
 	call    puts
-	lea     rdi, [rel str_LC59]
-	add     rsp, 8
-	jmp     puts
+	mov     dword [esp], loc_318
+	call    puts
+	add     esp, 28
+	ret
+
+; Filling space: 0x9
+; Filler type: lea with same source and destination
+;       db 0x2E, 0x8D, 0x0B4, 0x26, 0x00, 0x00, 0x00, 0x00
+;       db 0x90
+
+ALIGN   16
 
 archtoo_cli_main:; Function begin
-	sub     rsp, 2152
-	mov     qword [rsp+0x858], r14
-	mov     r14d, edi
-	mov     qword [rsp+0x848], r12
-	mov     qword [rsp+0x850], r13
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	mov     r13, qword [fs:abs 0x28]
-	mov     qword [rsp+0x828], r13
-	mov     r13, rsi
+	push    ebp
+	push    edi
+	push    esi
+	push    ebx
+	sub     esp, 1068
 	call    geteuid
 	test    eax, eax
 	jnz     loc_001
-	lea     rdi, [rel str_LC65]
+	sub     esp, 12
+	push    loc_179
 	call    getenv
-	test    rax, rax
-	je      loc_042
+	add     esp, 16
+	test    eax, eax
+	je      loc_041
 loc_001:  call    load_user_config
-	cmp     r14d, 1
-	jle     loc_033
-	mov     qword [rsp+0x838], rbx
-	mov     rbx, qword [r13+0x8]
-	mov     qword [rsp+0x840], rbp
-	movzx   ebp, byte [rbx]
-	cmp     ebp, 45
+	cmp     dword [esp+0x440], 1
+	jle     loc_032
+	mov     eax, dword [esp+0x444]
+	mov     ebx, dword [eax+0x4]
+	movzx   esi, byte [ebx]
+	cmp     esi, 45
 	jne     loc_005
-	cmp     byte [rbx+0x1], 118
+	cmp     byte [ebx+0x1], 118
 	jne     loc_005
-	cmp     byte [rbx+0x2], 0
+	cmp     byte [ebx+0x2], 0
 	jne     loc_005
 loc_002:  call    get_use_binary
-	lea     rbx, [rel str_LC61]
-	lea     r13, [rel str_LC62]
+	mov     ebx, loc_175
+	mov     ebp, loc_176
+	mov     edi, loc_178
 	test    eax, eax
-	lea     rbp, [rel str_LC64]
-	cmovne  r13, rbx
+	cmovne  ebp, ebx
 	call    get_gentoo_chroot
 	test    eax, eax
-	lea     rax, [rel str_LC62]
-	cmove   rbx, rax
+	mov     eax, loc_176
+	cmove   ebx, eax
 	call    get_use_pipe
 	test    eax, eax
-	lea     rax, [rel str_LC63]
-	cmovne  rbp, rax
+	mov     eax, loc_177
+	cmovne  edi, eax
 	call    get_opt_level
-	mov     r12, rax
+	mov     esi, eax
 	call    get_target_arch
-	push    r13
-	mov     r9, rbp
-	mov     r8, r12
-	push    rbx
-	mov     rcx, rax
-	xor     eax, eax
-	lea     rdx, [rel str_LC0]
-	lea     rsi, [rel str_LC1]
-	lea     rdi, [rel str_LC70]
+	push    ebp
+	push    ebx
+	push    edi
+	push    esi
+	push    eax
+	push    loc_169
+	push    loc_170
+	push    loc_321
 	call    printf
-	lea     rdi, [rel str_LC71]
+	add     esp, 20
+	push    loc_322
 	call    puts
-	lea     rdi, [rel str_LC72]
+	mov     dword [esp], loc_323
 	call    puts
-	pop     r8
-	pop     r9
-loc_003:  mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	xor     r12d, r12d
-loc_004:  mov     rax, qword [rsp+0x828]
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	sub     rax, qword [fs:abs 0x28]
-	jne     loc_086
-	mov     eax, r12d
-	mov     r13, qword [rsp+0x850]
-	mov     r12, qword [rsp+0x848]
-	mov     r14, qword [rsp+0x858]
-	add     rsp, 2152
+	add     esp, 16
+loc_003:  xor     eax, eax
+loc_004:  add     esp, 1068
+	pop     ebx
+	pop     esi
+	pop     edi
+	pop     ebp
 	ret
 
-; Filling space: 0x7
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00
+; Filling space: 0x3
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x76, 0x00
 
 ALIGN   8
-loc_005:  lea     rsi, [rel str_LC69]
-	mov     rdi, rbx
+loc_005:  sub     esp, 8
+	push    loc_181
+	push    ebx
 	call    strcmp
+	add     esp, 16
 	test    eax, eax
 	je      loc_002
-	cmp     ebp, 45
+	cmp     esi, 45
 	jnz     loc_006
-	cmp     byte [rbx+0x1], 104
+	cmp     byte [ebx+0x1], 104
 	je      loc_012
-loc_006:  lea     rsi, [rel str_LC73]
-	mov     rdi, rbx
+loc_006:  sub     esp, 8
+	mov     ebp, 1
+	push    loc_182
+	push    ebx
 	call    strcmp
+	add     esp, 16
+	xor     edx, edx
 	test    eax, eax
 	je      loc_013
-	mov     qword [rsp+0x860], r15
-	mov     ebp, 1
-	xor     r12d, r12d
-loc_007:  movsxd  rax, ebp
-	lea     rsi, [rel str_LC75]
-	shl     rax, 3
-	lea     r15, [r13+rax]
-	mov     qword [rsp], rax
-	mov     rbx, qword [r15]
-	mov     rdi, rbx
+	mov     dword [esp+0x4], edx
+loc_007:  mov     edi, dword [esp+0x444]
+	lea     esi, [ebp*4]
+	sub     esp, 8
+	add     edi, esi
+	mov     ebx, dword [edi]
+	push    loc_183
+	push    ebx
 	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_030
+	sub     esp, 8
+	push    loc_184
+	push    ebx
+	call    strcmp
+	add     esp, 16
 	test    eax, eax
 	je      loc_031
-	lea     rsi, [rel str_LC76]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_032
-	mov     edx, 16
-	lea     rsi, [rel str_LC77]
-	mov     rdi, rbx
+	sub     esp, 4
+	push    16
+	push    loc_185
+	push    ebx
 	call    strncmp
+	add     esp, 16
 	test    eax, eax
 	je      loc_011
-	movzx   eax, byte [rbx]
-	mov     dword [rsp+0x0C], eax
+	movzx   eax, byte [ebx]
+	mov     dword [esp+0x8], eax
 	cmp     eax, 45
 	jnz     loc_008
-	cmp     byte [rbx+0x1], 105
+	cmp     byte [ebx+0x1], 105
 	je      loc_017
-loc_008:  lea     rsi, [rel str_LC79]
-	mov     rdi, rbx
+loc_008:  sub     esp, 8
+	push    loc_186
+	push    ebx
 	call    strcmp
+	add     esp, 16
 	test    eax, eax
 	je      loc_018
-	lea     rsi, [rel str_LC80]
-	mov     rdi, rbx
+	sub     esp, 8
+	push    loc_187
+	push    ebx
 	call    strcmp
+	add     esp, 16
 	test    eax, eax
 	jne     loc_024
 	add     ebp, 1
-	cmp     ebp, r14d
-	jge     loc_076
-	mov     rax, qword [rsp]
-	lea     rsi, [rsp+0x18]
-	mov     edx, 10
-	mov     qword [rsp+0x18], 0
-	mov     rdi, qword [r13+rax+0x8]
-	call    __isoc23_strtol
-	mov     rdi, rax
-	mov     rax, qword [rsp+0x18]
-	test    rax, rax
+	cmp     ebp, dword [esp+0x440]
+	jge     loc_073
+	mov     dword [esp+0x1C], 0
+	sub     esp, 4
+	push    10
+	lea     eax, [esp+0x24]
+	push    eax
+	mov     eax, dword [esp+0x450]
+	push    dword [eax+esi+0x4]
+	call    strtol
+	mov     edx, dword [esp+0x2C]
+	add     esp, 16
+	test    edx, edx
 	jz      loc_009
-	cmp     byte [rax], 0
+	cmp     byte [edx], 0
 	jnz     loc_009
-	cmp     rdi, 86400
+	cmp     eax, 86400
 	jbe     loc_046
-loc_009:  mov     rcx, qword [rel stderr]
-	mov     edx, 51
-	mov     esi, 1
-	lea     rdi, [rel str_LC82]
+loc_009:  push    dword [stderr]
+	push    51
+	push    1
+	push    loc_327
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	nop
-loc_010:  mov     r12d, 1
-	jmp     loc_004
+	add     esp, 16
+loc_010:  add     esp, 1068
+	mov     eax, 1
+	pop     ebx
+	pop     esi
+	pop     edi
+	pop     ebp
+	ret
 
-; Filling space: 0x5
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
+; Filling space: 0x9
+; Filler type: lea with same source and destination
+;       db 0x2E, 0x8D, 0x0B4, 0x26, 0x00, 0x00, 0x00, 0x00
+;       db 0x90
 
-ALIGN   8
-loc_011:  lea     rsi, [rsp+0x18]
-	lea     rdi, [rbx+0x10]
+ALIGN   16
+loc_011:  sub     esp, 8
+	add     ebx, 16
+	lea     eax, [esp+0x24]
+	push    eax
+	push    ebx
 	call    guide_policy_parse
+	add     esp, 16
 	test    eax, eax
-	jne     loc_029
-	mov     rcx, qword [rel stderr]
-	mov     edx, 77
-	mov     esi, 1
-	lea     rdi, [rel str_LC78]
+	jne     loc_028
+	push    dword [stderr]
+	push    77
+	push    1
+	push    loc_325
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
+	add     esp, 16
 	jmp     loc_010
 
 ; Filling space: 0x3
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x00
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x76, 0x00
 
 ALIGN   8
-loc_012:  cmp     byte [rbx+0x2], 0
+loc_012:  cmp     byte [ebx+0x2], 0
 	jne     loc_006
 loc_013:  call    print_usage
 	call    get_target_arch
-	lea     rsi, [rel str_LC67]
-	mov     rdi, rax
+	sub     esp, 8
+	push    loc_180
+	push    eax
 	call    strcmp
+	add     esp, 16
 	test    eax, eax
-	je      loc_030
+	je      loc_029
 loc_014:  call    get_makepkg_raw
-	lea     r12, [rel str_LC60]
-	cmp     byte [rax], 0
-	jne     loc_039
-loc_015:  call    get_raw_flags
-	lea     rbp, [rel str_LC60]
-	cmp     byte [rax], 0
+	mov     edi, loc_174
+	cmp     byte [eax], 0
 	jne     loc_038
+loc_015:  call    get_raw_flags
+	mov     ebp, loc_174
+	cmp     byte [eax], 0
+	jne     loc_037
 loc_016:  call    get_use_pipe
-	lea     rbx, [rel str_LC64]
+	mov     esi, loc_178
 	test    eax, eax
-	lea     rax, [rel str_LC63]
-	cmovne  rbx, rax
+	mov     eax, loc_177
+	cmovne  esi, eax
 	call    get_opt_level
-	mov     r13, rax
+	mov     ebx, eax
 	call    get_target_arch
-	mov     r9, r12
-	mov     r8, rbp
-	mov     rcx, rbx
-	mov     rsi, rax
-	mov     rdx, r13
-	lea     rdi, [rel str_LC74]
-	xor     eax, eax
+	sub     esp, 8
+	push    edi
+	push    ebp
+	push    esi
+	push    ebx
+	push    eax
+	push    loc_324
 	call    printf
+	add     esp, 32
 	jmp     loc_003
 
 ; Filling space: 0x3
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x00
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x76, 0x00
 
 ALIGN   8
-loc_017:  cmp     byte [rbx+0x2], 0
+loc_017:  cmp     byte [ebx+0x2], 0
 	jne     loc_008
-loc_018:  mov     edi, 1
+loc_018:  sub     esp, 12
+	push    1
 	call    set_interactive
+	add     esp, 16
 loc_019:  add     ebp, 1
-	cmp     r14d, ebp
+	cmp     dword [esp+0x440], ebp
 	jle     loc_020
-	cmp     r12d, 255
+	cmp     dword [esp+0x4], 255
 	jne     loc_007
-loc_020:  mov     eax, r12d
-	mov     qword [rsp+rax*8+0x20], 0
+loc_020:  mov     edx, dword [esp+0x4]
+	mov     dword [esp+edx*4+0x20], 0
 	call    guide_maybe_show
-	cmp     r12d, 1
-	je      loc_053
-	test    r12d, r12d
-	je      loc_070
-	mov     rbp, qword [rsp+0x20]
-	movzx   eax, byte [rbp]
+	mov     edx, dword [esp+0x4]
+	cmp     edx, 1
+	je      loc_051
+	test    edx, edx
+	je      loc_068
+	mov     ebp, dword [esp+0x20]
+	movzx   eax, byte [ebp]
 	cmp     eax, 45
-	je      loc_058
-loc_021:  lea     rsi, [rel str_LC162]
-	mov     rdi, rbp
+	je      loc_057
+loc_021:  mov     dword [esp+0x4], edx
+	sub     esp, 8
+	push    loc_244
+	push    ebp
 	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
+	test    eax, eax
+	je      loc_084
+	mov     dword [esp+0x4], edx
+	sub     esp, 8
+	push    loc_245
+	push    ebp
+	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
 	test    eax, eax
 	je      loc_088
-	lea     rsi, [rel str_LC163]
-	mov     rdi, rbp
+	mov     dword [esp+0x4], edx
+	push    ebx
+	push    ebx
+	push    loc_246
+	push    ebp
 	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
 	test    eax, eax
-	je      loc_089
-	lea     rsi, [rel str_LC164]
-	mov     rdi, rbp
+	je      loc_087
+	mov     dword [esp+0x4], edx
+	push    ecx
+	push    ecx
+	push    loc_247
+	push    ebp
 	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
 	test    eax, eax
-	je      loc_093
-	lea     rsi, [rel str_LC165]
-	mov     rdi, rbp
+	je      loc_086
+	mov     dword [esp+0x4], edx
+	push    edx
+	push    edx
+	push    loc_248
+	push    ebp
 	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
 	test    eax, eax
-	je      loc_092
-	lea     rsi, [rel str_LC166]
-	mov     rdi, rbp
+	je      loc_094
+	mov     dword [esp+0x4], edx
+	push    eax
+	push    eax
+	push    loc_249
+	push    ebp
 	call    strcmp
-	test    eax, eax
-	je      loc_099
-	lea     rsi, [rel str_LC167]
-	mov     rdi, rbp
-	call    strcmp
-	cmp     r12d, 2
+	mov     edx, dword [esp+0x14]
+	add     esp, 16
+	cmp     edx, 2
 	sete    bl
 	test    eax, eax
 	jnz     loc_022
 	test    bl, bl
-	jne     loc_153
-loc_022:  lea     rsi, [rel str_LC168]
-	mov     rdi, rbp
+	jne     loc_113
+loc_022:  mov     dword [esp+0x4], edx
+	push    eax
+	push    eax
+	push    loc_250
+	push    ebp
 	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
 	test    eax, eax
 	jnz     loc_023
 	test    bl, bl
-	jne     loc_156
-loc_023:  lea     rsi, [rel str_LC169]
-	mov     rdi, rbp
+	jne     loc_114
+loc_023:  mov     dword [esp+0x4], edx
+	push    eax
+	push    eax
+	push    loc_251
+	push    ebp
 	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
 	test    eax, eax
-	jne     loc_096
-	cmp     r12d, 2
-	je      loc_095
-	mov     rcx, qword [rel stderr]
-	mov     edx, 46
-	mov     esi, 1
-	lea     rdi, [rel str_LC170]
+	jne     loc_091
+	cmp     edx, 2
+	je      loc_090
+	push    dword [stderr]
+	push    46
+	push    1
+	push    loc_351
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
+	add     esp, 16
 	jmp     loc_010
-
-; Filling space: 0x6
-; Filler type: Multi-byte NOP
-;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
-
-ALIGN   8
-loc_024:  cmp     dword [rsp+0x0C], 45
-	jnz     loc_025
-	cmp     byte [rbx+0x1], 114
-	je      loc_040
-loc_025:  lea     rsi, [rel str_LC83]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_041
-	lea     rsi, [rel str_LC84]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_047
-	lea     rsi, [rel str_LC85]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_043
-	lea     rsi, [rel str_LC86]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_052
-	lea     rsi, [rel str_LC87]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_055
-	lea     rsi, [rel str_LC88]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_064
-	lea     rsi, [rel str_LC89]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_067
-	cmp     dword [rsp+0x0C], 45
-	jne     loc_048
-	cmp     byte [rbx+0x1], 106
-	jne     loc_048
-	cmp     byte [rbx+0x2], 0
-	jne     loc_048
-loc_026:  add     ebp, 1
-	cmp     ebp, r14d
-	jge     loc_087
-	mov     rax, qword [rsp]
-	lea     rsi, [rsp+0x18]
-	mov     edx, 10
-	mov     qword [rsp+0x18], 0
-	lea     rbx, [r13+rax+0x8]
-	mov     rdi, qword [rbx]
-	call    __isoc23_strtol
-	mov     rdi, rax
-	mov     rax, qword [rsp+0x18]
-	test    rax, rax
-	jz      loc_027
-	cmp     byte [rax], 0
-	jnz     loc_027
-	lea     rax, [rdi-0x1]
-	cmp     rax, 1023
-	jbe     loc_066
-loc_027:  mov     rdx, qword [rbx]
-	lea     rsi, [rel str_LC92]
-loc_028:  mov     rdi, qword [rel stderr]
-	xor     eax, eax
-	call    fprintf
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_010
-
-; Filling space: 0x8
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00
-
-ALIGN   16
-loc_029:  mov     edi, dword [rsp+0x18]
-	call    guide_set_policy
-	jmp     loc_019
-
-; Filling space: 0x2
-; Filler type: NOP with prefixes
-;       db 0x66, 0x90
-
-ALIGN   8
-loc_030:  call    get_opt_level
-	cmp     byte [rax], 51
-	jne     loc_014
-	movzx   r12d, byte [rax+0x1]
-	test    r12d, r12d
-	jne     loc_014
-	call    get_raw_flags
-	cmp     byte [rax], 0
-	jne     loc_014
-	call    get_makepkg_raw
-	cmp     byte [rax], 0
-	jne     loc_014
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	jmp     loc_004
 
 ; Filling space: 0x3
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x00
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x76, 0x00
 
 ALIGN   8
-loc_031:  mov     edi, 1
-	call    set_noconfirm
+loc_024:  cmp     dword [esp+0x8], 45
+	jnz     loc_025
+	cmp     byte [ebx+0x1], 114
+	je      loc_039
+loc_025:  sub     esp, 8
+	push    loc_188
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_040
+	sub     esp, 8
+	push    loc_189
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_047
+	sub     esp, 8
+	push    loc_190
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_043
+	sub     esp, 8
+	push    loc_191
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_050
+	sub     esp, 8
+	push    loc_192
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_053
+	sub     esp, 8
+	push    loc_193
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_056
+	sub     esp, 8
+	push    loc_194
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_064
+	cmp     dword [esp+0x8], 45
+	jne     loc_048
+	cmp     byte [ebx+0x1], 106
+	jne     loc_048
+	cmp     byte [ebx+0x2], 0
+	jne     loc_048
+loc_026:  add     ebp, 1
+	cmp     ebp, dword [esp+0x440]
+	jge     loc_083
+	mov     eax, dword [esp+0x444]
+	mov     dword [esp+0x1C], 0
+	sub     esp, 4
+	push    10
+	lea     ebx, [eax+esi+0x4]
+	lea     eax, [esp+0x24]
+	push    eax
+	push    dword [ebx]
+	call    strtol
+	mov     edx, dword [esp+0x2C]
+	add     esp, 16
+	test    edx, edx
+	jz      loc_027
+	cmp     byte [edx], 0
+	jnz     loc_027
+	lea     edx, [eax-0x1]
+	cmp     edx, 1023
+	jbe     loc_063
+loc_027:  sub     esp, 4
+	push    dword [ebx]
+	push    loc_329
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
+	jmp     loc_010
+
+; Filling space: 0x9
+; Filler type: lea with same source and destination
+;       db 0x2E, 0x8D, 0x0B4, 0x26, 0x00, 0x00, 0x00, 0x00
+;       db 0x90
+
+ALIGN   16
+loc_028:  sub     esp, 12
+	push    dword [esp+0x28]
+	call    guide_set_policy
+	add     esp, 16
 	jmp     loc_019
+
+; Filling space: 0x4
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x74, 0x26, 0x00
+
+ALIGN   8
+loc_029:  call    get_opt_level
+	cmp     byte [eax], 51
+	jne     loc_014
+	cmp     byte [eax+0x1], 0
+	jne     loc_014
+	call    get_raw_flags
+	cmp     byte [eax], 0
+	jne     loc_014
+	call    get_makepkg_raw
+	cmp     byte [eax], 0
+	jne     loc_014
+	jmp     loc_003
+
+; Filling space: 0x7
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x0B4, 0x26, 0x00, 0x00, 0x00, 0x00
+
+ALIGN   8
+loc_030:  sub     esp, 12
+	push    1
+	call    set_noconfirm
+	add     esp, 16
+	jmp     loc_019
+
+; Filling space: 0x6
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x0B6, 0x00, 0x00, 0x00, 0x00
+
+ALIGN   8
+loc_031:  call    guide_request_explicit
+	jmp     loc_019
+
+; Filling space: 0x6
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x0B6, 0x00, 0x00, 0x00, 0x00
+
+ALIGN   8
+loc_032:  call    get_target_arch
+	sub     esp, 8
+	push    loc_180
+	push    eax
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	jnz     loc_033
+	call    get_opt_level
+	cmp     byte [eax], 51
+	je      loc_042
+loc_033:  call    get_makepkg_raw
+	cmp     byte [eax], 0
+	jne     loc_045
+	mov     dword [esp+0x0C], loc_174
+loc_034:  call    get_raw_flags
+	mov     edx, loc_174
+	cmp     byte [eax], 0
+	jne     loc_044
+loc_035:  mov     dword [esp+0x8], edx
+	mov     ebx, loc_175
+	mov     edi, loc_178
+	call    get_gentoo_chroot_path
+	mov     ebp, eax
+	call    get_use_binary
+	mov     ecx, loc_176
+	test    eax, eax
+	cmovne  ecx, ebx
+	mov     dword [esp+0x4], ecx
+	call    get_gentoo_chroot
+	test    eax, eax
+	mov     eax, loc_176
+	cmove   ebx, eax
+	call    get_use_pipe
+	test    eax, eax
+	mov     eax, loc_177
+	cmovne  edi, eax
+	call    get_opt_level
+	mov     esi, eax
+	call    get_target_arch
+	sub     esp, 12
+	push    dword [esp+0x18]
+	mov     edx, dword [esp+0x18]
+	push    edx
+	push    ebp
+	mov     ecx, dword [esp+0x1C]
+	push    ecx
+	push    ebx
+	push    edi
+	push    esi
+	push    eax
+	push    loc_320
+	call    printf
+	add     esp, 48
+loc_036:  call    print_usage
+	jmp     loc_010
+
+loc_037:  call    get_raw_flags
+	mov     ebp, eax
+	jmp     loc_016
+
+; Filling space: 0x4
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x74, 0x26, 0x00
+
+ALIGN   8
+loc_038:  call    get_makepkg_raw
+	mov     edi, eax
+	jmp     loc_015
+
+; Filling space: 0x4
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x74, 0x26, 0x00
+
+ALIGN   8
+loc_039:  cmp     byte [ebx+0x2], 0
+	jne     loc_025
+loc_040:  sub     esp, 12
+	push    1
+	call    set_resume
+	add     esp, 16
+	jmp     loc_019
+
+; Filling space: 0x4
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x74, 0x26, 0x00
+
+ALIGN   8
+loc_041:  push    dword [stderr]
+	push    208
+	push    1
+	push    loc_319
+	call    fwrite
+	add     esp, 16
+	jmp     loc_010
 
 ; Filling space: 0x1
 ; Filler type: NOP
 ;       db 0x90
 
 ALIGN   8
-loc_032:  call    guide_request_explicit
+loc_042:  cmp     byte [eax+0x1], 0
+	jne     loc_033
+	call    get_use_pipe
+	test    eax, eax
+	je      loc_033
+	call    get_gentoo_chroot
+	test    eax, eax
+	jne     loc_033
+	call    get_raw_flags
+	cmp     byte [eax], 0
+	jne     loc_033
+	call    get_makepkg_raw
+	cmp     byte [eax], 0
+	jne     loc_033
+	jmp     loc_036
+
+; Filling space: 0x3
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x76, 0x00
+
+ALIGN   8
+loc_043:  sub     esp, 12
+	push    0
+	call    set_inhibit
+	add     esp, 16
 	jmp     loc_019
 
 ; Filling space: 0x6
-; Filler type: Multi-byte NOP
-;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x0B6, 0x00, 0x00, 0x00, 0x00
 
 ALIGN   8
-loc_033:  call    get_target_arch
-	lea     rsi, [rel str_LC67]
-	mov     rdi, rax
-	call    strcmp
-	test    eax, eax
-	jnz     loc_034
-	call    get_opt_level
-	cmp     byte [rax], 51
-	jnz     loc_034
-	cmp     byte [rax+0x1], 0
-	jnz     loc_034
-	call    get_use_pipe
-	test    eax, eax
-	jz      loc_034
-	call    get_gentoo_chroot
-	test    eax, eax
-	jnz     loc_034
-	call    get_raw_flags
-	cmp     byte [rax], 0
-	jnz     loc_034
-	call    get_makepkg_raw
-	cmp     byte [rax], 0
-	je      loc_037
-; Filling space: 0x0E
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x00, 0x66, 0x66, 0x2E, 0x0F, 0x1F
-;       db 0x84, 0x00, 0x00, 0x00, 0x00, 0x00
+loc_044:  call    get_raw_flags
+	mov     edx, eax
+	jmp     loc_035
 
-ALIGN   16
-loc_034:  mov     qword [rsp+0x838], rbx
-	lea     r13, [rel str_LC60]
-	mov     qword [rsp+0x840], rbp
-	mov     qword [rsp+0x860], r15
-	call    get_makepkg_raw
-	cmp     byte [rax], 0
-	jne     loc_044
-loc_035:  call    get_raw_flags
-	lea     r14, [rel str_LC60]
-	cmp     byte [rax], 0
-	jne     loc_045
-loc_036:  call    get_gentoo_chroot_path
-	lea     rbx, [rel str_LC61]
-	lea     r15, [rel str_LC62]
-	mov     r12, rax
-	lea     rbp, [rel str_LC64]
-	call    get_use_binary
-	test    eax, eax
-	cmovne  r15, rbx
-	call    get_gentoo_chroot
-	test    eax, eax
-	lea     rax, [rel str_LC62]
-	cmove   rbx, rax
-	call    get_use_pipe
-	test    eax, eax
-	lea     rax, [rel str_LC63]
-	cmovne  rbp, rax
-	call    get_opt_level
-	mov     qword [rsp], rax
-	call    get_target_arch
-	sub     rsp, 8
-	mov     r9, r15
-	mov     r8, rbx
-	push    r13
-	mov     rcx, rbp
-	mov     rsi, rax
-	lea     rdi, [rel str_LC68]
-	push    r14
-	xor     eax, eax
-	push    r12
-	mov     rdx, qword [rsp+0x20]
-	call    printf
-	add     rsp, 32
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-loc_037:  call    print_usage
-	jmp     loc_010
-
-; Filling space: 0x5
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
+; Filling space: 0x4
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x74, 0x26, 0x00
 
 ALIGN   8
-loc_038:  call    get_raw_flags
-	mov     rbp, rax
-	jmp     loc_016
-
-; Filling space: 0x3
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x00
-
-ALIGN   8
-loc_039:  call    get_makepkg_raw
-	mov     r12, rax
-	jmp     loc_015
-
-; Filling space: 0x3
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x00
-
-ALIGN   8
-loc_040:  cmp     byte [rbx+0x2], 0
-	jne     loc_025
-loc_041:  mov     edi, 1
-	call    set_resume
-	jmp     loc_019
-
-; Filling space: 0x7
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00
-
-ALIGN   8
-loc_042:  mov     rcx, qword [rel stderr]
-	mov     edx, 208
-	mov     esi, 1
-	lea     rdi, [rel str_LC66]
-	call    fwrite
-	jmp     loc_010
-
-loc_043:  xor     edi, edi
-	call    set_inhibit
-	jmp     loc_019
+loc_045:  call    get_makepkg_raw
+	mov     dword [esp+0x0C], eax
+	jmp     loc_034
 
 ; Filling space: 0x2
 ; Filler type: NOP with prefixes
 ;       db 0x66, 0x90
 
 ALIGN   8
-loc_044:  call    get_makepkg_raw
-	mov     r13, rax
-	jmp     loc_035
+loc_046:  sub     esp, 12
+	push    eax
+	call    set_prompt_timeout
+	add     esp, 16
+	jmp     loc_019
 
-; Filling space: 0x3
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x00
-
-ALIGN   8
-loc_045:  call    get_raw_flags
-	mov     r14, rax
-	jmp     loc_036
-
-; Filling space: 0x3
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x00
+; Filling space: 0x7
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x0B4, 0x26, 0x00, 0x00, 0x00, 0x00
 
 ALIGN   8
-loc_046:  call    set_prompt_timeout
+loc_047:  sub     esp, 12
+	push    0
+	call    set_import_keys
+	add     esp, 16
 	jmp     loc_019
 
 ; Filling space: 0x6
-; Filler type: Multi-byte NOP
-;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x0B6, 0x00, 0x00, 0x00, 0x00
 
 ALIGN   8
-loc_047:  xor     edi, edi
-	call    set_import_keys
-	jmp     loc_019
-
-; Filling space: 0x4
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x40, 0x00
-
-ALIGN   8
-loc_048:  lea     rsi, [rel str_LC90]
-	mov     rdi, rbx
+loc_048:  sub     esp, 8
+	push    loc_195
+	push    ebx
 	call    strcmp
+	add     esp, 16
 	test    eax, eax
 	je      loc_026
-	cmp     byte [rbx], 45
+	cmp     byte [ebx], 45
 	jnz     loc_049
-	cmp     byte [rbx+0x1], 106
+	cmp     byte [ebx+0x1], 106
 	jnz     loc_049
 	call    __ctype_b_loc
-	movzx   edx, byte [rbx+0x2]
-	mov     rax, qword [rax]
-	test    byte [rax+rdx*2+0x1], 0x08
-	jne     loc_084
-loc_049:  mov     edx, 7
-	lea     rsi, [rel str_LC93]
-	mov     rdi, rbx
-	call    strncmp
-	test    eax, eax
-	je      loc_079
-	lea     rsi, [rel str_LC95]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_077
-	lea     rsi, [rel str_LC96]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_077
-	lea     rsi, [rel str_LC97]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_077
-	mov     edx, 9
-	lea     rsi, [rel str_LC102]
-	mov     rdi, rbx
-	call    strncmp
-	test    eax, eax
-	jne     loc_098
-	cmp     byte [rbx+0x9], 0
-	je      loc_155
-	add     rbx, 9
-loc_050:  lea     rsi, [rel str_LC99]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_094
-	lea     rsi, [rel str_LC100]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_094
-	mov     rdi, rbx
-	call    valid_target_arch
-	test    eax, eax
+	movzx   edx, byte [ebx+0x2]
+	mov     eax, dword [eax]
+	test    byte [eax+edx*2+0x1], 0x08
 	jne     loc_081
-	mov     rdx, rbx
-	lea     rsi, [rel str_LC101]
-loc_051:  mov     rdi, qword [rel stderr]
+loc_049:  sub     esp, 4
+	push    7
+	push    loc_196
+	push    ebx
+	call    strncmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_076
+	sub     esp, 8
+	push    loc_197
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_074
+	sub     esp, 8
+	push    loc_198
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_074
+	push    ecx
+	push    ecx
+	push    loc_199
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_074
+	push    eax
+	push    9
+	push    loc_202
+	push    ebx
+	call    strncmp
+	add     esp, 16
+	test    eax, eax
+	jne     loc_089
+	cmp     byte [ebx+0x9], 0
+	lea     esi, [ebx+0x9]
+	je      loc_098
+	push    eax
+	push    eax
+	push    loc_200
+	push    esi
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_096
+	push    eax
+	push    eax
+	push    loc_201
+	push    esi
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_096
+	sub     esp, 12
+	push    esi
+	call    valid_target_arch
+	add     esp, 16
+	test    eax, eax
+	jne     loc_095
+	push    eax
+	push    esi
+	push    loc_332
+	push    dword [stderr]
 	call    fprintf
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
+	add     esp, 16
 	jmp     loc_010
 
-loc_052:  xor     edi, edi
-	call    set_sync
-	jmp     loc_019
-
-loc_053:  mov     rbp, qword [rsp+0x20]
-	movzx   ebx, byte [rbp]
-	cmp     ebx, 45
-	jne     loc_056
-	cmp     byte [rbp+0x1], 118
-	jne     loc_056
-	cmp     byte [rbp+0x2], 0
-	jne     loc_056
-loc_054:  call    get_use_binary
-	lea     rbx, [rel str_LC61]
-	lea     r13, [rel str_LC62]
-	test    eax, eax
-	lea     rbp, [rel str_LC64]
-	cmovne  r13, rbx
-	call    get_gentoo_chroot
-	test    eax, eax
-	lea     rax, [rel str_LC62]
-	cmove   rbx, rax
-	call    get_use_pipe
-	test    eax, eax
-	lea     rax, [rel str_LC63]
-	cmovne  rbp, rax
-	call    get_opt_level
-	mov     r12, rax
-	call    get_target_arch
-	push    r13
-	mov     r9, rbp
-	mov     r8, r12
-	push    rbx
-	mov     rcx, rax
-	xor     eax, eax
-	lea     rsi, [rel str_LC1]
-	lea     rdx, [rel str_LC0]
-	lea     rdi, [rel str_LC70]
-	call    printf
-	lea     rdi, [rel str_LC71]
-	call    puts
-	pop     rcx
-	pop     rsi
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_003
-
-loc_055:  xor     edi, edi
-	call    set_aur_sync
-	jmp     loc_019
-
-loc_056:  lea     rsi, [rel str_LC69]
-	mov     rdi, rbp
-	call    strcmp
-	test    eax, eax
-	je      loc_054
-	cmp     ebx, 45
-	jne     loc_072
-	cmp     byte [rbp+0x1], 104
-	jne     loc_072
-	cmp     byte [rbp+0x2], 0
-	jne     loc_072
-loc_057:  call    print_usage
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_003
-
-loc_058:  cmp     byte [rbp+0x1], 83
-	je      loc_074
-loc_059:  cmp     eax, 45
-	jne     loc_021
-	cmp     byte [rbp+0x1], 81
-	jne     loc_078
-	movzx   r15d, byte [rbp+0x2]
-	test    r15d, r15d
-	jne     loc_078
-	mov     ebx, 1
-loc_060:  lea     r13, [rsp+0x20]
-	jmp     loc_063
-
-; Filling space: 0x4
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x40, 0x00
+; Filling space: 0x5
+; Filler type: lea with same source and destination
+;       db 0x2E, 0x8D, 0x74, 0x26, 0x00
 
 ALIGN   8
-loc_061:  call    cmd_available_info_v2
-loc_062:  cmp     eax, 1
-	adc     r15d, 0
-	add     rbx, 1
-	cmp     r12d, ebx
-	jle     loc_068
-loc_063:  mov     rdi, qword [r13+rbx*8]
-	cmp     byte [rbp+0x1], 81
-	jnz     loc_061
-	call    cmd_query_v2
+loc_050:  sub     esp, 12
+	push    0
+	call    set_sync
+	add     esp, 16
+	jmp     loc_019
+
+loc_051:  mov     ebp, dword [esp+0x20]
+	movzx   ebx, byte [ebp]
+	cmp     ebx, 45
+	jne     loc_054
+	cmp     byte [ebp+0x1], 118
+	jne     loc_054
+	cmp     byte [ebp+0x2], 0
+	jne     loc_054
+loc_052:  call    get_use_binary
+	mov     ebx, loc_175
+	mov     ebp, loc_176
+	mov     edi, loc_178
+	test    eax, eax
+	cmovne  ebp, ebx
+	call    get_gentoo_chroot
+	test    eax, eax
+	mov     eax, loc_176
+	cmove   ebx, eax
+	call    get_use_pipe
+	test    eax, eax
+	mov     eax, loc_177
+	cmovne  edi, eax
+	call    get_opt_level
+	mov     esi, eax
+	call    get_target_arch
+	push    ebp
+	push    ebx
+	push    edi
+	push    esi
+	push    eax
+	push    loc_169
+	push    loc_170
+	push    loc_321
+	call    printf
+	add     esp, 20
+	push    loc_322
+	call    puts
+	add     esp, 16
+	jmp     loc_003
+
+loc_053:  sub     esp, 12
+	push    0
+	call    set_aur_sync
+	add     esp, 16
+	jmp     loc_019
+
+loc_054:  mov     dword [esp+0x4], edx
+	sub     esp, 8
+	push    loc_181
+	push    ebp
+	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
+	test    eax, eax
+	je      loc_052
+	cmp     ebx, 45
+	jne     loc_070
+	cmp     byte [ebp+0x1], 104
+	jne     loc_070
+	cmp     byte [ebp+0x2], 0
+	jne     loc_070
+loc_055:  call    print_usage
+	jmp     loc_003
+
+loc_056:  sub     esp, 12
+	push    1
+	call    set_use_pipe
+	add     esp, 16
+	jmp     loc_019
+
+loc_057:  cmp     byte [ebp+0x1], 83
+	je      loc_072
+loc_058:  cmp     eax, 45
+	jne     loc_021
+	cmp     byte [ebp+0x1], 81
+	jne     loc_075
+	movzx   edi, byte [ebp+0x2]
+	test    edi, edi
+	jne     loc_075
+	mov     esi, 1
+loc_059:  lea     ebx, [esp+0x20]
+	mov     dword [esp+0x4], edx
+	mov     eax, ebx
+	mov     ebx, esi
+	mov     esi, eax
 	jmp     loc_062
 
-loc_064:  mov     edi, 1
+; Filling space: 0x6
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x0B6, 0x00, 0x00, 0x00, 0x00
+
+ALIGN   8
+loc_060:  sub     esp, 12
+	push    eax
+	call    cmd_available_info_v2
+	add     esp, 16
+loc_061:  cmp     eax, 1
+	adc     edi, 0
+	add     ebx, 1
+	cmp     dword [esp+0x4], ebx
+	jle     loc_067
+loc_062:  cmp     byte [ebp+0x1], 81
+	mov     eax, dword [esi+ebx*4]
+	jnz     loc_060
+	sub     esp, 12
+	push    eax
+	call    cmd_query_v2
+	add     esp, 16
+	jmp     loc_061
+
+loc_063:  sub     esp, 12
+	push    eax
+	call    set_jobs
+	add     esp, 16
+	jmp     loc_019
+
+loc_064:  sub     esp, 12
+	push    0
 	call    set_use_pipe
+	add     esp, 16
 	jmp     loc_019
 
-loc_065:  mov     rdi, rax
-loc_066:  call    set_jobs
-	jmp     loc_019
-
-loc_067:  xor     edi, edi
-	call    set_use_pipe
-	jmp     loc_019
-
-loc_068:  test    r15d, r15d
-loc_069:  setne   r12b
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	movzx   r12d, r12b
+loc_065:  cmp     edx, 1
+	je      loc_159
+	mov     dword [esp+0x4], edx
+	call    init_system
+	test    eax, eax
+	je      loc_010
+	mov     ebp, dword [esp+0x4]
+	mov     esi, 1
+	xor     edi, edi
+	lea     ebx, [esp+0x20]
+loc_066:  sub     esp, 12
+	push    dword [ebx+esi*4]
+	call    cmd_deselect
+	add     esp, 16
+	cmp     eax, 1
+	adc     edi, 0
+	add     esi, 1
+	cmp     ebp, esi
+	jg      loc_066
+loc_067:  xor     eax, eax
+	test    edi, edi
+	setne   al
 	jmp     loc_004
 
-loc_070:  call    get_target_arch
-	lea     rsi, [rel str_LC67]
-	mov     rdi, rax
+loc_068:  call    get_target_arch
+	sub     esp, 8
+	push    loc_180
+	push    eax
 	call    strcmp
+	add     esp, 16
 	test    eax, eax
-	jnz     loc_071
+	jnz     loc_069
 	call    get_opt_level
-	cmp     byte [rax], 51
-	jnz     loc_071
-	cmp     byte [rax+0x1], 0
-	jnz     loc_071
+	cmp     byte [eax], 51
+	jnz     loc_069
+	cmp     byte [eax+0x1], 0
+	jnz     loc_069
 	call    get_use_pipe
 	test    eax, eax
-	jne     loc_090
-loc_071:  call    get_gentoo_chroot_path
-	lea     rbx, [rel str_LC61]
-	lea     rbp, [rel str_LC64]
-	mov     r14, rax
+	jne     loc_085
+loc_069:  call    get_gentoo_chroot_path
+	mov     ebx, loc_175
+	mov     edi, loc_178
+	mov     dword [esp+0x8], eax
 	call    get_jobs
-	mov     r13, rax
+	mov     ebp, eax
 	call    get_use_binary
-	lea     r9, [rel str_LC62]
+	mov     ecx, loc_176
 	test    eax, eax
-	cmovne  r9, rbx
-	mov     qword [rsp], r9
+	cmovne  ecx, ebx
+	mov     dword [esp+0x4], ecx
 	call    get_gentoo_chroot
 	test    eax, eax
-	lea     rax, [rel str_LC62]
-	cmove   rbx, rax
+	mov     eax, loc_176
+	cmove   ebx, eax
 	call    get_use_pipe
 	test    eax, eax
-	lea     rax, [rel str_LC63]
-	cmovne  rbp, rax
+	mov     eax, loc_177
+	cmovne  edi, eax
 	call    get_opt_level
-	mov     r15, rax
+	mov     esi, eax
 	call    get_target_arch
-	push    r14
-	mov     rdx, r15
-	mov     r8, rbx
-	push    r13
-	mov     r9, qword [rsp+0x10]
-	mov     rcx, rbp
-	mov     rsi, rax
-	lea     rdi, [rel str_LC158]
-	xor     eax, eax
+	mov     edx, dword [esp+0x8]
+	push    edx
+	push    ebp
+	mov     ecx, dword [esp+0x0C]
+	push    ecx
+	push    ebx
+	push    edi
+	push    esi
+	push    eax
+	push    loc_348
 	call    printf
-	pop     rax
-	pop     rdx
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_004
+	add     esp, 32
+	jmp     loc_003
 
-loc_072:  lea     rsi, [rel str_LC73]
-	mov     rdi, rbp
+loc_070:  mov     dword [esp+0x4], edx
+	sub     esp, 8
+	push    loc_182
+	push    ebp
 	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
 	test    eax, eax
-	je      loc_057
+	je      loc_055
 	cmp     ebx, 45
-	jne     loc_082
-	cmp     byte [rbp+0x1], 83
-	jne     loc_082
-	cmp     byte [rbp+0x2], 0
-	jne     loc_082
-loc_073:  mov     rcx, qword [rel stderr]
-	mov     edx, 50
-	mov     esi, 1
-	lea     rdi, [rel str_LC159]
+	jne     loc_078
+	cmp     byte [ebp+0x1], 83
+	jne     loc_078
+	cmp     byte [ebp+0x2], 0
+	jne     loc_078
+loc_071:  push    dword [stderr]
+	push    50
+	push    1
+	push    loc_349
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
+	add     esp, 16
 	jmp     loc_010
 
-loc_074:  cmp     byte [rbp+0x2], 0
-	jne     loc_059
-	cmp     r12d, 2
-	jnz     loc_073
-	mov     rdi, qword [rsp+0x28]
+loc_072:  cmp     byte [ebp+0x2], 0
+	jne     loc_058
+	cmp     edx, 2
+	jnz     loc_071
+	sub     esp, 12
+	push    dword [esp+0x30]
 	call    cmd_search_v2
-loc_075:  xor     r12d, r12d
+	add     esp, 16
 	test    eax, eax
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	sete    r12b
+	sete    al
+	movzx   eax, al
 	jmp     loc_004
 
-loc_076:  mov     rcx, qword [rel stderr]
-	mov     edx, 47
-	mov     esi, 1
-	lea     rdi, [rel str_LC81]
+loc_073:  push    dword [stderr]
+	push    47
+	push    1
+	push    loc_326
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
+	add     esp, 16
 	jmp     loc_010
 
-loc_077:  add     ebp, 1
-	cmp     ebp, r14d
-	jge     loc_154
-	mov     rax, qword [rsp]
-	mov     rbx, qword [r13+rax+0x8]
-	jmp     loc_050
+loc_074:  add     ebp, 1
+	cmp     ebp, dword [esp+0x440]
+	jge     loc_100
+	mov     eax, dword [esp+0x444]
+	sub     esp, 8
+	mov     ebx, dword [eax+esi+0x4]
+	push    loc_200
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_096
+	sub     esp, 8
+	push    loc_201
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_096
+	sub     esp, 12
+	push    ebx
+	call    valid_target_arch
+	add     esp, 16
+	test    eax, eax
+	jne     loc_080
+	sub     esp, 4
+	push    ebx
+	push    loc_332
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
+	jmp     loc_010
 
-loc_078:  cmp     eax, 45
+loc_075:  cmp     eax, 45
 	jne     loc_021
-	cmp     byte [rbp+0x1], 65
+	cmp     byte [ebp+0x1], 65
 	jne     loc_021
-	movzx   r15d, byte [rbp+0x2]
-	mov     ebx, 1
-	test    r15d, r15d
-	je      loc_060
+	movzx   edi, byte [ebp+0x2]
+	mov     esi, 1
+	test    edi, edi
+	je      loc_059
 	jmp     loc_021
 
-; Filling space: 0x8
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00
+; Filling space: 0x5
+; Filler type: lea with same source and destination
+;       db 0x2E, 0x8D, 0x74, 0x26, 0x00
 
-ALIGN   16
-loc_079:  mov     edx, 10
-	lea     rsi, [rsp+0x18]
-	lea     rdi, [rbx+0x7]
-	mov     qword [rsp+0x18], 0
-	call    __isoc23_strtol
-	mov     rdx, qword [rsp+0x18]
-	test    rdx, rdx
-	jz      loc_080
-	cmp     byte [rdx], 0
-	jnz     loc_080
-	lea     rdx, [rax-0x1]
-	cmp     rdx, 1023
-	jbe     loc_065
-loc_080:  mov     rcx, qword [rel stderr]
-	mov     edx, 34
-	mov     esi, 1
-	lea     rdi, [rel str_LC94]
+ALIGN   8
+loc_076:  mov     dword [esp+0x1C], 0
+	sub     esp, 4
+	add     ebx, 7
+	push    10
+	lea     eax, [esp+0x24]
+	push    eax
+	push    ebx
+	call    strtol
+	mov     edx, dword [esp+0x2C]
+	add     esp, 16
+	test    edx, edx
+	jz      loc_077
+	cmp     byte [edx], 0
+	jnz     loc_077
+	lea     edx, [eax-0x1]
+	cmp     edx, 1023
+	jbe     loc_063
+loc_077:  push    dword [stderr]
+	push    34
+	push    1
+	push    loc_330
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
+	add     esp, 16
 	jmp     loc_010
 
-loc_081:  mov     rdi, rbx
-	call    set_target_arch
-	jmp     loc_019
-
-loc_082:  lea     rsi, [rel str_LC192]
-	mov     rdi, rbp
+loc_078:  mov     dword [esp+0x4], edx
+	push    eax
+	push    eax
+	push    loc_263
+	push    ebp
 	call    strcmp
+	add     esp, 16
 	test    eax, eax
-	jz      loc_083
-	lea     rsi, [rel str_LC160]
-	mov     rdi, rbp
+	jz      loc_079
+	push    esi
+	push    esi
+	push    loc_243
+	push    ebp
 	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
 	test    eax, eax
 	jne     loc_021
-loc_083:  mov     rcx, qword [rel stderr]
-	mov     edx, 50
-	mov     esi, 1
-	lea     rdi, [rel str_LC161]
+loc_079:  push    dword [stderr]
+	push    50
+	push    1
+	push    loc_350
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_004
-
-loc_084:  xor     edi, edi
-	mov     edx, 10
-	lea     rsi, [rsp+0x18]
-	mov     qword [rsp+0x18], rdi
-	lea     rdi, [rbx+0x2]
-	call    __isoc23_strtol
-	mov     rdx, qword [rsp+0x18]
-	test    rdx, rdx
-	jz      loc_085
-	cmp     byte [rdx], 0
-	jnz     loc_085
-	lea     rdx, [rax-0x1]
-	cmp     rdx, 1023
-	jbe     loc_065
-loc_085:  mov     rdx, qword [r15]
-	lea     rsi, [rel str_LC92]
-	jmp     loc_028
-
-loc_086:  mov     qword [rsp+0x838], rbx
-	mov     qword [rsp+0x840], rbp
-	mov     qword [rsp+0x860], r15
-	call    __stack_chk_fail
-loc_087:  mov     rdx, rbx
-	lea     rsi, [rel str_LC91]
-	jmp     loc_028
-
-loc_088:  call    cmd_orphans_v2
-	jmp     loc_075
-
-loc_089:  call    cmd_stats_v2
-	jmp     loc_075
-
-loc_090:  call    get_gentoo_chroot
-	test    eax, eax
-	jne     loc_071
-loc_091:  mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_004
-
-loc_092:  call    cmd_completion_v2
-	jmp     loc_075
-
-loc_093:  call    cmd_news_v2
-	jmp     loc_075
-
-loc_094:  call    print_known_targets
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_003
-
-loc_095:  mov     rdi, qword [rsp+0x28]
-	call    cmd_review_v2
-	jmp     loc_075
-
-loc_096:  mov     rsi, r13
-	mov     edi, r14d
-	call    acquire_sudo
-	test    eax, eax
-	jz      loc_097
-	lea     rsi, [rel str_LC171]
-	mov     rdi, rbp
-	call    strcmp
-	mov     ebx, eax
-	test    eax, eax
-	jne     loc_106
-	cmp     r12d, 1
-	jz      loc_091
-	call    init_system
-	test    eax, eax
-	jne     loc_104
-loc_097:  mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
+	add     esp, 16
 	jmp     loc_010
 
-loc_098:  mov     edx, 8
-	lea     rsi, [rel str_LC104]
-	mov     rdi, rbx
-	call    strncmp
-	test    eax, eax
-	jnz     loc_100
-	cmp     byte [rbx+0x8], 0
-	je      loc_101
-	add     rbx, 8
-	lea     rsi, [rel str_LC99]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_094
-	lea     rsi, [rel str_LC100]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_094
-	mov     rdi, rbx
-	call    valid_target_arch
-	test    eax, eax
-	jne     loc_081
-	mov     rdx, rbx
-	lea     rsi, [rel str_LC106]
-	jmp     loc_051
-
-loc_099:  call    cmd_devel_v2
-	jmp     loc_075
-
-loc_100:  mov     edx, 6
-	lea     rsi, [rel str_LC107]
-	mov     rdi, rbx
-	call    strncmp
-	test    eax, eax
-	jne     loc_103
-	cmp     byte [rbx+0x6], 0
-	jz      loc_102
-	add     rbx, 6
-	mov     rdi, rbx
-	call    valid_target_arch
-	test    eax, eax
-	jne     loc_081
-	mov     rdx, rbx
-	lea     rsi, [rel str_LC109]
-	jmp     loc_051
-
-loc_101:  mov     rcx, qword [rel stderr]
-	mov     edx, 39
-	mov     esi, 1
-	lea     rdi, [rel str_LC105]
-	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_010
-
-loc_102:  mov     rcx, qword [rel stderr]
-	mov     edx, 37
-	mov     esi, 1
-	lea     rdi, [rel str_LC108]
-	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_010
-
-loc_103:  lea     rsi, [rel str_LC110]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_124
-	lea     rsi, [rel str_LC111]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_124
-	lea     rsi, [rel str_LC112]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_124
-	lea     rsi, [rel str_LC113]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_124
-	mov     edx, 12
-	lea     rsi, [rel str_LC116]
-	mov     rdi, rbx
-	call    strncmp
-	test    eax, eax
-	jne     loc_119
-	cmp     byte [rbx+0x0C], 0
-	je      loc_118
-	add     rbx, 12
-	lea     rsi, [rel str_LC99]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_117
-	lea     rsi, [rel str_LC100]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_117
-	mov     rdi, rbx
-	call    valid_opt_level
-	test    eax, eax
-	jne     loc_108
-	mov     rdx, rbx
-	lea     rsi, [rel str_LC118]
-	jmp     loc_051
-
-loc_104:  call    get_use_binary
-	test    eax, eax
-	je      loc_115
-	mov     ebp, 1
-	lea     r13, [rsp+0x20]
-loc_105:  mov     rdi, qword [r13+rbp*8]
-	call    cmd_build
-	cmp     eax, 1
-	adc     ebx, 0
-	add     rbp, 1
-	cmp     r12d, ebp
-	jg      loc_105
-	test    ebx, ebx
-	jmp     loc_069
-
-loc_106:  lea     rsi, [rel str_LC172]
-	mov     rdi, rbp
-	call    strcmp
-	mov     ebx, eax
-	test    eax, eax
-	jnz     loc_109
-	cmp     r12d, 1
-	je      loc_091
-	mov     ebp, 1
-	lea     r13, [rsp+0x20]
-loc_107:  mov     rdi, qword [r13+rbp*8]
-	call    cmd_get_pkgbuild_v2
-	cmp     eax, 1
-	adc     ebx, 0
-	add     rbp, 1
-	cmp     r12d, ebp
-	jg      loc_107
-	test    ebx, ebx
-	jmp     loc_069
-
-loc_108:  mov     rdi, rbx
-	call    set_opt_level
+loc_080:  sub     esp, 12
+	push    ebx
+	call    set_target_arch
+	add     esp, 16
 	jmp     loc_019
 
-loc_109:  lea     rsi, [rel str_LC173]
-	mov     rdi, rbp
+loc_081:  xor     esi, esi
+	add     ebx, 2
+	mov     dword [esp+0x1C], esi
+	push    eax
+	push    10
+	lea     eax, [esp+0x24]
+	push    eax
+	push    ebx
+	call    strtol
+	mov     edx, dword [esp+0x2C]
+	add     esp, 16
+	test    edx, edx
+	jz      loc_082
+	cmp     byte [edx], 0
+	jnz     loc_082
+	lea     edx, [eax-0x1]
+	cmp     edx, 1023
+	jbe     loc_063
+loc_082:  push    ebx
+	push    dword [edi]
+	push    loc_329
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
+	jmp     loc_010
+
+loc_083:  push    eax
+	push    ebx
+	push    loc_328
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
+	jmp     loc_010
+
+loc_084:  call    cmd_orphans_v2
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_085:  call    get_gentoo_chroot
+	test    eax, eax
+	jne     loc_069
+	jmp     loc_003
+
+loc_086:  call    cmd_completion_v2
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_087:  call    cmd_news_v2
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_088:  call    cmd_stats_v2
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_089:  push    eax
+	push    8
+	push    loc_203
+	push    ebx
+	call    strncmp
+	add     esp, 16
+	test    eax, eax
+	jne     loc_097
+	cmp     byte [ebx+0x8], 0
+	lea     esi, [ebx+0x8]
+	je      loc_099
+	push    ecx
+	push    ecx
+	push    loc_200
+	push    esi
 	call    strcmp
+	add     esp, 16
 	test    eax, eax
-	je      loc_145
-	lea     rsi, [rel str_LC174]
-	mov     rdi, rbp
+	je      loc_096
+	push    edx
+	push    edx
+	push    loc_201
+	push    esi
 	call    strcmp
+	add     esp, 16
 	test    eax, eax
-	je      loc_144
-	lea     rsi, [rel str_LC175]
-	mov     rdi, rbp
+	je      loc_096
+	sub     esp, 12
+	push    esi
+	call    valid_target_arch
+	add     esp, 16
+	test    eax, eax
+	jne     loc_095
+	push    eax
+	push    esi
+	push    loc_335
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
+	jmp     loc_010
+
+loc_090:  sub     esp, 12
+	push    dword [esp+0x30]
+	call    cmd_review_v2
+	add     esp, 16
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_091:  mov     dword [esp+0x4], edx
+	push    eax
+	push    eax
+	push    dword [esp+0x44C]
+	push    dword [esp+0x44C]
+	call    acquire_sudo
+	add     esp, 16
+	test    eax, eax
+	je      loc_010
+	push    eax
+	push    eax
+	push    loc_252
+	push    ebp
 	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
 	test    eax, eax
-	je      loc_142
-	lea     rsi, [rel str_LC176]
-	mov     rdi, rbp
-	call    strcmp
-	test    eax, eax
-	je      loc_142
-	lea     rsi, [rel str_LC177]
-	mov     rdi, rbp
-	call    strcmp
-	test    eax, eax
-	je      loc_140
-	lea     rsi, [rel str_LC178]
-	mov     rdi, rbp
-	call    strcmp
-	test    eax, eax
-	je      loc_140
-	lea     rsi, [rel str_LC180]
-	mov     rdi, rbp
-	call    strcmp
-	test    eax, eax
-	je      loc_147
-	lea     rsi, [rel str_LC181]
-	mov     rdi, rbp
-	call    strcmp
-	test    eax, eax
-	je      loc_147
-	xor     ebx, ebx
-	lea     r13, [rsp+0x20]
-	cmp     byte [rbp], 45
-	je      loc_146
-loc_110:  mov     r14, qword [r13+rbx*8]
-	mov     rdi, r14
-	call    valid_pkgname
-	test    eax, eax
-	je      loc_149
-	add     rbx, 1
-	cmp     r12d, ebx
-	jg      loc_110
+	mov     esi, eax
+	jne     loc_103
+	sub     edx, 1
+	je      loc_010
 	call    init_system
 	test    eax, eax
-	je      loc_097
+	je      loc_010
 	call    get_use_binary
-	mov     r14d, eax
+	mov     edx, dword [esp+0x4]
 	test    eax, eax
-	je      loc_159
-	xor     ebp, ebp
-	xor     ebx, ebx
-	jmp     loc_113
+	je      loc_101
+	mov     edi, 1
+	lea     ebx, [esp+0x20]
+	mov     ebp, edx
+loc_092:  sub     esp, 12
+	push    dword [ebx+edi*4]
+	call    cmd_build
+	add     esp, 16
+	cmp     eax, 1
+	adc     esi, 0
+	add     edi, 1
+	cmp     ebp, edi
+	jg      loc_092
+loc_093:  xor     eax, eax
+	test    esi, esi
+	setne   al
+	jmp     loc_004
 
-loc_111:  lea     rdi, [rel str_LC185]
-	xor     eax, eax
-	lea     esi, [rbp+0x1]
-	mov     rcx, r14
-	mov     edx, r12d
+loc_094:  call    cmd_devel_v2
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_095:  sub     esp, 12
+	push    esi
+	call    set_target_arch
+	add     esp, 16
+	jmp     loc_019
+
+loc_096:  call    print_known_targets
+	jmp     loc_003
+
+loc_097:  push    eax
+	push    6
+	push    loc_204
+	push    ebx
+	call    strncmp
+	add     esp, 16
+	test    eax, eax
+	jne     loc_116
+	cmp     byte [ebx+0x6], 0
+	lea     esi, [ebx+0x6]
+	je      loc_115
+	sub     esp, 12
+	push    esi
+	call    valid_target_arch
+	add     esp, 16
+	test    eax, eax
+	jnz     loc_095
+	push    eax
+	push    esi
+	push    loc_337
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
+	jmp     loc_010
+
+loc_098:  push    dword [stderr]
+	push    40
+	push    1
+	push    loc_333
+	call    fwrite
+	add     esp, 16
+	jmp     loc_010
+
+loc_099:  push    dword [stderr]
+	push    39
+	push    1
+	push    loc_334
+	call    fwrite
+	add     esp, 16
+	jmp     loc_010
+
+loc_100:  push    edx
+	push    ebx
+	push    loc_331
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
+	jmp     loc_010
+
+loc_101:  mov     dword [esp+0x4], edx
+	call    get_gentoo_chroot
+	mov     edx, dword [esp+0x4]
+	test    eax, eax
+	mov     esi, eax
+	jz      loc_105
+	xor     esi, esi
+	mov     edi, 1
+	lea     ebx, [esp+0x20]
+	mov     ebp, edx
+loc_102:  sub     esp, 12
+	push    dword [ebx+edi*4]
+	call    cmd_gentoo_imitation_build
+	add     esp, 16
+	cmp     eax, 1
+	adc     esi, 0
+	add     edi, 1
+	cmp     ebp, edi
+	jg      loc_102
+	jmp     loc_093
+
+loc_103:  mov     dword [esp+0x4], edx
+	push    edi
+	push    edi
+	push    loc_253
+	push    ebp
+	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
+	test    eax, eax
+	mov     esi, eax
+	jnz     loc_107
+	cmp     edx, 1
+	je      loc_010
+	mov     edi, 1
+	lea     ebx, [esp+0x20]
+	mov     ebp, edx
+loc_104:  sub     esp, 12
+	push    dword [ebx+edi*4]
+	call    cmd_get_pkgbuild_v2
+	add     esp, 16
+	cmp     eax, 1
+	adc     esi, 0
+	add     edi, 1
+	cmp     ebp, edi
+	jg      loc_104
+	jmp     loc_093
+
+loc_105:  mov     edi, 1
+	lea     ebx, [esp+0x20]
+	mov     ebp, edx
+loc_106:  sub     esp, 12
+	push    dword [ebx+edi*4]
+	call    cmd_build
+	add     esp, 16
+	cmp     eax, 1
+	adc     esi, 0
+	add     edi, 1
+	cmp     ebp, edi
+	jg      loc_106
+	jmp     loc_093
+
+loc_107:  mov     dword [esp+0x4], edx
+	push    esi
+	push    esi
+	push    loc_254
+	push    ebp
+	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
+	test    eax, eax
+	je      loc_158
+	mov     dword [esp+0x4], edx
+	push    ebx
+	push    ebx
+	push    loc_255
+	push    ebp
+	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
+	test    eax, eax
+	je      loc_117
+	mov     dword [esp+0x4], edx
+	push    ecx
+	push    ecx
+	push    loc_256
+	push    ebp
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_157
+	push    edx
+	push    edx
+	push    loc_257
+	push    ebp
+	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
+	test    eax, eax
+	je      loc_157
+	mov     dword [esp+0x4], edx
+	push    eax
+	push    eax
+	push    loc_258
+	push    ebp
+	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
+	test    eax, eax
+	je      loc_065
+	push    eax
+	push    eax
+	push    loc_259
+	push    ebp
+	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
+	test    eax, eax
+	je      loc_065
+	mov     dword [esp+0x4], edx
+	push    eax
+	push    eax
+	push    loc_260
+	push    ebp
+	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
+	test    eax, eax
+	je      loc_119
+	push    eax
+	push    eax
+	push    loc_261
+	push    ebp
+	call    strcmp
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
+	test    eax, eax
+	je      loc_119
+	xor     esi, esi
+	cmp     byte [ebp], 45
+	lea     ebx, [esp+0x20]
+	je      loc_118
+	mov     dword [esp+0x4], ebp
+	mov     ebp, ebx
+	mov     ebx, edx
+loc_108:  mov     edi, dword [ebp+esi*4]
+	sub     esp, 12
+	push    edi
+	call    valid_pkgname
+	add     esp, 16
+	test    eax, eax
+	je      loc_121
+	add     esi, 1
+	cmp     ebx, esi
+	jg      loc_108
+	mov     dword [esp+0x8], ebx
+	mov     ebx, ebp
+	mov     ebp, dword [esp+0x4]
+	call    init_system
+	test    eax, eax
+	je      loc_010
+	call    get_use_binary
+	mov     edx, dword [esp+0x8]
+	test    eax, eax
+	mov     edi, eax
+	je      loc_152
+	mov     esi, dword [esp+0x20]
+	cmp     edx, 1
+	jne     loc_151
+	mov     dword [esp+0x4], edx
+	sub     esp, 12
+	push    esi
+	call    cmd_build
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
+	test    eax, eax
+	jne     loc_003
+loc_109:  xor     edi, edi
+	mov     esi, 1
+loc_110:  add     edi, 1
+	mov     eax, esi
+	cmp     esi, edx
+	jge     loc_112
+	mov     dword [esp+0x4], edi
+	mov     edi, ebx
+	mov     ebx, edx
+loc_111:  mov     ebp, dword [edi+eax*4]
+	lea     esi, [eax+0x1]
+	push    ebp
+	push    ebx
+	push    esi
+	push    loc_356
 	call    printf
-	mov     rdi, r14
+	mov     dword [esp], ebp
 	call    cmd_build
-	test    eax, eax
-	jz      loc_114
-loc_112:  add     rbp, 1
-	cmp     r12d, ebp
-	jle     loc_157
-loc_113:  mov     r14, qword [r13+rbp*8]
-	cmp     r12d, 1
-	jnz     loc_111
-	mov     rdi, r14
-	call    cmd_build
-	test    eax, eax
-	jne     loc_157
-loc_114:  add     ebx, 1
-	jmp     loc_112
-
-loc_115:  call    get_gentoo_chroot
-	mov     ebx, eax
+	add     esp, 16
 	test    eax, eax
 	je      loc_150
-	xor     ebx, ebx
-	mov     ebp, 1
-	lea     r13, [rsp+0x20]
-loc_116:  mov     rdi, qword [r13+rbp*8]
-	call    cmd_gentoo_imitation_build
-	cmp     eax, 1
-	adc     ebx, 0
-	add     rbp, 1
-	cmp     r12d, ebp
-	jg      loc_116
-	test    ebx, ebx
-	jmp     loc_069
-
-loc_117:  call    print_known_opt_levels
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_003
-
-loc_118:  mov     rcx, qword [rel stderr]
-	mov     edx, 43
-	mov     esi, 1
-	lea     rdi, [rel str_LC117]
-	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
+	mov     eax, esi
+	cmp     ebx, esi
+	jg      loc_111
+	mov     edi, dword [esp+0x4]
+	test    edi, edi
+	je      loc_003
+loc_112:  push    esi
+	push    edi
+	push    loc_357
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
 	jmp     loc_010
 
-loc_119:  mov     edx, 6
-	lea     rsi, [rel str_LC119]
-	mov     rdi, rbx
-	call    strncmp
+loc_113:  sub     esp, 12
+	push    dword [esp+0x30]
+	call    cmd_provider_v2
+	add     esp, 16
 	test    eax, eax
-	je      loc_123
-	mov     edx, 15
-	lea     rsi, [rel str_LC121]
-	mov     rdi, rbx
-	call    strncmp
-	test    eax, eax
-	je      loc_125
-	lea     rsi, [rel str_LC123]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_108
-	lea     rsi, [rel str_LC124]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_108
-	lea     rsi, [rel str_LC125]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_108
-	lea     rsi, [rel str_LC126]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_108
-	lea     rsi, [rel str_LC127]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_108
-	lea     rsi, [rel str_LC128]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_108
-	lea     rsi, [rel str_LC129]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_108
-	lea     rsi, [rel str_LC130]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_122
-	mov     edx, 2
-	lea     rsi, [rel str_LC113]
-	mov     rdi, rbx
-	call    strncmp
-	test    eax, eax
-	jnz     loc_120
-	mov     rdi, rbx
-	call    strlen
-	cmp     rax, 7
-	ja      loc_120
-	cmp     byte [rbx+0x2], 61
-	lea     rdx, [rbx+0x2]
-	lea     rax, [rbx+0x3]
-	cmove   rdx, rax
-	mov     rdi, rdx
-	mov     rbx, rdx
-	call    valid_opt_level
-	test    eax, eax
-	jne     loc_108
-	mov     rbx, qword [r15]
-loc_120:  lea     rsi, [rel str_LC132]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	jne     loc_127
-	add     ebp, 1
-	cmp     ebp, r14d
-	jge     loc_126
-	mov     rax, qword [rsp]
-	mov     rbx, qword [r13+rax+0x8]
-	mov     rdi, rbx
-	call    valid_raw_flags
-	test    eax, eax
-	je      loc_130
-loc_121:  mov     rdi, rbx
-	call    set_raw_flags
-	jmp     loc_019
-
-loc_122:  lea     rdi, [rel str_LC131]
-	call    set_opt_level
-	jmp     loc_019
-
-loc_123:  add     rbx, 6
-	mov     rdi, rbx
-	call    valid_opt_level
-	test    eax, eax
-	jne     loc_108
-	mov     rdx, rbx
-	lea     rsi, [rel str_LC120]
-	jmp     loc_051
-
-loc_124:  add     ebp, 1
-	cmp     ebp, r14d
-	jge     loc_131
-	mov     rax, qword [rsp]
-	lea     rsi, [rel str_LC99]
-	mov     rbx, qword [r13+rax+0x8]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_117
-	lea     rsi, [rel str_LC100]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_117
-	mov     rdi, rbx
-	call    valid_opt_level
-	test    eax, eax
-	jne     loc_108
-	mov     rdx, rbx
-	lea     rsi, [rel str_LC115]
-	jmp     loc_051
-
-loc_125:  add     rbx, 15
-	mov     rdi, rbx
-	call    valid_opt_level
-	test    eax, eax
-	jne     loc_108
-	mov     rdx, rbx
-	lea     rsi, [rel str_LC122]
-	jmp     loc_051
-
-loc_126:  mov     rcx, qword [rel stderr]
-	mov     edx, 43
-	mov     esi, 1
-	lea     rdi, [rel str_LC133]
-	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_010
-
-loc_127:  mov     edx, 6
-	lea     rsi, [rel str_LC135]
-	mov     rdi, rbx
-	call    strncmp
-	test    eax, eax
-	je      loc_129
-	lea     rsi, [rel str_LC136]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_137
-	lea     rsi, [rel str_LC137]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_137
-	lea     rsi, [rel str_LC138]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_137
-	lea     rsi, [rel str_LC139]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_137
-	lea     rsi, [rel str_LC140]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_136
-	lea     rsi, [rel str_LC141]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_136
-	mov     edx, 14
-	lea     rsi, [rel str_LC142]
-	mov     rdi, rbx
-	call    strncmp
-	test    eax, eax
-	je      loc_132
-	lea     rsi, [rel str_LC144]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	jne     loc_135
-	add     ebp, 1
-	cmp     r14d, ebp
-	jle     loc_134
-	mov     rax, qword [rsp]
-	mov     rbx, qword [r13+rax+0x8]
-	mov     rdi, rbx
-	call    valid_gentoo_chroot_path
-	test    eax, eax
-	jnz     loc_133
-loc_128:  mov     rdx, rbx
-	lea     rsi, [rel str_LC143]
-	jmp     loc_051
-
-loc_129:  add     rbx, 6
-	mov     rdi, rbx
-	call    valid_raw_flags
-	test    eax, eax
-	jne     loc_121
-loc_130:  mov     rcx, qword [rel stderr]
-	mov     edx, 112
-	mov     esi, 1
-	lea     rdi, [rel str_LC134]
-	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_010
-
-loc_131:  mov     rdx, rbx
-	lea     rsi, [rel str_LC114]
-	jmp     loc_028
-
-loc_132:  add     rbx, 14
-	mov     rdi, rbx
-	call    valid_gentoo_chroot_path
-	test    eax, eax
-	jz      loc_128
-loc_133:  mov     rdi, rbx
-	call    set_gentoo_chroot_path
-	jmp     loc_019
-
-loc_134:  mov     rcx, qword [rel stderr]
-	mov     edx, 42
-	mov     esi, 1
-	lea     rdi, [rel str_LC145]
-	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_010
-
-loc_135:  lea     rsi, [rel str_LC146]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_139
-	lea     rsi, [rel str_LC147]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_139
-	lea     rsi, [rel str_LC148]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_139
-	lea     rsi, [rel str_LC149]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_139
-	lea     rsi, [rel str_LC150]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_139
-	lea     rsi, [rel str_LC151]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_139
-	lea     rsi, [rel str_LC152]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_139
-	lea     rsi, [rel str_LC153]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_139
-	lea     rsi, [rel str_LC154]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	jz      loc_138
-	lea     rsi, [rel str_LC155]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	jz      loc_138
-	lea     rsi, [rel str_LC156]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	jz      loc_138
-	lea     rsi, [rel str_LC157]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	jz      loc_138
-	mov     eax, r12d
-	add     r12d, 1
-	mov     qword [rsp+rax*8+0x20], rbx
-	jmp     loc_019
-
-loc_136:  xor     edi, edi
-	call    set_gentoo_chroot
-	xor     edi, edi
-	call    set_portage_imitation
-	jmp     loc_019
-
-loc_137:  mov     edi, 1
-	call    set_gentoo_chroot
-	mov     edi, 1
-	call    set_portage_imitation
-	jmp     loc_019
-
-loc_138:  xor     edi, edi
-	call    set_use_binary
-	jmp     loc_019
-
-loc_139:  mov     edi, 1
-	call    set_use_binary
-	jmp     loc_019
-
-loc_140:  cmp     r12d, 1
-	jz      loc_143
-	call    init_system
-	test    eax, eax
-	je      loc_097
-	mov     ebx, 1
-	xor     ebp, ebp
-	lea     r13, [rsp+0x20]
-loc_141:  mov     rdi, qword [r13+rbx*8]
-	call    cmd_deselect
-	cmp     eax, 1
-	adc     ebp, 0
-	add     rbx, 1
-	cmp     r12d, ebx
-	jg      loc_141
-	test    ebp, ebp
-	jmp     loc_069
-
-loc_142:  call    init_system
-	test    eax, eax
-	je      loc_097
-	call    cmd_world_update
-	jmp     loc_075
-
-loc_143:  mov     rcx, qword [rel stderr]
-	mov     edx, 53
-	mov     esi, 1
-	lea     rdi, [rel str_LC179]
-	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
+	sete    al
+	movzx   eax, al
 	jmp     loc_004
 
-loc_144:  call    cmd_clean_v2
-	jmp     loc_075
+loc_114:  sub     esp, 12
+	push    dword [esp+0x30]
+	call    cmd_dependency_plan_v2
+	add     esp, 16
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
 
-loc_145:  cmp     r12d, 2
-	jne     loc_097
-	mov     rdi, qword [rsp+0x28]
-	call    cmd_local_build_v2
-	jmp     loc_075
+loc_115:  push    dword [stderr]
+	push    37
+	push    1
+	push    loc_336
+	call    fwrite
+	add     esp, 16
+	jmp     loc_010
 
-loc_146:  mov     rdi, qword [rel stderr]
-	mov     rdx, rbp
-	lea     rsi, [rel str_LC183]
-	xor     eax, eax
+loc_116:  push    eax
+	push    eax
+	push    loc_205
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_137
+	push    eax
+	push    eax
+	push    loc_206
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_137
+	push    ecx
+	push    ecx
+	push    loc_207
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_137
+	push    edx
+	push    edx
+	push    loc_208
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_137
+	push    eax
+	push    12
+	push    loc_209
+	push    ebx
+	call    strncmp
+	add     esp, 16
+	test    eax, eax
+	jne     loc_126
+	cmp     byte [ebx+0x0C], 0
+	lea     esi, [ebx+0x0C]
+	je      loc_125
+	push    ebx
+	push    ebx
+	push    loc_200
+	push    esi
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_124
+	push    ecx
+	push    ecx
+	push    loc_201
+	push    esi
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_124
+	sub     esp, 12
+	push    esi
+	call    valid_opt_level
+	add     esp, 16
+	test    eax, eax
+	jne     loc_122
+	push    edx
+	push    esi
+	push    loc_341
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
+	jmp     loc_010
+
+loc_117:  call    cmd_clean_v2
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_118:  push    eax
+	push    ebp
+	push    loc_354
+	push    dword [stderr]
 	call    fprintf
 	call    print_usage
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
+	add     esp, 16
 	jmp     loc_010
 
-loc_147:  cmp     r12d, 1
-	jz      loc_152
+loc_119:  cmp     edx, 1
+	jz      loc_123
+	mov     dword [esp+0x4], edx
 	call    init_system
 	test    eax, eax
-	je      loc_097
-	mov     ebx, 1
-	xor     ebp, ebp
-	lea     r13, [rsp+0x20]
-loc_148:  mov     rdi, qword [r13+rbx*8]
-	call    cmd_unmerge
-	cmp     eax, 1
-	adc     ebp, 0
-	add     rbx, 1
-	cmp     r12d, ebx
-	jg      loc_148
-	test    ebp, ebp
-	jmp     loc_069
-
-loc_149:  mov     rdx, r14
-	lea     rsi, [rel str_LC184]
-	jmp     loc_051
-
-loc_150:  mov     ebp, 1
-	lea     r13, [rsp+0x20]
-loc_151:  mov     rdi, qword [r13+rbp*8]
-	call    cmd_build
-	cmp     eax, 1
-	adc     ebx, 0
-	add     rbp, 1
-	cmp     r12d, ebp
-	jg      loc_151
-	test    ebx, ebx
-	jmp     loc_069
-
-loc_152:  mov     rcx, qword [rel stderr]
-	mov     edx, 57
+	je      loc_010
+	mov     ebp, dword [esp+0x4]
 	mov     esi, 1
-	lea     rdi, [rel str_LC182]
+	xor     edi, edi
+	lea     ebx, [esp+0x20]
+loc_120:  sub     esp, 12
+	push    dword [ebx+esi*4]
+	call    cmd_unmerge
+	add     esp, 16
+	cmp     eax, 1
+	adc     edi, 0
+	add     esi, 1
+	cmp     ebp, esi
+	jg      loc_120
+	jmp     loc_067
+
+loc_121:  push    ebp
+	push    edi
+	push    loc_355
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
+	jmp     loc_010
+
+loc_122:  sub     esp, 12
+	push    esi
+	call    set_opt_level
+	add     esp, 16
+	jmp     loc_019
+
+loc_123:  push    dword [stderr]
+	push    57
+	push    1
+	push    loc_353
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
+	add     esp, 16
+	jmp     loc_010
+
+loc_124:  call    print_known_opt_levels
+	jmp     loc_003
+
+loc_125:  push    dword [stderr]
+	push    43
+	push    1
+	push    loc_340
+	call    fwrite
+	add     esp, 16
+	jmp     loc_010
+
+loc_126:  push    eax
+	push    6
+	push    loc_210
+	push    ebx
+	call    strncmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_140
+	push    eax
+	push    15
+	push    loc_211
+	push    ebx
+	call    strncmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_136
+	push    eax
+	push    eax
+	push    loc_212
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_131
+	push    ecx
+	push    ecx
+	push    loc_213
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_131
+	push    edx
+	push    edx
+	push    loc_214
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_131
+	push    eax
+	push    eax
+	push    loc_215
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_131
+	push    eax
+	push    eax
+	push    loc_216
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_131
+	push    eax
+	push    eax
+	push    loc_217
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_131
+	push    eax
+	push    eax
+	push    loc_218
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_131
+	push    eax
+	push    eax
+	push    loc_219
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_130
+	push    ecx
+	push    2
+	push    loc_208
+	push    ebx
+	call    strncmp
+	add     esp, 16
+	test    eax, eax
+	jnz     loc_128
+	sub     esp, 12
+	push    ebx
+	call    strlen
+	add     esp, 16
+	cmp     eax, 7
+	ja      loc_128
+	cmp     byte [ebx+0x2], 61
+	je      loc_138
+	add     ebx, 2
+loc_127:  sub     esp, 12
+	push    ebx
+	call    valid_opt_level
+	add     esp, 16
+	test    eax, eax
+	jnz     loc_131
+	mov     ebx, dword [edi]
+loc_128:  push    edx
+	push    edx
+	push    loc_221
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	jne     loc_134
+	add     ebp, 1
+	cmp     ebp, dword [esp+0x440]
+	jge     loc_133
+	mov     eax, dword [esp+0x444]
+	mov     ebx, dword [eax+esi+0x4]
+loc_129:  sub     esp, 12
+	push    ebx
+	call    valid_raw_flags
+	add     esp, 16
+	test    eax, eax
+	jz      loc_132
+	sub     esp, 12
+	push    ebx
+	call    set_raw_flags
+	add     esp, 16
+	jmp     loc_019
+
+loc_130:  sub     esp, 12
+	push    loc_220
+	call    set_opt_level
+	add     esp, 16
+	jmp     loc_019
+
+loc_131:  sub     esp, 12
+	push    ebx
+	call    set_opt_level
+	add     esp, 16
+	jmp     loc_019
+
+loc_132:  push    dword [stderr]
+	push    112
+	push    1
+	push    loc_345
+	call    fwrite
+	add     esp, 16
+	jmp     loc_010
+
+loc_133:  push    dword [stderr]
+	push    43
+	push    1
+	push    loc_344
+	call    fwrite
+	add     esp, 16
+	jmp     loc_010
+
+loc_134:  push    eax
+	push    6
+	push    loc_222
+	push    ebx
+	call    strncmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_147
+	push    eax
+	push    eax
+	push    loc_223
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_146
+	push    eax
+	push    eax
+	push    loc_224
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_146
+	push    eax
+	push    eax
+	push    loc_225
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_146
+	push    eax
+	push    eax
+	push    loc_226
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_146
+	push    edi
+	push    edi
+	push    loc_227
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_145
+	push    ecx
+	push    ecx
+	push    loc_228
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_145
+	push    eax
+	push    14
+	push    loc_229
+	push    ebx
+	call    strncmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_144
+	push    eax
+	push    eax
+	push    loc_230
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	jne     loc_143
+	add     ebp, 1
+	cmp     dword [esp+0x440], ebp
+	jle     loc_142
+	mov     eax, dword [esp+0x444]
+	mov     ebx, dword [eax+esi+0x4]
+loc_135:  sub     esp, 12
+	push    ebx
+	call    valid_gentoo_chroot_path
+	add     esp, 16
+	test    eax, eax
+	jne     loc_141
+	push    eax
+	push    ebx
+	push    loc_346
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
+	jmp     loc_010
+
+loc_136:  sub     esp, 12
+	add     ebx, 15
+	push    ebx
+	call    valid_opt_level
+	add     esp, 16
+	test    eax, eax
+	jne     loc_131
+	push    eax
+	push    ebx
+	push    loc_343
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
+	jmp     loc_010
+
+loc_137:  add     ebp, 1
+	cmp     ebp, dword [esp+0x440]
+	jge     loc_139
+	mov     eax, dword [esp+0x444]
+	mov     ebx, dword [eax+esi+0x4]
+	push    eax
+	push    eax
+	push    loc_200
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_124
+	push    eax
+	push    eax
+	push    loc_201
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_124
+	sub     esp, 12
+	push    ebx
+	call    valid_opt_level
+	add     esp, 16
+	test    eax, eax
+	jne     loc_131
+	push    eax
+	push    ebx
+	push    loc_339
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
+	jmp     loc_010
+
+loc_138:  add     ebx, 3
+	jmp     loc_127
+
+loc_139:  push    eax
+	push    ebx
+	push    loc_338
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
+	jmp     loc_010
+
+loc_140:  sub     esp, 12
+	add     ebx, 6
+	push    ebx
+	call    valid_opt_level
+	add     esp, 16
+	test    eax, eax
+	jne     loc_131
+	push    eax
+	push    ebx
+	push    loc_342
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
+	jmp     loc_010
+
+loc_141:  sub     esp, 12
+	push    ebx
+	call    set_gentoo_chroot_path
+	add     esp, 16
+	jmp     loc_019
+
+loc_142:  push    dword [stderr]
+	push    42
+	push    1
+	push    loc_347
+	call    fwrite
+	add     esp, 16
+	jmp     loc_010
+
+loc_143:  push    eax
+	push    eax
+	push    loc_231
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_149
+	push    eax
+	push    eax
+	push    loc_232
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_149
+	push    edi
+	push    edi
+	push    loc_233
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_149
+	push    esi
+	push    esi
+	push    loc_234
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_149
+	push    ecx
+	push    ecx
+	push    loc_235
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_149
+	push    edx
+	push    edx
+	push    loc_236
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_149
+	push    eax
+	push    eax
+	push    loc_237
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_149
+	push    eax
+	push    eax
+	push    loc_238
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_149
+	push    eax
+	push    eax
+	push    loc_239
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_148
+	push    eax
+	push    eax
+	push    loc_240
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	je      loc_148
+	push    eax
+	push    eax
+	push    loc_241
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	jz      loc_148
+	push    edi
+	push    edi
+	push    loc_242
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	jz      loc_148
+	mov     eax, dword [esp+0x4]
+	mov     dword [esp+eax*4+0x20], ebx
+	add     eax, 1
+	mov     dword [esp+0x4], eax
+	jmp     loc_019
+
+loc_144:  add     ebx, 14
+	jmp     loc_135
+
+loc_145:  sub     esp, 12
+	push    0
+	call    set_gentoo_chroot
+	xor     edx, edx
+	mov     dword [esp], edx
+	call    set_portage_imitation
+	add     esp, 16
+	jmp     loc_019
+
+loc_146:  sub     esp, 12
+	push    1
+	call    set_gentoo_chroot
+	mov     dword [esp], 1
+	call    set_portage_imitation
+	add     esp, 16
+	jmp     loc_019
+
+loc_147:  add     ebx, 6
+	jmp     loc_129
+
+loc_148:  sub     esp, 12
+	push    0
+	call    set_use_binary
+	add     esp, 16
+	jmp     loc_019
+
+loc_149:  sub     esp, 12
+	push    1
+	call    set_use_binary
+	add     esp, 16
+	jmp     loc_019
+
+loc_150:  mov     edx, ebx
+	mov     ebx, edi
+	mov     edi, dword [esp+0x4]
+	jmp     loc_110
+
+loc_151:  push    esi
+	push    edx
+	mov     dword [esp+0x0C], edx
+	push    1
+	push    loc_356
+	call    printf
+	mov     dword [esp], esi
+	call    cmd_build
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
+	test    eax, eax
+	je      loc_109
+	xor     edi, edi
+	mov     eax, 1
+	mov     dword [esp+0x4], edi
+	mov     edi, ebx
+	mov     ebx, edx
+	jmp     loc_111
+
+loc_152:  mov     dword [esp+0x4], edx
+	call    get_gentoo_chroot
+	mov     edx, dword [esp+0x4]
+	test    eax, eax
+	mov     esi, eax
+	je      loc_162
+	mov     esi, dword [esp+0x20]
+	cmp     edx, 1
+	jne     loc_161
+	mov     dword [esp+0x4], edx
+	sub     esp, 12
+	push    esi
+	call    cmd_gentoo_imitation_build
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
+	test    eax, eax
+	jne     loc_003
+loc_153:  mov     esi, 1
+loc_154:  add     edi, 1
+	mov     eax, esi
+	cmp     edx, esi
+	jle     loc_156
+	mov     dword [esp+0x4], edi
+	mov     edi, ebx
+	mov     ebx, edx
+loc_155:  mov     ebp, dword [edi+eax*4]
+	lea     esi, [eax+0x1]
+	push    ebp
+	push    ebx
+	push    esi
+	push    loc_358
+	call    printf
+	mov     dword [esp], ebp
+	call    cmd_gentoo_imitation_build
+	add     esp, 16
+	test    eax, eax
+	je      loc_160
+	mov     eax, esi
+	cmp     ebx, esi
+	jg      loc_155
+	mov     edi, dword [esp+0x4]
+	test    edi, edi
+	je      loc_003
+loc_156:  push    ebx
+	push    edi
+	push    loc_359
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
+	jmp     loc_010
+
+loc_157:  call    init_system
+	test    eax, eax
+	je      loc_010
+	call    cmd_world_update
+	test    eax, eax
+	sete    al
+	movzx   eax, al
 	jmp     loc_004
 
-loc_153:  mov     rdi, qword [rsp+0x28]
-	call    cmd_provider_v2
-	jmp     loc_075
+loc_158:  cmp     edx, 2
+	jne     loc_010
+	sub     esp, 12
+	push    dword [esp+0x30]
+	call    cmd_local_build_v2
+	add     esp, 16
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
 
-loc_154:  mov     rdx, rbx
-	lea     rsi, [rel str_LC98]
-	jmp     loc_028
-
-loc_155:  mov     rcx, qword [rel stderr]
-	mov     edx, 40
-	mov     esi, 1
-	lea     rdi, [rel str_LC103]
+loc_159:  push    dword [stderr]
+	push    53
+	push    1
+	push    loc_352
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
+	add     esp, 16
 	jmp     loc_010
 
-loc_156:  mov     rdi, qword [rsp+0x28]
-	call    cmd_dependency_plan_v2
-	jmp     loc_075
+loc_160:  mov     edx, ebx
+	mov     ebx, edi
+	mov     edi, dword [esp+0x4]
+	jmp     loc_154
 
-loc_157:  mov     r12d, ebx
-	test    ebx, ebx
-	je      loc_091
-	mov     edx, ebx
-	lea     rsi, [rel str_LC186]
-loc_158:  mov     rdi, qword [rel stderr]
-	xor     eax, eax
-	call    fprintf
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_010
-
-loc_159:
-	call    get_gentoo_chroot
-	mov     ebx, eax
-	test    eax, eax
-	jz      loc_164
-	xor     ebx, ebx
-	jmp     loc_162
-
-loc_160:  lea     rdi, [rel str_LC187]
-	xor     eax, eax
-	lea     esi, [rbx+0x1]
-	mov     rcx, rbp
-	mov     edx, r12d
+loc_161:  push    esi
+	push    edx
+	mov     dword [esp+0x0C], edx
+	push    1
+	push    loc_358
 	call    printf
-	mov     rdi, rbp
+	mov     dword [esp], esi
 	call    cmd_gentoo_imitation_build
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
 	test    eax, eax
-	jz      loc_163
-loc_161:  add     rbx, 1
-	cmp     r12d, ebx
-	jle     loc_169
-loc_162:  mov     rbp, qword [r13+rbx*8]
-	cmp     r12d, 1
-	jnz     loc_160
-	mov     rdi, rbp
-	call    cmd_gentoo_imitation_build
+	je      loc_153
+	mov     dword [esp+0x4], edi
+	mov     eax, 1
+	mov     edi, ebx
+	mov     ebx, edx
+	jmp     loc_155
+
+loc_162:
+	mov     edi, dword [esp+0x20]
+	cmp     edx, 1
+	jne     loc_167
+	mov     dword [esp+0x4], edx
+	sub     esp, 12
+	push    edi
+	call    cmd_build
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
 	test    eax, eax
-	jnz     loc_169
-loc_163:  add     r14d, 1
-	jmp     loc_161
-
-loc_164:  xor     r14d, r14d
-	jmp     loc_167
-
-loc_165:  lea     rdi, [rel str_LC189]
-	xor     eax, eax
-	lea     esi, [r14+0x1]
-	mov     rcx, r15
-	mov     edx, r12d
+	jne     loc_003
+loc_163:  mov     ecx, 1
+loc_164:  add     esi, 1
+	mov     eax, ecx
+	cmp     edx, ecx
+	jle     loc_166
+	mov     dword [esp+0x4], esi
+	mov     esi, ebx
+	mov     ebx, edx
+loc_165:  mov     edi, dword [esi+eax*4]
+	lea     ecx, [eax+0x1]
+	push    edi
+	push    ebx
+	push    ecx
+	mov     dword [esp+0x14], ecx
+	push    loc_262
 	call    printf
-	mov     rdi, r15
+	mov     dword [esp], edi
 	call    cmd_build
+	add     esp, 16
+	mov     ecx, dword [esp+0x8]
 	test    eax, eax
-	jz      loc_168
-loc_166:  add     r14, 1
-	cmp     r12d, r14d
-	jle     loc_170
-loc_167:  mov     r15, qword [r13+r14*8]
-	cmp     r12d, 1
-	jnz     loc_165
-	mov     rdi, r15
-	call    cmd_build
-	test    eax, eax
-	jnz     loc_170
-loc_168:  add     ebx, 1
-	jmp     loc_166
-
-loc_169:  mov     r12d, r14d
-	test    r14d, r14d
-	je      loc_091
-	mov     edx, r14d
-	lea     rsi, [rel str_LC188]
-	jmp     loc_158
-
-loc_170:
-	mov     r12d, ebx
-	test    ebx, ebx
-	je      loc_091
-	mov     rdi, qword [rel stderr]
-	mov     edx, ebx
-	lea     rsi, [rel str_LC190]
-	xor     eax, eax
+	je      loc_168
+	mov     eax, ecx
+	cmp     ebx, ecx
+	jg      loc_165
+	mov     esi, dword [esp+0x4]
+	test    esi, esi
+	je      loc_003
+loc_166:  push    ecx
+	push    esi
+	push    loc_360
+	push    dword [stderr]
 	call    fprintf
 	call    get_resume
+	add     esp, 16
 	test    eax, eax
-	jne     loc_097
-	mov     rdx, rbp
-	lea     rsi, [rel str_LC191]
-	jmp     loc_051
+	jne     loc_010
+	push    edx
+	push    ebp
+	push    loc_361
+	push    dword [stderr]
+	call    fprintf
+	add     esp, 16
+	jmp     loc_010
+
+loc_167:  push    edi
+	push    edx
+	mov     dword [esp+0x0C], edx
+	push    1
+	push    loc_262
+	call    printf
+	mov     dword [esp], edi
+	call    cmd_build
+	add     esp, 16
+	mov     edx, dword [esp+0x4]
+	test    eax, eax
+	je      loc_163
+	mov     dword [esp+0x4], esi
+	mov     eax, 1
+	mov     esi, ebx
+	mov     ebx, edx
+	jmp     loc_165
+
+loc_168:
+	mov     edx, ebx
+	mov     ebx, esi
+	mov     esi, dword [esp+0x4]
+	jmp     loc_164
 
 SECTION .rodata.str1.1 align=1 noexec
 
-str_LC0:
-	db 0x33, 0x2E, 0x32, 0x2E, 0x32, 0x00
+loc_169:
+	db 0x31, 0x2E, 0x30, 0x2E, 0x30, 0x00
 
-str_LC1:
+loc_170:
 	db 0x41, 0x72, 0x63, 0x68, 0x74, 0x6F, 0x6F, 0x20
 	db 0x45, 0x6D, 0x65, 0x72, 0x67, 0x65, 0x20, 0x45
 	db 0x6E, 0x67, 0x69, 0x6E, 0x65, 0x00
 
-str_LC2:
+loc_171:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x36, 0x6D, 0x25
 	db 0x73, 0x20, 0x76, 0x25, 0x73, 0x0A, 0x1B, 0x5B
 	db 0x30, 0x6D, 0x00
 
-str_LC3:
+loc_172:
 	db 0x55, 0x73, 0x61, 0x67, 0x65, 0x3A, 0x00
 
-str_LC25:
+loc_173:
 	db 0x0A, 0x4F, 0x70, 0x74, 0x69, 0x6F, 0x6E, 0x73
 	db 0x3A, 0x00
 
-str_LC60:
+loc_174:
 	db 0x6E, 0x6F, 0x6E, 0x65, 0x00
 
-str_LC61:
+loc_175:
 	db 0x6F, 0x6E, 0x00
 
-str_LC62:
+loc_176:
 	db 0x6F, 0x66, 0x66, 0x00
 
-str_LC63:
+loc_177:
 	db 0x79, 0x65, 0x73, 0x00
 
-str_LC64:
+loc_178:
 	db 0x6E, 0x6F, 0x00
 
-str_LC65:
+loc_179:
 	db 0x53, 0x55, 0x44, 0x4F, 0x5F, 0x55, 0x53, 0x45
 	db 0x52, 0x00
 
-str_LC67:
+loc_180:
 	db 0x6E, 0x61, 0x74, 0x69, 0x76, 0x65, 0x00
 
-str_LC69:
+loc_181:
 	db 0x2D, 0x2D, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6F
 	db 0x6E, 0x00
 
-str_LC73:
+loc_182:
 	db 0x2D, 0x2D, 0x68, 0x65, 0x6C, 0x70, 0x00
 
-str_LC75:
+loc_183:
 	db 0x2D, 0x2D, 0x6E, 0x6F, 0x63, 0x6F, 0x6E, 0x66
 	db 0x69, 0x72, 0x6D, 0x00
 
-str_LC76:
+loc_184:
 	db 0x2D, 0x2D, 0x63, 0x6F, 0x6D, 0x6D, 0x61, 0x6E
 	db 0x64, 0x2D, 0x67, 0x75, 0x69, 0x64, 0x65, 0x00
 
-str_LC77:
+loc_185:
 	db 0x2D, 0x2D, 0x63, 0x6F, 0x6D, 0x6D, 0x61, 0x6E
 	db 0x64, 0x2D, 0x67, 0x75, 0x69, 0x64, 0x65, 0x3D
 	db 0x00
 
-str_LC79:
+loc_186:
 	db 0x2D, 0x2D, 0x69, 0x6E, 0x74, 0x65, 0x72, 0x61
 	db 0x63, 0x74, 0x69, 0x76, 0x65, 0x00
 
-str_LC80:
+loc_187:
 	db 0x2D, 0x2D, 0x70, 0x72, 0x6F, 0x6D, 0x70, 0x74
 	db 0x2D, 0x74, 0x69, 0x6D, 0x65, 0x6F, 0x75, 0x74
 	db 0x00
 
-str_LC83:
+loc_188:
 	db 0x2D, 0x2D, 0x72, 0x65, 0x73, 0x75, 0x6D, 0x65
 	db 0x00
 
-str_LC84:
+loc_189:
 	db 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x6B, 0x65, 0x79
 	db 0x73, 0x00
 
-str_LC85:
+loc_190:
 	db 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x69, 0x6E, 0x68
 	db 0x69, 0x62, 0x69, 0x74, 0x00
 
-str_LC86:
+loc_191:
 	db 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x73, 0x79, 0x6E
 	db 0x63, 0x00
 
-str_LC87:
+loc_192:
 	db 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x61, 0x75, 0x72
 	db 0x2D, 0x73, 0x79, 0x6E, 0x63, 0x00
 
-str_LC88:
+loc_193:
 	db 0x2D, 0x2D, 0x70, 0x69, 0x70, 0x65, 0x00
 
-str_LC89:
+loc_194:
 	db 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x70, 0x69, 0x70
 	db 0x65, 0x00
 
-str_LC90:
+loc_195:
 	db 0x2D, 0x2D, 0x6A, 0x6F, 0x62, 0x73, 0x00
 
-str_LC93:
+loc_196:
 	db 0x2D, 0x2D, 0x6A, 0x6F, 0x62, 0x73, 0x3D, 0x00
 
-str_LC95:
+loc_197:
 	db 0x2D, 0x2D, 0x74, 0x61, 0x72, 0x67, 0x65, 0x74
 	db 0x00
 
-str_LC96:
+loc_198:
 	db 0x2D, 0x2D, 0x6D, 0x61, 0x72, 0x63, 0x68, 0x00
 
-str_LC97:
+loc_199:
 	db 0x2D, 0x2D, 0x63, 0x70, 0x75, 0x00
 
-str_LC99:
+loc_200:
 	db 0x68, 0x65, 0x6C, 0x70, 0x00
 
-str_LC100:
+loc_201:
 	db 0x6C, 0x69, 0x73, 0x74, 0x00
 
-str_LC102:
+loc_202:
 	db 0x2D, 0x2D, 0x74, 0x61, 0x72, 0x67, 0x65, 0x74
 	db 0x3D, 0x00
 
-str_LC104:
+loc_203:
 	db 0x2D, 0x2D, 0x6D, 0x61, 0x72, 0x63, 0x68, 0x3D
 	db 0x00
 
-str_LC107:
+loc_204:
 	db 0x2D, 0x2D, 0x63, 0x70, 0x75, 0x3D, 0x00
 
-str_LC110:
+loc_205:
 	db 0x2D, 0x2D, 0x6F, 0x70, 0x74, 0x2D, 0x6C, 0x65
 	db 0x76, 0x65, 0x6C, 0x00
 
-str_LC111:
+loc_206:
 	db 0x2D, 0x2D, 0x6F, 0x70, 0x74, 0x00
 
-str_LC112:
+loc_207:
 	db 0x2D, 0x2D, 0x6F, 0x70, 0x74, 0x69, 0x6D, 0x69
 	db 0x7A, 0x61, 0x74, 0x69, 0x6F, 0x6E, 0x00
 
-str_LC113:
+loc_208:
 	db 0x2D, 0x4F, 0x00
 
-str_LC116:
+loc_209:
 	db 0x2D, 0x2D, 0x6F, 0x70, 0x74, 0x2D, 0x6C, 0x65
 	db 0x76, 0x65, 0x6C, 0x3D, 0x00
 
-str_LC119:
+loc_210:
 	db 0x2D, 0x2D, 0x6F, 0x70, 0x74, 0x3D, 0x00
 
-str_LC121:
+loc_211:
 	db 0x2D, 0x2D, 0x6F, 0x70, 0x74, 0x69, 0x6D, 0x69
 	db 0x7A, 0x61, 0x74, 0x69, 0x6F, 0x6E, 0x3D, 0x00
 
-str_LC123:
+loc_212:
 	db 0x2D, 0x4F, 0x30, 0x00
 
-str_LC124:
+loc_213:
 	db 0x2D, 0x4F, 0x31, 0x00
 
-str_LC125:
+loc_214:
 	db 0x2D, 0x4F, 0x32, 0x00
 
-str_LC126:
+loc_215:
 	db 0x2D, 0x4F, 0x33, 0x00
 
-str_LC127:
+loc_216:
 	db 0x2D, 0x4F, 0x73, 0x00
 
-str_LC128:
+loc_217:
 	db 0x2D, 0x4F, 0x7A, 0x00
 
-str_LC129:
+loc_218:
 	db 0x2D, 0x4F, 0x67, 0x00
 
-str_LC130:
+loc_219:
 	db 0x2D, 0x4F, 0x66, 0x61, 0x73, 0x74, 0x00
 
-str_LC131:
+loc_220:
 	db 0x66, 0x61, 0x73, 0x74, 0x00
 
-str_LC132:
+loc_221:
 	db 0x2D, 0x2D, 0x72, 0x61, 0x77, 0x00
 
-str_LC135:
+loc_222:
 	db 0x2D, 0x2D, 0x72, 0x61, 0x77, 0x3D, 0x00
 
-str_LC136:
+loc_223:
 	db 0x2D, 0x2D, 0x67, 0x65, 0x6E, 0x74, 0x6F, 0x6F
 	db 0x2D, 0x63, 0x68, 0x72, 0x6F, 0x6F, 0x74, 0x00
 
-str_LC137:
+loc_224:
 	db 0x2D, 0x2D, 0x69, 0x6D, 0x69, 0x74, 0x61, 0x74
 	db 0x69, 0x6F, 0x6E, 0x00
 
-str_LC138:
+loc_225:
 	db 0x2D, 0x2D, 0x70, 0x6F, 0x72, 0x74, 0x61, 0x67
 	db 0x65, 0x2D, 0x69, 0x6D, 0x69, 0x74, 0x61, 0x74
 	db 0x69, 0x6F, 0x6E, 0x00
 
-str_LC139:
+loc_226:
 	db 0x2D, 0x2D, 0x67, 0x65, 0x6E, 0x74, 0x6F, 0x6F
 	db 0x2D, 0x69, 0x6D, 0x69, 0x74, 0x61, 0x74, 0x69
 	db 0x6F, 0x6E, 0x00
 
-str_LC140:
+loc_227:
 	db 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x67, 0x65, 0x6E
 	db 0x74, 0x6F, 0x6F, 0x2D, 0x63, 0x68, 0x72, 0x6F
 	db 0x6F, 0x74, 0x00
 
-str_LC141:
+loc_228:
 	db 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x69, 0x6D, 0x69
 	db 0x74, 0x61, 0x74, 0x69, 0x6F, 0x6E, 0x00
 
-str_LC142:
+loc_229:
 	db 0x2D, 0x2D, 0x63, 0x68, 0x72, 0x6F, 0x6F, 0x74
 	db 0x2D, 0x70, 0x61, 0x74, 0x68, 0x3D, 0x00
 
-str_LC144:
+loc_230:
 	db 0x2D, 0x2D, 0x63, 0x68, 0x72, 0x6F, 0x6F, 0x74
 	db 0x2D, 0x70, 0x61, 0x74, 0x68, 0x00
 
-str_LC146:
+loc_231:
 	db 0x2D, 0x2D, 0x62, 0x69, 0x6E, 0x61, 0x72, 0x79
 	db 0x00
 
-str_LC147:
+loc_232:
 	db 0x2D, 0x2D, 0x75, 0x73, 0x65, 0x2D, 0x62, 0x69
 	db 0x6E, 0x61, 0x72, 0x79, 0x00
 
-str_LC148:
+loc_233:
 	db 0x2D, 0x2D, 0x75, 0x73, 0x65, 0x2D, 0x62, 0x69
 	db 0x6E, 0x00
 
-str_LC149:
+loc_234:
 	db 0x2D, 0x2D, 0x62, 0x69, 0x6E, 0x00
 
-str_LC150:
+loc_235:
 	db 0x2D, 0x2D, 0x70, 0x72, 0x65, 0x62, 0x75, 0x69
 	db 0x6C, 0x74, 0x00
 
-str_LC151:
+loc_236:
 	db 0x2D, 0x2D, 0x75, 0x73, 0x65, 0x2D, 0x70, 0x72
 	db 0x65, 0x62, 0x75, 0x69, 0x6C, 0x74, 0x00
 
-str_LC152:
+loc_237:
 	db 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x62, 0x75, 0x69
 	db 0x6C, 0x64, 0x00
 
-str_LC153:
+loc_238:
 	db 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x63, 0x6F, 0x6D
 	db 0x70, 0x69, 0x6C, 0x65, 0x00
 
-str_LC154:
+loc_239:
 	db 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x62, 0x69, 0x6E
 	db 0x61, 0x72, 0x79, 0x00
 
-str_LC155:
+loc_240:
 	db 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x75, 0x73, 0x65
 	db 0x2D, 0x62, 0x69, 0x6E, 0x61, 0x72, 0x79, 0x00
 
-str_LC156:
+loc_241:
 	db 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x62, 0x69, 0x6E
 	db 0x00
 
-str_LC157:
+loc_242:
 	db 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x70, 0x72, 0x65
 	db 0x62, 0x75, 0x69, 0x6C, 0x74, 0x00
 
-str_LC160:
+loc_243:
 	db 0x2D, 0x41, 0x00
 
-str_LC162:
+loc_244:
 	db 0x2D, 0x2D, 0x6F, 0x72, 0x70, 0x68, 0x61, 0x6E
 	db 0x73, 0x00
 
-str_LC163:
+loc_245:
 	db 0x2D, 0x2D, 0x73, 0x74, 0x61, 0x74, 0x73, 0x00
 
-str_LC164:
+loc_246:
 	db 0x2D, 0x2D, 0x6E, 0x65, 0x77, 0x73, 0x00
 
-str_LC165:
+loc_247:
 	db 0x2D, 0x2D, 0x63, 0x6F, 0x6D, 0x70, 0x6C, 0x65
 	db 0x74, 0x65, 0x00
 
-str_LC166:
+loc_248:
 	db 0x2D, 0x2D, 0x64, 0x65, 0x76, 0x65, 0x6C, 0x00
 
-str_LC167:
+loc_249:
 	db 0x2D, 0x2D, 0x70, 0x72, 0x6F, 0x76, 0x69, 0x64
 	db 0x65, 0x72, 0x73, 0x00
 
-str_LC168:
+loc_250:
 	db 0x2D, 0x2D, 0x64, 0x65, 0x70, 0x73, 0x00
 
-str_LC169:
+loc_251:
 	db 0x2D, 0x2D, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77
 	db 0x00
 
-str_LC171:
+loc_252:
 	db 0x2D, 0x49, 0x00
 
-str_LC172:
+loc_253:
 	db 0x2D, 0x47, 0x00
 
-str_LC173:
+loc_254:
 	db 0x2D, 0x42, 0x00
 
-str_LC174:
+loc_255:
 	db 0x2D, 0x2D, 0x63, 0x6C, 0x65, 0x61, 0x6E, 0x00
 
-str_LC175:
+loc_256:
 	db 0x2D, 0x55, 0x00
 
-str_LC176:
+loc_257:
 	db 0x2D, 0x2D, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65
 	db 0x00
 
-str_LC177:
+loc_258:
 	db 0x2D, 0x44, 0x00
 
-str_LC178:
+loc_259:
 	db 0x2D, 0x2D, 0x64, 0x65, 0x73, 0x65, 0x6C, 0x65
 	db 0x63, 0x74, 0x00
 
-str_LC180:
+loc_260:
 	db 0x2D, 0x43, 0x00
 
-str_LC181:
+loc_261:
 	db 0x2D, 0x2D, 0x75, 0x6E, 0x6D, 0x65, 0x72, 0x67
 	db 0x65, 0x00
 
-str_LC189:
+loc_262:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x35, 0x6D, 0x0A
 	db 0x3E, 0x3E, 0x3E, 0x20, 0x5B, 0x25, 0x64, 0x2F
 	db 0x25, 0x64, 0x5D, 0x20, 0x25, 0x73, 0x0A, 0x1B
 	db 0x5B, 0x30, 0x6D, 0x00
 
-str_LC192:
+loc_263:
 	db 0x2D, 0x51, 0x00
 
-SECTION .rodata.str1.8 align=8 noexec
+SECTION .rodata.str1.4 align=4 noexec
 
-str_LC4:
+loc_264:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x3C, 0x70, 0x61, 0x63, 0x6B, 0x61, 0x67
 	db 0x65, 0x3E, 0x2E, 0x2E, 0x2E, 0x20, 0x20, 0x20
@@ -2404,7 +2978,7 @@ str_LC4:
 	db 0x67, 0x65, 0x73, 0x20, 0x28, 0x2D, 0x49, 0x20
 	db 0x61, 0x6C, 0x69, 0x61, 0x73, 0x29, 0x00, 0x00
 
-str_LC5:
+loc_265:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x53, 0x20, 0x3C, 0x71, 0x75, 0x65
 	db 0x72, 0x79, 0x3E, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2413,24 +2987,24 @@ str_LC5:
 	db 0x6F, 0x72, 0x69, 0x65, 0x73, 0x20, 0x61, 0x6E
 	db 0x64, 0x20, 0x41, 0x55, 0x52, 0x00, 0x00, 0x00
 
-str_LC6:
+loc_266:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x49, 0x20, 0x3C, 0x70, 0x61, 0x63
 	db 0x6B, 0x61, 0x67, 0x65, 0x3E, 0x2E, 0x2E, 0x2E
 	db 0x20, 0x20, 0x49, 0x6E, 0x73, 0x74, 0x61, 0x6C
 	db 0x6C, 0x20, 0x70, 0x61, 0x63, 0x6B, 0x61, 0x67
-	db 0x65, 0x73, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x65, 0x73, 0x00, 0x00
 
-str_LC7:
+loc_267:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x51, 0x20, 0x3C, 0x70, 0x61, 0x63
 	db 0x6B, 0x61, 0x67, 0x65, 0x3E, 0x2E, 0x2E, 0x2E
 	db 0x20, 0x20, 0x51, 0x75, 0x65, 0x72, 0x79, 0x20
 	db 0x69, 0x6E, 0x73, 0x74, 0x61, 0x6C, 0x6C, 0x65
 	db 0x64, 0x20, 0x70, 0x61, 0x63, 0x6B, 0x61, 0x67
-	db 0x65, 0x73, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x65, 0x73, 0x00, 0x00
 
-str_LC8:
+loc_268:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x41, 0x20, 0x3C, 0x70, 0x61, 0x63
 	db 0x6B, 0x61, 0x67, 0x65, 0x3E, 0x2E, 0x2E, 0x2E
@@ -2438,27 +3012,27 @@ str_LC8:
 	db 0x65, 0x70, 0x6F, 0x73, 0x69, 0x74, 0x6F, 0x72
 	db 0x79, 0x2F, 0x41, 0x55, 0x52, 0x20, 0x69, 0x6E
 	db 0x66, 0x6F, 0x72, 0x6D, 0x61, 0x74, 0x69, 0x6F
-	db 0x6E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x6E, 0x00, 0x00, 0x00
 
-str_LC9:
+loc_269:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x47, 0x20, 0x3C, 0x70, 0x61, 0x63
 	db 0x6B, 0x61, 0x67, 0x65, 0x3E, 0x2E, 0x2E, 0x2E
 	db 0x20, 0x20, 0x44, 0x6F, 0x77, 0x6E, 0x6C, 0x6F
 	db 0x61, 0x64, 0x20, 0x41, 0x55, 0x52, 0x20, 0x50
 	db 0x4B, 0x47, 0x42, 0x55, 0x49, 0x4C, 0x44, 0x73
-	db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x00, 0x00, 0x00, 0x00
 
-str_LC10:
+loc_270:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x42, 0x20, 0x3C, 0x64, 0x69, 0x72
 	db 0x65, 0x63, 0x74, 0x6F, 0x72, 0x79, 0x3E, 0x20
 	db 0x20, 0x20, 0x42, 0x75, 0x69, 0x6C, 0x64, 0x20
 	db 0x61, 0x20, 0x6C, 0x6F, 0x63, 0x61, 0x6C, 0x20
 	db 0x50, 0x4B, 0x47, 0x42, 0x55, 0x49, 0x4C, 0x44
-	db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x00, 0x00, 0x00, 0x00
 
-str_LC11:
+loc_271:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x43, 0x20, 0x3C, 0x70, 0x61, 0x63
 	db 0x6B, 0x61, 0x67, 0x65, 0x3E, 0x2E, 0x2E, 0x2E
@@ -2467,7 +3041,7 @@ str_LC11:
 	db 0x6F, 0x76, 0x65, 0x20, 0x70, 0x61, 0x63, 0x6B
 	db 0x61, 0x67, 0x65, 0x73, 0x00, 0x00, 0x00, 0x00
 
-str_LC12:
+loc_272:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x2D, 0x6F, 0x72, 0x70, 0x68, 0x61
 	db 0x6E, 0x73, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2476,7 +3050,7 @@ str_LC12:
 	db 0x64, 0x65, 0x70, 0x65, 0x6E, 0x64, 0x65, 0x6E
 	db 0x63, 0x69, 0x65, 0x73, 0x00, 0x00, 0x00, 0x00
 
-str_LC13:
+loc_273:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x2D, 0x63, 0x6C, 0x65, 0x61, 0x6E
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2484,16 +3058,16 @@ str_LC13:
 	db 0x70, 0x61, 0x63, 0x6B, 0x61, 0x67, 0x65, 0x20
 	db 0x63, 0x61, 0x63, 0x68, 0x65, 0x73, 0x00, 0x00
 
-str_LC14:
+loc_274:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x2D, 0x73, 0x74, 0x61, 0x74, 0x73
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x53, 0x68, 0x6F, 0x77, 0x20, 0x70
 	db 0x61, 0x63, 0x6B, 0x61, 0x67, 0x65, 0x20, 0x73
 	db 0x74, 0x61, 0x74, 0x69, 0x73, 0x74, 0x69, 0x63
-	db 0x73, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x73, 0x00, 0x00, 0x00
 
-str_LC15:
+loc_275:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x2D, 0x6E, 0x65, 0x77, 0x73, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2501,7 +3075,7 @@ str_LC15:
 	db 0x65, 0x63, 0x65, 0x6E, 0x74, 0x20, 0x41, 0x72
 	db 0x63, 0x68, 0x20, 0x6E, 0x65, 0x77, 0x73, 0x00
 
-str_LC16:
+loc_276:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x2D, 0x70, 0x72, 0x6F, 0x76, 0x69
 	db 0x64, 0x65, 0x72, 0x73, 0x20, 0x3C, 0x6E, 0x3E
@@ -2512,7 +3086,7 @@ str_LC16:
 	db 0x63, 0x74, 0x2F, 0x50, 0x72, 0x6F, 0x76, 0x69
 	db 0x64, 0x65, 0x73, 0x29, 0x00, 0x00, 0x00, 0x00
 
-str_LC17:
+loc_277:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x2D, 0x64, 0x65, 0x70, 0x73, 0x20
 	db 0x3C, 0x6E, 0x3E, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2523,7 +3097,7 @@ str_LC17:
 	db 0x67, 0x72, 0x61, 0x70, 0x68, 0x20, 0x6F, 0x72
 	db 0x64, 0x65, 0x72, 0x29, 0x00, 0x00, 0x00, 0x00
 
-str_LC18:
+loc_278:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x2D, 0x64, 0x65, 0x76, 0x65, 0x6C
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2534,7 +3108,7 @@ str_LC18:
 	db 0x67, 0x69, 0x74, 0x2F, 0x2D, 0x68, 0x67, 0x2F
 	db 0x2E, 0x2E, 0x2E, 0x29, 0x00, 0x00, 0x00, 0x00
 
-str_LC19:
+loc_279:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x2D, 0x72, 0x65, 0x76, 0x69, 0x65
 	db 0x77, 0x20, 0x3C, 0x64, 0x69, 0x72, 0x3E, 0x20
@@ -2544,7 +3118,7 @@ str_LC19:
 	db 0x46, 0x4F, 0x20, 0x66, 0x6F, 0x72, 0x20, 0x72
 	db 0x65, 0x76, 0x69, 0x65, 0x77, 0x00, 0x00, 0x00
 
-str_LC20:
+loc_280:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x2D, 0x63, 0x6F, 0x6D, 0x70, 0x6C
 	db 0x65, 0x74, 0x65, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2553,9 +3127,9 @@ str_LC20:
 	db 0x73, 0x20, 0x61, 0x6E, 0x64, 0x20, 0x72, 0x65
 	db 0x70, 0x6F, 0x20, 0x70, 0x61, 0x63, 0x6B, 0x61
 	db 0x67, 0x65, 0x20, 0x6E, 0x61, 0x6D, 0x65, 0x73
-	db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x00, 0x00, 0x00, 0x00
 
-str_LC21:
+loc_281:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x55, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2566,7 +3140,7 @@ str_LC21:
 	db 0x20, 0x72, 0x65, 0x62, 0x75, 0x69, 0x6C, 0x64
 	db 0x20, 0x40, 0x77, 0x6F, 0x72, 0x6C, 0x64, 0x00
 
-str_LC22:
+loc_282:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x44, 0x20, 0x3C, 0x70, 0x61, 0x63
 	db 0x6B, 0x61, 0x67, 0x65, 0x3E, 0x2E, 0x2E, 0x2E
@@ -2576,7 +3150,7 @@ str_LC22:
 	db 0x6F, 0x70, 0x20, 0x66, 0x72, 0x6F, 0x6D, 0x20
 	db 0x40, 0x77, 0x6F, 0x72, 0x6C, 0x64, 0x2C, 0x00
 
-str_LC23:
+loc_283:
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2585,16 +3159,16 @@ str_LC23:
 	db 0x63, 0x6B, 0x61, 0x67, 0x65, 0x20, 0x69, 0x6E
 	db 0x73, 0x74, 0x61, 0x6C, 0x6C, 0x65, 0x64, 0x00
 
-str_LC24:
+loc_284:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x76, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x53, 0x68, 0x6F, 0x77, 0x20, 0x76, 0x65
 	db 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x20, 0x69, 0x6E
 	db 0x66, 0x6F, 0x72, 0x6D, 0x61, 0x74, 0x69, 0x6F
-	db 0x6E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x6E, 0x00, 0x00, 0x00
 
-str_LC26:
+loc_285:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x6E, 0x6F, 0x63, 0x6F
 	db 0x6E, 0x66, 0x69, 0x72, 0x6D, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2602,9 +3176,9 @@ str_LC26:
 	db 0x72, 0x6F, 0x6D, 0x70, 0x74, 0x3B, 0x20, 0x75
 	db 0x73, 0x65, 0x20, 0x73, 0x61, 0x66, 0x65, 0x20
 	db 0x64, 0x65, 0x66, 0x61, 0x75, 0x6C, 0x74, 0x73
-	db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x00, 0x00, 0x00, 0x00
 
-str_LC27:
+loc_286:
 	db 0x20, 0x20, 0x2D, 0x69, 0x2C, 0x20, 0x2D, 0x2D
 	db 0x69, 0x6E, 0x74, 0x65, 0x72, 0x61, 0x63, 0x74
 	db 0x69, 0x76, 0x65, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2612,9 +3186,9 @@ str_LC27:
 	db 0x70, 0x61, 0x63, 0x6D, 0x61, 0x6E, 0x20, 0x63
 	db 0x6F, 0x6E, 0x66, 0x69, 0x72, 0x6D, 0x61, 0x74
 	db 0x69, 0x6F, 0x6E, 0x20, 0x70, 0x72, 0x6F, 0x6D
-	db 0x70, 0x74, 0x73, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x70, 0x74, 0x73, 0x00
 
-str_LC28:
+loc_287:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x70, 0x72, 0x6F, 0x6D
 	db 0x70, 0x74, 0x2D, 0x74, 0x69, 0x6D, 0x65, 0x6F
 	db 0x75, 0x74, 0x20, 0x53, 0x45, 0x43, 0x20, 0x20
@@ -2623,9 +3197,9 @@ str_LC28:
 	db 0x74, 0x69, 0x6D, 0x65, 0x6F, 0x75, 0x74, 0x20
 	db 0x28, 0x30, 0x20, 0x77, 0x61, 0x69, 0x74, 0x73
 	db 0x20, 0x66, 0x6F, 0x72, 0x65, 0x76, 0x65, 0x72
-	db 0x29, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x29, 0x00, 0x00, 0x00
 
-str_LC29:
+loc_288:
 	db 0x20, 0x20, 0x2D, 0x6A, 0x2C, 0x20, 0x2D, 0x2D
 	db 0x6A, 0x6F, 0x62, 0x73, 0x20, 0x4E, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2634,9 +3208,9 @@ str_LC29:
 	db 0x6A, 0x6F, 0x62, 0x73, 0x20, 0x28, 0x64, 0x65
 	db 0x66, 0x61, 0x75, 0x6C, 0x74, 0x3A, 0x20, 0x61
 	db 0x6C, 0x6C, 0x20, 0x63, 0x6F, 0x72, 0x65, 0x73
-	db 0x29, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x29, 0x00, 0x00, 0x00
 
-str_LC30:
+loc_289:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x74, 0x61, 0x72, 0x67
 	db 0x65, 0x74, 0x20, 0x41, 0x52, 0x43, 0x48, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2646,7 +3220,7 @@ str_LC30:
 	db 0x65, 0x66, 0x61, 0x75, 0x6C, 0x74, 0x3A, 0x20
 	db 0x6E, 0x61, 0x74, 0x69, 0x76, 0x65, 0x29, 0x00
 
-str_LC31:
+loc_290:
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2655,9 +3229,9 @@ str_LC31:
 	db 0x6E, 0x76, 0x65, 0x72, 0x33, 0x2C, 0x20, 0x78
 	db 0x38, 0x36, 0x2D, 0x36, 0x34, 0x2D, 0x76, 0x33
 	db 0x2C, 0x20, 0x6E, 0x61, 0x74, 0x69, 0x76, 0x65
-	db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x00, 0x00, 0x00, 0x00
 
-str_LC32:
+loc_291:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x74, 0x61, 0x72, 0x67
 	db 0x65, 0x74, 0x3D, 0x41, 0x52, 0x43, 0x48, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2665,16 +3239,16 @@ str_LC32:
 	db 0x20, 0x2D, 0x2D, 0x74, 0x61, 0x72, 0x67, 0x65
 	db 0x74, 0x20, 0x41, 0x52, 0x43, 0x48, 0x00, 0x00
 
-str_LC33:
+loc_292:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x6D, 0x61, 0x72, 0x63
 	db 0x68, 0x3D, 0x41, 0x52, 0x43, 0x48, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x41, 0x6C, 0x69, 0x61, 0x73, 0x20, 0x66
 	db 0x6F, 0x72, 0x20, 0x2D, 0x2D, 0x74, 0x61, 0x72
 	db 0x67, 0x65, 0x74, 0x3D, 0x41, 0x52, 0x43, 0x48
-	db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x00, 0x00, 0x00, 0x00
 
-str_LC34:
+loc_293:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x6F, 0x70, 0x74, 0x2D
 	db 0x6C, 0x65, 0x76, 0x65, 0x6C, 0x20, 0x4C, 0x45
 	db 0x56, 0x45, 0x4C, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2685,7 +3259,7 @@ str_LC34:
 	db 0x7A, 0x20, 0x28, 0x64, 0x65, 0x66, 0x61, 0x75
 	db 0x6C, 0x74, 0x3A, 0x20, 0x33, 0x29, 0x00, 0x00
 
-str_LC35:
+loc_294:
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2693,7 +3267,7 @@ str_LC35:
 	db 0x32, 0x2C, 0x20, 0x32, 0x2C, 0x20, 0x73, 0x2C
 	db 0x20, 0x66, 0x61, 0x73, 0x74, 0x00, 0x00, 0x00
 
-str_LC36:
+loc_295:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x6F, 0x70, 0x74, 0x3D
 	db 0x4C, 0x45, 0x56, 0x45, 0x4C, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2701,16 +3275,16 @@ str_LC36:
 	db 0x6F, 0x72, 0x20, 0x2D, 0x2D, 0x6F, 0x70, 0x74
 	db 0x2D, 0x6C, 0x65, 0x76, 0x65, 0x6C, 0x00, 0x00
 
-str_LC37:
+loc_296:
 	db 0x20, 0x20, 0x2D, 0x4F, 0x30, 0x2C, 0x2D, 0x4F
 	db 0x31, 0x2C, 0x2D, 0x4F, 0x32, 0x2C, 0x2D, 0x4F
 	db 0x33, 0x2C, 0x2D, 0x4F, 0x73, 0x2C, 0x2D, 0x4F
 	db 0x66, 0x61, 0x73, 0x74, 0x2C, 0x2D, 0x4F, 0x67
 	db 0x2C, 0x2D, 0x4F, 0x7A, 0x20, 0x20, 0x53, 0x68
 	db 0x6F, 0x72, 0x74, 0x20, 0x66, 0x6F, 0x72, 0x6D
-	db 0x73, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x73, 0x00, 0x00, 0x00
 
-str_LC38:
+loc_297:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x72, 0x61, 0x77, 0x20
 	db 0x22, 0x46, 0x4C, 0x41, 0x47, 0x53, 0x22, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2722,7 +3296,7 @@ str_LC38:
 	db 0x4C, 0x41, 0x47, 0x53, 0x2F, 0x4C, 0x44, 0x46
 	db 0x4C, 0x41, 0x47, 0x53, 0x00, 0x00, 0x00, 0x00
 
-str_LC39:
+loc_298:
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2735,7 +3309,7 @@ str_LC39:
 	db 0x20, 0x6F, 0x70, 0x74, 0x69, 0x6F, 0x6E, 0x73
 	db 0x20, 0x6F, 0x6E, 0x6C, 0x79, 0x29, 0x00, 0x00
 
-str_LC40:
+loc_299:
 	db 0x20, 0x20, 0x6D, 0x61, 0x6B, 0x65, 0x70, 0x6B
 	db 0x67, 0x5F, 0x72, 0x61, 0x77, 0x20, 0x28, 0x63
 	db 0x6F, 0x6E, 0x66, 0x69, 0x67, 0x29, 0x20, 0x20
@@ -2745,7 +3319,7 @@ str_LC40:
 	db 0x61, 0x6B, 0x65, 0x70, 0x6B, 0x67, 0x20, 0x69
 	db 0x74, 0x73, 0x65, 0x6C, 0x66, 0x2C, 0x00, 0x00
 
-str_LC41:
+loc_300:
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2757,7 +3331,7 @@ str_LC41:
 	db 0x70, 0x74, 0x69, 0x6F, 0x6E, 0x73, 0x20, 0x6F
 	db 0x6E, 0x6C, 0x79, 0x29, 0x00, 0x00, 0x00, 0x00
 
-str_LC42:
+loc_301:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x70, 0x69, 0x70, 0x65
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2765,14 +3339,14 @@ str_LC42:
 	db 0x2D, 0x70, 0x69, 0x70, 0x65, 0x20, 0x28, 0x64
 	db 0x65, 0x66, 0x61, 0x75, 0x6C, 0x74, 0x29, 0x00
 
-str_LC43:
+loc_302:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x70
 	db 0x69, 0x70, 0x65, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x44, 0x69, 0x73, 0x61, 0x62, 0x6C, 0x65
 	db 0x20, 0x2D, 0x70, 0x69, 0x70, 0x65, 0x00, 0x00
 
-str_LC44:
+loc_303:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x67, 0x65, 0x6E, 0x74
 	db 0x6F, 0x6F, 0x2D, 0x63, 0x68, 0x72, 0x6F, 0x6F
 	db 0x74, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2784,25 +3358,25 @@ str_LC44:
 	db 0x20, 0x47, 0x65, 0x6E, 0x74, 0x6F, 0x6F, 0x20
 	db 0x63, 0x68, 0x72, 0x6F, 0x6F, 0x74, 0x00, 0x00
 
-str_LC45:
+loc_304:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x69, 0x6D, 0x69, 0x74
 	db 0x61, 0x74, 0x69, 0x6F, 0x6E, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x41, 0x6C, 0x69, 0x61, 0x73, 0x20, 0x66
 	db 0x6F, 0x72, 0x20, 0x2D, 0x2D, 0x67, 0x65, 0x6E
 	db 0x74, 0x6F, 0x6F, 0x2D, 0x63, 0x68, 0x72, 0x6F
-	db 0x6F, 0x74, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x6F, 0x74, 0x00, 0x00
 
-str_LC46:
+loc_305:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x67
 	db 0x65, 0x6E, 0x74, 0x6F, 0x6F, 0x2D, 0x63, 0x68
 	db 0x72, 0x6F, 0x6F, 0x74, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x44, 0x69, 0x73, 0x61, 0x62, 0x6C, 0x65
 	db 0x20, 0x63, 0x68, 0x72, 0x6F, 0x6F, 0x74, 0x20
 	db 0x69, 0x6D, 0x69, 0x74, 0x61, 0x74, 0x69, 0x6F
-	db 0x6E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x6E, 0x00, 0x00, 0x00
 
-str_LC47:
+loc_306:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x63, 0x68, 0x72, 0x6F
 	db 0x6F, 0x74, 0x2D, 0x70, 0x61, 0x74, 0x68, 0x20
 	db 0x50, 0x41, 0x54, 0x48, 0x20, 0x20, 0x20, 0x20
@@ -2815,7 +3389,7 @@ str_LC47:
 	db 0x67, 0x65, 0x6E, 0x74, 0x6F, 0x6F, 0x2D, 0x63
 	db 0x68, 0x72, 0x6F, 0x6F, 0x74, 0x29, 0x00, 0x00
 
-str_LC48:
+loc_307:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x62, 0x69, 0x6E, 0x61
 	db 0x72, 0x79, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2830,9 +3404,9 @@ str_LC48:
 	db 0x69, 0x6C, 0x74, 0x20, 0x2D, 0x62, 0x69, 0x6E
 	db 0x20, 0x28, 0x6C, 0x6F, 0x6E, 0x67, 0x20, 0x66
 	db 0x6C, 0x61, 0x67, 0x20, 0x6F, 0x6E, 0x6C, 0x79
-	db 0x29, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x29, 0x00, 0x00, 0x00
 
-str_LC49:
+loc_308:
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2841,15 +3415,15 @@ str_LC49:
 	db 0x20, 0x6E, 0x6F, 0x20, 0x73, 0x68, 0x6F, 0x72
 	db 0x74, 0x20, 0x66, 0x6F, 0x72, 0x6D, 0x00, 0x00
 
-str_LC50:
+loc_309:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x75, 0x73, 0x65, 0x2D
 	db 0x62, 0x69, 0x6E, 0x61, 0x72, 0x79, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x41, 0x6C, 0x69, 0x61, 0x73, 0x20, 0x66
 	db 0x6F, 0x72, 0x20, 0x2D, 0x2D, 0x62, 0x69, 0x6E
-	db 0x61, 0x72, 0x79, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x61, 0x72, 0x79, 0x00
 
-str_LC51:
+loc_310:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x62
 	db 0x69, 0x6E, 0x61, 0x72, 0x79, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2857,7 +3431,7 @@ str_LC51:
 	db 0x20, 0x62, 0x69, 0x6E, 0x61, 0x72, 0x79, 0x20
 	db 0x6D, 0x6F, 0x64, 0x65, 0x00, 0x00, 0x00, 0x00
 
-str_LC52:
+loc_311:
 	db 0x20, 0x20, 0x2D, 0x72, 0x2C, 0x20, 0x2D, 0x2D
 	db 0x72, 0x65, 0x73, 0x75, 0x6D, 0x65, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2866,9 +3440,9 @@ str_LC52:
 	db 0x69, 0x6E, 0x67, 0x20, 0x62, 0x75, 0x69, 0x6C
 	db 0x64, 0x20, 0x74, 0x72, 0x65, 0x65, 0x20, 0x61
 	db 0x6E, 0x64, 0x20, 0x63, 0x6F, 0x6E, 0x74, 0x69
-	db 0x6E, 0x75, 0x65, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x6E, 0x75, 0x65, 0x00
 
-str_LC53:
+loc_312:
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2876,7 +3450,7 @@ str_LC53:
 	db 0x72, 0x72, 0x75, 0x70, 0x74, 0x65, 0x64, 0x20
 	db 0x63, 0x6F, 0x6D, 0x70, 0x69, 0x6C, 0x65, 0x00
 
-str_LC54:
+loc_313:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x6B
 	db 0x65, 0x79, 0x73, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2886,7 +3460,7 @@ str_LC54:
 	db 0x47, 0x50, 0x20, 0x73, 0x69, 0x67, 0x6E, 0x69
 	db 0x6E, 0x67, 0x20, 0x6B, 0x65, 0x79, 0x73, 0x00
 
-str_LC55:
+loc_314:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x69
 	db 0x6E, 0x68, 0x69, 0x62, 0x69, 0x74, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2897,7 +3471,7 @@ str_LC55:
 	db 0x69, 0x6C, 0x65, 0x20, 0x62, 0x75, 0x69, 0x6C
 	db 0x64, 0x69, 0x6E, 0x67, 0x00, 0x00, 0x00, 0x00
 
-str_LC56:
+loc_315:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x73
 	db 0x79, 0x6E, 0x63, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2907,7 +3481,7 @@ str_LC56:
 	db 0x20, 0x61, 0x20, 0x77, 0x6F, 0x72, 0x6C, 0x64
 	db 0x20, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x00
 
-str_LC57:
+loc_316:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x6E, 0x6F, 0x2D, 0x61
 	db 0x75, 0x72, 0x2D, 0x73, 0x79, 0x6E, 0x63, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2918,7 +3492,7 @@ str_LC57:
 	db 0x20, 0x64, 0x6F, 0x20, 0x6E, 0x6F, 0x74, 0x20
 	db 0x72, 0x65, 0x66, 0x72, 0x65, 0x73, 0x68, 0x00
 
-str_LC58:
+loc_317:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x63, 0x6F, 0x6D, 0x6D
 	db 0x61, 0x6E, 0x64, 0x2D, 0x67, 0x75, 0x69, 0x64
 	db 0x65, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -2927,7 +3501,7 @@ str_LC58:
 	db 0x6D, 0x61, 0x6E, 0x64, 0x20, 0x67, 0x75, 0x69
 	db 0x64, 0x65, 0x20, 0x6E, 0x6F, 0x77, 0x00, 0x00
 
-str_LC59:
+loc_318:
 	db 0x20, 0x20, 0x2D, 0x2D, 0x63, 0x6F, 0x6D, 0x6D
 	db 0x61, 0x6E, 0x64, 0x2D, 0x67, 0x75, 0x69, 0x64
 	db 0x65, 0x3D, 0x4D, 0x4F, 0x44, 0x45, 0x20, 0x20
@@ -2936,9 +3510,9 @@ str_LC59:
 	db 0x20, 0x66, 0x69, 0x72, 0x73, 0x74, 0x2D, 0x72
 	db 0x75, 0x6E, 0x2C, 0x20, 0x61, 0x6C, 0x77, 0x61
 	db 0x79, 0x73, 0x2C, 0x20, 0x6E, 0x65, 0x76, 0x65
-	db 0x72, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x72, 0x00, 0x00, 0x00
 
-str_LC66:
+loc_319:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x52, 0x75, 0x6E, 0x6E, 0x69
 	db 0x6E, 0x67, 0x20, 0x61, 0x73, 0x20, 0x61, 0x20
@@ -2965,9 +3539,9 @@ str_LC66:
 	db 0x61, 0x6C, 0x20, 0x61, 0x63, 0x63, 0x6F, 0x75
 	db 0x6E, 0x74, 0x20, 0x69, 0x6E, 0x73, 0x74, 0x65
 	db 0x61, 0x64, 0x2E, 0x0A, 0x1B, 0x5B, 0x30, 0x6D
-	db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x00, 0x00, 0x00, 0x00
 
-str_LC68:
+loc_320:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x36, 0x6D, 0x43
 	db 0x75, 0x72, 0x72, 0x65, 0x6E, 0x74, 0x20, 0x63
 	db 0x6F, 0x6E, 0x66, 0x69, 0x67, 0x3A, 0x20, 0x74
@@ -2982,7 +3556,7 @@ str_LC68:
 	db 0x65, 0x70, 0x6B, 0x67, 0x3D, 0x25, 0x73, 0x0A
 	db 0x1B, 0x5B, 0x30, 0x6D, 0x00, 0x00, 0x00, 0x00
 
-str_LC70:
+loc_321:
 	db 0x25, 0x73, 0x20, 0x76, 0x25, 0x73, 0x20, 0x28
 	db 0x74, 0x61, 0x72, 0x67, 0x65, 0x74, 0x3D, 0x25
 	db 0x73, 0x20, 0x6F, 0x70, 0x74, 0x3D, 0x2D, 0x4F
@@ -2990,16 +3564,16 @@ str_LC70:
 	db 0x25, 0x73, 0x20, 0x63, 0x68, 0x72, 0x6F, 0x6F
 	db 0x74, 0x3D, 0x25, 0x73, 0x20, 0x62, 0x69, 0x6E
 	db 0x61, 0x72, 0x79, 0x3D, 0x25, 0x73, 0x29, 0x0A
-	db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x00, 0x00, 0x00, 0x00
 
-str_LC71:
+loc_322:
 	db 0x43, 0x6F, 0x70, 0x79, 0x72, 0x69, 0x67, 0x68
 	db 0x74, 0x20, 0x28, 0x43, 0x29, 0x20, 0x32, 0x30
 	db 0x32, 0x36, 0x20, 0x54, 0x68, 0x65, 0x43, 0x6F
 	db 0x6F, 0x6B, 0x69, 0x65, 0x47, 0x6F, 0x64, 0x36
-	db 0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x34, 0x00, 0x00, 0x00
 
-str_LC72:
+loc_323:
 	db 0x4C, 0x69, 0x63, 0x65, 0x6E, 0x73, 0x65, 0x20
 	db 0x47, 0x50, 0x4C, 0x76, 0x33, 0x2B, 0x3A, 0x20
 	db 0x47, 0x4E, 0x55, 0x20, 0x47, 0x50, 0x4C, 0x20
@@ -3011,7 +3585,7 @@ str_LC72:
 	db 0x6E, 0x73, 0x65, 0x73, 0x2F, 0x67, 0x70, 0x6C
 	db 0x2E, 0x68, 0x74, 0x6D, 0x6C, 0x3E, 0x00, 0x00
 
-str_LC74:
+loc_324:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x36, 0x6D, 0x0A
 	db 0x41, 0x63, 0x74, 0x69, 0x76, 0x65, 0x20, 0x63
 	db 0x6F, 0x6E, 0x66, 0x69, 0x67, 0x3A, 0x20, 0x74
@@ -3021,9 +3595,9 @@ str_LC74:
 	db 0x73, 0x20, 0x72, 0x61, 0x77, 0x3D, 0x25, 0x73
 	db 0x20, 0x6D, 0x61, 0x6B, 0x65, 0x70, 0x6B, 0x67
 	db 0x3D, 0x25, 0x73, 0x0A, 0x1B, 0x5B, 0x30, 0x6D
-	db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x00, 0x00, 0x00, 0x00
 
-str_LC78:
+loc_325:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x49, 0x6E, 0x76, 0x61, 0x6C
 	db 0x69, 0x64, 0x20, 0x63, 0x6F, 0x6D, 0x6D, 0x61
@@ -3035,7 +3609,7 @@ str_LC78:
 	db 0x20, 0x6E, 0x65, 0x76, 0x65, 0x72, 0x29, 0x2E
 	db 0x0A, 0x1B, 0x5B, 0x30, 0x6D, 0x00, 0x00, 0x00
 
-str_LC81:
+loc_326:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x2D, 0x2D, 0x70, 0x72, 0x6F
 	db 0x6D, 0x70, 0x74, 0x2D, 0x74, 0x69, 0x6D, 0x65
@@ -3043,23 +3617,23 @@ str_LC81:
 	db 0x73, 0x20, 0x73, 0x65, 0x63, 0x6F, 0x6E, 0x64
 	db 0x73, 0x2E, 0x0A, 0x1B, 0x5B, 0x30, 0x6D, 0x00
 
-str_LC82:
+loc_327:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x49, 0x6E, 0x76, 0x61, 0x6C
 	db 0x69, 0x64, 0x20, 0x74, 0x69, 0x6D, 0x65, 0x6F
 	db 0x75, 0x74, 0x20, 0x28, 0x65, 0x78, 0x70, 0x65
 	db 0x63, 0x74, 0x65, 0x64, 0x20, 0x30, 0x2D, 0x38
 	db 0x36, 0x34, 0x30, 0x30, 0x29, 0x2E, 0x0A, 0x1B
-	db 0x5B, 0x30, 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x5B, 0x30, 0x6D, 0x00
 
-str_LC91:
+loc_328:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x25, 0x73, 0x20, 0x6E, 0x65
 	db 0x65, 0x64, 0x73, 0x20, 0x61, 0x20, 0x6E, 0x75
 	db 0x6D, 0x62, 0x65, 0x72, 0x2E, 0x0A, 0x1B, 0x5B
-	db 0x30, 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x30, 0x6D, 0x00, 0x00
 
-str_LC92:
+loc_329:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x49, 0x6E, 0x76, 0x61, 0x6C
 	db 0x69, 0x64, 0x20, 0x6A, 0x6F, 0x62, 0x20, 0x63
@@ -3067,16 +3641,16 @@ str_LC92:
 	db 0x27, 0x20, 0x28, 0x65, 0x78, 0x70, 0x65, 0x63
 	db 0x74, 0x65, 0x64, 0x20, 0x31, 0x2D, 0x31, 0x30
 	db 0x32, 0x34, 0x29, 0x2E, 0x0A, 0x1B, 0x5B, 0x30
-	db 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x6D, 0x00, 0x00, 0x00
 
-str_LC94:
+loc_330:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x49, 0x6E, 0x76, 0x61, 0x6C
 	db 0x69, 0x64, 0x20, 0x6A, 0x6F, 0x62, 0x20, 0x63
 	db 0x6F, 0x75, 0x6E, 0x74, 0x2E, 0x0A, 0x1B, 0x5B
-	db 0x30, 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x30, 0x6D, 0x00, 0x00
 
-str_LC98:
+loc_331:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x25, 0x73, 0x20, 0x6E, 0x65
 	db 0x65, 0x64, 0x73, 0x20, 0x61, 0x6E, 0x20, 0x61
@@ -3084,7 +3658,7 @@ str_LC98:
 	db 0x75, 0x72, 0x65, 0x20, 0x6E, 0x61, 0x6D, 0x65
 	db 0x2E, 0x0A, 0x1B, 0x5B, 0x30, 0x6D, 0x00, 0x00
 
-str_LC101:
+loc_332:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x49, 0x6E, 0x76, 0x61, 0x6C
 	db 0x69, 0x64, 0x20, 0x74, 0x61, 0x72, 0x67, 0x65
@@ -3093,43 +3667,43 @@ str_LC101:
 	db 0x72, 0x67, 0x65, 0x74, 0x20, 0x68, 0x65, 0x6C
 	db 0x70, 0x2E, 0x0A, 0x1B, 0x5B, 0x30, 0x6D, 0x00
 
-str_LC103:
+loc_333:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x2D, 0x2D, 0x74, 0x61, 0x72
 	db 0x67, 0x65, 0x74, 0x3D, 0x20, 0x6E, 0x65, 0x65
 	db 0x64, 0x73, 0x20, 0x61, 0x20, 0x76, 0x61, 0x6C
 	db 0x75, 0x65, 0x2E, 0x0A, 0x1B, 0x5B, 0x30, 0x6D
-	db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x00, 0x00, 0x00, 0x00
 
-str_LC105:
+loc_334:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x2D, 0x2D, 0x6D, 0x61, 0x72
 	db 0x63, 0x68, 0x3D, 0x20, 0x6E, 0x65, 0x65, 0x64
 	db 0x73, 0x20, 0x61, 0x20, 0x76, 0x61, 0x6C, 0x75
 	db 0x65, 0x2E, 0x0A, 0x1B, 0x5B, 0x30, 0x6D, 0x00
 
-str_LC106:
+loc_335:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x49, 0x6E, 0x76, 0x61, 0x6C
 	db 0x69, 0x64, 0x20, 0x6D, 0x61, 0x72, 0x63, 0x68
 	db 0x20, 0x27, 0x25, 0x73, 0x27, 0x2E, 0x0A, 0x1B
-	db 0x5B, 0x30, 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x5B, 0x30, 0x6D, 0x00
 
-str_LC108:
+loc_336:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x2D, 0x2D, 0x63, 0x70, 0x75
 	db 0x3D, 0x20, 0x6E, 0x65, 0x65, 0x64, 0x73, 0x20
 	db 0x61, 0x20, 0x76, 0x61, 0x6C, 0x75, 0x65, 0x2E
 	db 0x0A, 0x1B, 0x5B, 0x30, 0x6D, 0x00, 0x00, 0x00
 
-str_LC109:
+loc_337:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x49, 0x6E, 0x76, 0x61, 0x6C
 	db 0x69, 0x64, 0x20, 0x63, 0x70, 0x75, 0x20, 0x27
 	db 0x25, 0x73, 0x27, 0x2E, 0x0A, 0x1B, 0x5B, 0x30
-	db 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x6D, 0x00, 0x00, 0x00
 
-str_LC114:
+loc_338:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x25, 0x73, 0x20, 0x6E, 0x65
 	db 0x65, 0x64, 0x73, 0x20, 0x61, 0x20, 0x6C, 0x65
@@ -3138,7 +3712,7 @@ str_LC114:
 	db 0x61, 0x73, 0x74, 0x2C, 0x67, 0x2C, 0x7A, 0x29
 	db 0x2E, 0x0A, 0x1B, 0x5B, 0x30, 0x6D, 0x00, 0x00
 
-str_LC115:
+loc_339:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x49, 0x6E, 0x76, 0x61, 0x6C
 	db 0x69, 0x64, 0x20, 0x6F, 0x70, 0x74, 0x20, 0x6C
@@ -3148,45 +3722,45 @@ str_LC115:
 	db 0x65, 0x6C, 0x20, 0x68, 0x65, 0x6C, 0x70, 0x2E
 	db 0x0A, 0x1B, 0x5B, 0x30, 0x6D, 0x00, 0x00, 0x00
 
-str_LC117:
+loc_340:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x2D, 0x2D, 0x6F, 0x70, 0x74
 	db 0x2D, 0x6C, 0x65, 0x76, 0x65, 0x6C, 0x3D, 0x20
 	db 0x6E, 0x65, 0x65, 0x64, 0x73, 0x20, 0x61, 0x20
 	db 0x76, 0x61, 0x6C, 0x75, 0x65, 0x2E, 0x0A, 0x1B
-	db 0x5B, 0x30, 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x5B, 0x30, 0x6D, 0x00
 
-str_LC118:
+loc_341:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x49, 0x6E, 0x76, 0x61, 0x6C
 	db 0x69, 0x64, 0x20, 0x6F, 0x70, 0x74, 0x20, 0x6C
 	db 0x65, 0x76, 0x65, 0x6C, 0x20, 0x27, 0x25, 0x73
 	db 0x27, 0x2E, 0x0A, 0x1B, 0x5B, 0x30, 0x6D, 0x00
 
-str_LC120:
+loc_342:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x49, 0x6E, 0x76, 0x61, 0x6C
 	db 0x69, 0x64, 0x20, 0x6F, 0x70, 0x74, 0x20, 0x27
 	db 0x25, 0x73, 0x27, 0x2E, 0x0A, 0x1B, 0x5B, 0x30
-	db 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x6D, 0x00, 0x00, 0x00
 
-str_LC122:
+loc_343:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x49, 0x6E, 0x76, 0x61, 0x6C
 	db 0x69, 0x64, 0x20, 0x6F, 0x70, 0x74, 0x69, 0x6D
 	db 0x69, 0x7A, 0x61, 0x74, 0x69, 0x6F, 0x6E, 0x20
 	db 0x27, 0x25, 0x73, 0x27, 0x2E, 0x0A, 0x1B, 0x5B
-	db 0x30, 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x30, 0x6D, 0x00, 0x00
 
-str_LC133:
+loc_344:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x2D, 0x2D, 0x72, 0x61, 0x77
 	db 0x20, 0x6E, 0x65, 0x65, 0x64, 0x73, 0x20, 0x61
 	db 0x20, 0x66, 0x6C, 0x61, 0x67, 0x73, 0x20, 0x73
 	db 0x74, 0x72, 0x69, 0x6E, 0x67, 0x2E, 0x0A, 0x1B
-	db 0x5B, 0x30, 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x5B, 0x30, 0x6D, 0x00
 
-str_LC134:
+loc_345:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x49, 0x6E, 0x76, 0x61, 0x6C
 	db 0x69, 0x64, 0x20, 0x2D, 0x2D, 0x72, 0x61, 0x77
@@ -3201,25 +3775,25 @@ str_LC134:
 	db 0x65, 0x72, 0x73, 0x2C, 0x20, 0x3C, 0x3D, 0x20
 	db 0x31, 0x39, 0x32, 0x20, 0x63, 0x68, 0x61, 0x72
 	db 0x73, 0x29, 0x2E, 0x0A, 0x1B, 0x5B, 0x30, 0x6D
-	db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x00, 0x00, 0x00, 0x00
 
-str_LC143:
+loc_346:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x49, 0x6E, 0x76, 0x61, 0x6C
 	db 0x69, 0x64, 0x20, 0x63, 0x68, 0x72, 0x6F, 0x6F
 	db 0x74, 0x20, 0x70, 0x61, 0x74, 0x68, 0x20, 0x27
 	db 0x25, 0x73, 0x27, 0x0A, 0x1B, 0x5B, 0x30, 0x6D
-	db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x00, 0x00, 0x00, 0x00
 
-str_LC145:
+loc_347:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x2D, 0x2D, 0x63, 0x68, 0x72
 	db 0x6F, 0x6F, 0x74, 0x2D, 0x70, 0x61, 0x74, 0x68
 	db 0x20, 0x6E, 0x65, 0x65, 0x64, 0x73, 0x20, 0x61
 	db 0x20, 0x70, 0x61, 0x74, 0x68, 0x0A, 0x1B, 0x5B
-	db 0x30, 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x30, 0x6D, 0x00, 0x00
 
-str_LC158:
+loc_348:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x36, 0x6D, 0x43
 	db 0x75, 0x72, 0x72, 0x65, 0x6E, 0x74, 0x3A, 0x20
 	db 0x74, 0x61, 0x72, 0x67, 0x65, 0x74, 0x3D, 0x25
@@ -3232,25 +3806,25 @@ str_LC158:
 	db 0x70, 0x61, 0x74, 0x68, 0x3D, 0x25, 0x73, 0x0A
 	db 0x1B, 0x5B, 0x30, 0x6D, 0x00, 0x00, 0x00, 0x00
 
-str_LC159:
+loc_349:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x53, 0x65, 0x61, 0x72, 0x63
 	db 0x68, 0x20, 0x72, 0x65, 0x71, 0x75, 0x69, 0x72
 	db 0x65, 0x73, 0x20, 0x65, 0x78, 0x61, 0x63, 0x74
 	db 0x6C, 0x79, 0x20, 0x6F, 0x6E, 0x65, 0x20, 0x71
 	db 0x75, 0x65, 0x72, 0x79, 0x2E, 0x0A, 0x1B, 0x5B
-	db 0x30, 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x30, 0x6D, 0x00, 0x00
 
-str_LC161:
+loc_350:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x54, 0x68, 0x69, 0x73, 0x20
 	db 0x6F, 0x70, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6F
 	db 0x6E, 0x20, 0x72, 0x65, 0x71, 0x75, 0x69, 0x72
 	db 0x65, 0x73, 0x20, 0x61, 0x20, 0x70, 0x61, 0x63
 	db 0x6B, 0x61, 0x67, 0x65, 0x2E, 0x0A, 0x1B, 0x5B
-	db 0x30, 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x30, 0x6D, 0x00, 0x00
 
-str_LC170:
+loc_351:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x2D, 0x2D, 0x72, 0x65, 0x76
 	db 0x69, 0x65, 0x77, 0x20, 0x72, 0x65, 0x71, 0x75
@@ -3258,7 +3832,7 @@ str_LC170:
 	db 0x69, 0x72, 0x65, 0x63, 0x74, 0x6F, 0x72, 0x79
 	db 0x2E, 0x0A, 0x1B, 0x5B, 0x30, 0x6D, 0x00, 0x00
 
-str_LC179:
+loc_352:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x45, 0x72, 0x72, 0x6F, 0x72
 	db 0x3A, 0x20, 0x73, 0x70, 0x65, 0x63, 0x69, 0x66
@@ -3267,7 +3841,7 @@ str_LC179:
 	db 0x65, 0x73, 0x65, 0x6C, 0x65, 0x63, 0x74, 0x2E
 	db 0x0A, 0x1B, 0x5B, 0x30, 0x6D, 0x00, 0x00, 0x00
 
-str_LC182:
+loc_353:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x45, 0x72, 0x72, 0x6F, 0x72
 	db 0x3A, 0x20, 0x73, 0x70, 0x65, 0x63, 0x69, 0x66
@@ -3275,32 +3849,32 @@ str_LC182:
 	db 0x61, 0x67, 0x65, 0x20, 0x6E, 0x61, 0x6D, 0x65
 	db 0x20, 0x74, 0x6F, 0x20, 0x75, 0x6E, 0x6D, 0x65
 	db 0x72, 0x67, 0x65, 0x2E, 0x0A, 0x1B, 0x5B, 0x30
-	db 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x6D, 0x00, 0x00, 0x00
 
-str_LC183:
+loc_354:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x55, 0x6E, 0x6B, 0x6E, 0x6F
 	db 0x77, 0x6E, 0x20, 0x6F, 0x70, 0x74, 0x69, 0x6F
 	db 0x6E, 0x3A, 0x20, 0x25, 0x73, 0x0A, 0x1B, 0x5B
-	db 0x30, 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x30, 0x6D, 0x00, 0x00
 
-str_LC184:
+loc_355:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x49, 0x6E, 0x76, 0x61, 0x6C
 	db 0x69, 0x64, 0x20, 0x70, 0x61, 0x63, 0x6B, 0x61
 	db 0x67, 0x65, 0x20, 0x6E, 0x61, 0x6D, 0x65, 0x3A
 	db 0x20, 0x27, 0x25, 0x73, 0x27, 0x0A, 0x1B, 0x5B
-	db 0x30, 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x30, 0x6D, 0x00, 0x00
 
-str_LC185:
+loc_356:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x35, 0x6D, 0x0A
 	db 0x3E, 0x3E, 0x3E, 0x20, 0x5B, 0x25, 0x64, 0x2F
 	db 0x25, 0x64, 0x5D, 0x20, 0x25, 0x73, 0x20, 0x28
 	db 0x62, 0x69, 0x6E, 0x61, 0x72, 0x79, 0x20, 0x6D
 	db 0x6F, 0x64, 0x65, 0x29, 0x0A, 0x1B, 0x5B, 0x30
-	db 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x6D, 0x00, 0x00, 0x00
 
-str_LC186:
+loc_357:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x0A
 	db 0x5B, 0x2D, 0x5D, 0x20, 0x25, 0x64, 0x20, 0x70
 	db 0x61, 0x63, 0x6B, 0x61, 0x67, 0x65, 0x28, 0x73
@@ -3309,7 +3883,7 @@ str_LC186:
 	db 0x72, 0x79, 0x20, 0x6D, 0x6F, 0x64, 0x65, 0x2E
 	db 0x0A, 0x1B, 0x5B, 0x30, 0x6D, 0x00, 0x00, 0x00
 
-str_LC187:
+loc_358:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x35, 0x6D, 0x0A
 	db 0x3E, 0x3E, 0x3E, 0x20, 0x5B, 0x25, 0x64, 0x2F
 	db 0x25, 0x64, 0x5D, 0x20, 0x25, 0x73, 0x20, 0x28
@@ -3318,7 +3892,7 @@ str_LC187:
 	db 0x69, 0x74, 0x61, 0x74, 0x69, 0x6F, 0x6E, 0x29
 	db 0x0A, 0x1B, 0x5B, 0x30, 0x6D, 0x00, 0x00, 0x00
 
-str_LC188:
+loc_359:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x0A
 	db 0x5B, 0x2D, 0x5D, 0x20, 0x25, 0x64, 0x20, 0x70
 	db 0x61, 0x63, 0x6B, 0x61, 0x67, 0x65, 0x28, 0x73
@@ -3328,14 +3902,14 @@ str_LC188:
 	db 0x74, 0x20, 0x6D, 0x6F, 0x64, 0x65, 0x2E, 0x0A
 	db 0x1B, 0x5B, 0x30, 0x6D, 0x00, 0x00, 0x00, 0x00
 
-str_LC190:
+loc_360:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x0A
 	db 0x5B, 0x2D, 0x5D, 0x20, 0x25, 0x64, 0x20, 0x70
 	db 0x61, 0x63, 0x6B, 0x61, 0x67, 0x65, 0x28, 0x73
 	db 0x29, 0x20, 0x66, 0x61, 0x69, 0x6C, 0x65, 0x64
 	db 0x2E, 0x0A, 0x1B, 0x5B, 0x30, 0x6D, 0x00, 0x00
 
-str_LC191:
+loc_361:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x33, 0x6D, 0x20
 	db 0x20, 0x20, 0x20, 0x54, 0x69, 0x70, 0x3A, 0x20
 	db 0x27, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65, 0x20

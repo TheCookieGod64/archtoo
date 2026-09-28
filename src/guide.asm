@@ -1,10 +1,8 @@
 ; ---------------------------------------------------------
 ;  archtoo v3.0.0 - Gentoo-style compile engine for Arch
-;  guide.asm - x86-64, SysV ABI
-;  assemble: nasm -f elf64 guide.asm -o guide.o
+;  guide.asm - i686, cdecl (32-bit SysV)
+;  assemble: nasm -f elf32 guide.asm -o guide.o
 ; ---------------------------------------------------------
-
-default rel
 
 global guide_policy_parse: function
 global guide_policy_name: function
@@ -18,17 +16,16 @@ global guide_maybe_show: function
 
 extern fwrite
 extern stderr
-extern puts
-extern printf
-extern strcmp
-extern access
 extern close
 extern write
 extern open
 extern __errno_location
 extern mkdir
 extern strrchr
-extern __stack_chk_fail
+extern puts
+extern printf
+extern access
+extern strcmp
 extern geteuid
 extern getenv
 extern xsnprintf
@@ -38,384 +35,259 @@ extern build_user
 SECTION .text   align=16 exec
 
 state_paths.constprop.0:
-	push    r14
-	push    rbx
-	mov     rbx, rdi
-	sub     rsp, 808
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	mov     r14, qword [fs:abs 0x28]
-	mov     qword [rsp+0x318], r14
-	mov     r14, rsi
+	push    ebp
+	push    edi
+	push    esi
+	mov     esi, edx
+	push    ebx
+	mov     ebx, eax
+	sub     esp, 780
 	call    build_user
-	test    rax, rax
+	test    eax, eax
 	je      loc_003
-	mov     rdi, rax
+	sub     esp, 12
+	push    eax
 	call    getpwnam
-	test    rax, rax
+	add     esp, 16
+	test    eax, eax
 	jz      loc_003
-	mov     rcx, qword [rax+0x20]
-	test    rcx, rcx
+	mov     eax, dword [eax+0x14]
+	test    eax, eax
 	jz      loc_003
-	lea     rdi, [rsp+0x10]
-	xor     eax, eax
-	mov     esi, 768
-	lea     rdx, [rel str_LC0]
+	push    eax
+	push    loc_022
+	push    768
+	lea     ebp, [esp+0x0C]
+	push    ebp
 	call    xsnprintf
-	lea     rdi, [rel str_LC1]
+	mov     dword [esp], loc_023
 	call    getenv
-	test    rax, rax
-	jz      loc_001
-	cmp     byte [rax], 0
-	jnz     loc_005
-loc_001:  lea     rcx, [rsp+0x10]
-	mov     esi, 1024
-	mov     rdi, rbx
-	xor     eax, eax
-	lea     rdx, [rel str_LC3]
-	call    xsnprintf
-loc_002:  mov     rcx, rbx
-	lea     rdx, [rel str_LC4]
-	mov     rdi, r14
-	xor     eax, eax
-	mov     esi, 1200
-	call    xsnprintf
-	mov     eax, 1
-	jmp     loc_004
-
-; Filling space: 0x2
-; Filler type: NOP with prefixes
-;       db 0x66, 0x90
-
-ALIGN   8
-loc_003:  xor     eax, eax
-loc_004:  mov     rdx, qword [rsp+0x318]
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	sub     rdx, qword [fs:abs 0x28]
-	jnz     loc_006
-	add     rsp, 808
-	pop     rbx
-	pop     r14
-	ret
-
-loc_005:  mov     qword [rsp+0x8], rax
-	call    geteuid
-	mov     rcx, qword [rsp+0x8]
-	test    eax, eax
-	jz      loc_001
-	lea     rdx, [rel str_LC2]
-	mov     esi, 1024
-	mov     rdi, rbx
-	xor     eax, eax
-	call    xsnprintf
-	jmp     loc_002
-
-loc_006:
-	call    __stack_chk_fail
-guide_mark_seen.part.0:
-	sub     rsp, 3288
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	mov     rsi, qword [fs:abs 0x28]
-	mov     qword [rsp+0x0CC8], rsi
-	lea     rsi, [rsp+0x810]
-	lea     rdi, [rsp+0x10]
-	call    state_paths.constprop.0
-	test    eax, eax
-	jnz     loc_008
-loc_007:  mov     rdx, qword [rsp+0x0CC8]
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	sub     rdx, qword [fs:abs 0x28]
-	jne     loc_013
-	add     rsp, 3288
-	ret
-
-; Filling space: 0x3
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x00
-
-ALIGN   8
-loc_008:  mov     esi, 1024
-	lea     rdi, [rsp+0x410]
-	xor     eax, eax
-	lea     rcx, [rsp+0x10]
-	lea     rdx, [rel str_LC0]
-	call    xsnprintf
-	mov     esi, 47
-	lea     rdi, [rsp+0x410]
-	call    strrchr
-	test    rax, rax
-	jz      loc_009
-	mov     byte [rax], 0
-	mov     esi, 448
-	lea     rdi, [rsp+0x410]
-	call    mkdir
-	test    eax, eax
-	jnz     loc_011
-loc_009:  mov     esi, 448
-	lea     rdi, [rsp+0x10]
-	call    mkdir
-	test    eax, eax
-	jz      loc_010
-	call    __errno_location
-	cmp     dword [rax], 17
-	jz      loc_010
-	xor     eax, eax
-	jmp     loc_007
-
-; Filling space: 0x4
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x40, 0x00
-
-ALIGN   8
-loc_010:  lea     rdi, [rsp+0x810]
-	mov     edx, 384
-	mov     esi, 131265
-	xor     eax, eax
-	call    open
+	mov     esp, ebp
 	mov     edi, eax
 	test    eax, eax
-	jns     loc_012
-	call    __errno_location
-	cmp     dword [rax], 17
-	sete    al
-	movzx   eax, al
-	jmp     loc_007
-
-; Filling space: 0x6
-; Filler type: Multi-byte NOP
-;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
-
-ALIGN   8
-loc_011:  call    __errno_location
-	cmp     dword [rax], 17
-	jz      loc_009
-	xor     eax, eax
-	jmp     loc_007
-
-; Filling space: 0x7
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00
-
-ALIGN   8
-loc_012:  mov     edx, 33
-	lea     rsi, [rel text.0]
-	mov     qword [rsp+0x0CD0], rbx
-	mov     dword [rsp+0x0C], eax
-	call    write
-	mov     rbx, rax
-	call    __errno_location
-	mov     edi, dword [rsp+0x0C]
-	mov     ecx, dword [rax]
-	mov     qword [rsp], rax
-	mov     dword [rsp+0x8], ecx
-	call    close
-	mov     ecx, dword [rsp+0x8]
-	mov     rdx, qword [rsp]
-	xor     eax, eax
-	cmp     rbx, 33
-	mov     rbx, qword [rsp+0x0CD0]
-	mov     dword [rdx], ecx
-	sete    al
-	jmp     loc_007
-
-loc_013:
-	mov     qword [rsp+0x0CD0], rbx
-	call    __stack_chk_fail
-; Filling space: 0x3
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x00
-
-ALIGN   8
-guide_should_show.part.0:
-	sub     rsp, 2248
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	mov     rdi, qword [fs:abs 0x28]
-	mov     qword [rsp+0x8B8], rdi
-	mov     rdi, rsp
-	lea     rsi, [rsp+0x400]
-	call    state_paths.constprop.0
-	test    eax, eax
-	jnz     loc_015
+	jz      loc_001
+	cmp     byte [eax], 0
+	jnz     loc_004
+loc_001:  push    ebp
+	push    loc_025
+	push    1024
+	push    ebx
+	call    xsnprintf
+	add     esp, 16
+loc_002:  push    ebx
+	push    loc_026
+	push    1200
+	push    esi
+	call    xsnprintf
+	add     esp, 16
 	mov     eax, 1
-loc_014:  mov     rdx, qword [rsp+0x8B8]
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	sub     rdx, qword [fs:abs 0x28]
-	jnz     loc_016
-	add     rsp, 2248
+	add     esp, 780
+	pop     ebx
+	pop     esi
+	pop     edi
+	pop     ebp
 	ret
 
-; Filling space: 0x4
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x40, 0x00
+; Filling space: 0x8
+; Filler type: lea with same source and destination
+;       db 0x2E, 0x8D, 0x0B4, 0x26, 0x00, 0x00, 0x00, 0x00
+
+ALIGN   16
+loc_003:  add     esp, 780
+	xor     eax, eax
+	pop     ebx
+	pop     esi
+	pop     edi
+	pop     ebp
+	ret
+
+; Filling space: 0x3
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x76, 0x00
 
 ALIGN   8
-loc_015:  xor     esi, esi
-	lea     rdi, [rsp+0x400]
-	call    access
+loc_004:  call    geteuid
 	test    eax, eax
-	setne   al
-	movzx   eax, al
-	jmp     loc_014
+	jz      loc_001
+	push    edi
+	push    loc_024
+	push    1024
+	push    ebx
+	call    xsnprintf
+	mov     esp, ebp
+	jmp     loc_002
 
-loc_016:
-	call    __stack_chk_fail
 ; Filling space: 0x2
 ; Filler type: NOP with prefixes
 ;       db 0x66, 0x90
 
 ALIGN   8
 
-guide_policy_parse:
-	test    rdi, rdi
-	jz      loc_019
-	test    rsi, rsi
-	jz      loc_019
-	push    rbp
-	mov     rbp, rsi
-	lea     rsi, [rel str_LC5]
-	push    rbx
-	mov     rbx, rdi
-	sub     rsp, 8
+guide_policy_parse:; Function begin
+	push    esi
+	push    ebx
+	sub     esp, 4
+	mov     ebx, dword [esp+0x10]
+	mov     esi, dword [esp+0x14]
+	test    ebx, ebx
+	jz      loc_008
+	test    esi, esi
+	jz      loc_008
+	sub     esp, 8
+	push    loc_027
+	push    ebx
 	call    strcmp
+	add     esp, 16
 	test    eax, eax
-	jnz     loc_018
-	mov     dword [rbp], 0
-loc_017:  add     rsp, 8
-	mov     eax, 1
-	pop     rbx
-	pop     rbp
-	ret
-
-; Filling space: 0x7
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00
-
-ALIGN   8
-loc_018:  lea     rsi, [rel str_LC6]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	jz      loc_020
-	lea     rsi, [rel str_LC7]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	jnz     loc_021
-	mov     dword [rbp], 2
-	jmp     loc_017
-
-; Filling space: 0x1
-; Filler type: NOP
-;       db 0x90
-
-ALIGN   8
-loc_019:  xor     eax, eax
+	jnz     loc_007
+	mov     dword [esi], 0
+loc_005:  mov     eax, 1
+loc_006:  add     esp, 4
+	pop     ebx
+	pop     esi
 	ret
 
 ; Filling space: 0x5
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
+; Filler type: lea with same source and destination
+;       db 0x2E, 0x8D, 0x74, 0x26, 0x00
 
 ALIGN   8
-loc_020:  mov     dword [rbp], 1
-	jmp     loc_017
-
-; Filling space: 0x7
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00
-
-ALIGN   8
-loc_021:  add     rsp, 8
+loc_007:  sub     esp, 8
+	push    loc_028
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	test    eax, eax
+	jz      loc_009
+	sub     esp, 8
+	push    loc_029
+	push    ebx
+	call    strcmp
+	add     esp, 16
+	mov     edx, eax
 	xor     eax, eax
-	pop     rbx
-	pop     rbp
+	test    edx, edx
+	jnz     loc_006
+	mov     dword [esi], 2
+	jmp     loc_005
+
+; Filling space: 0x0A
+; Filler type: lea with same source and destination
+;       db 0x2E, 0x8D, 0x0B4, 0x26, 0x00, 0x00, 0x00, 0x00
+;       db 0x66, 0x90
+
+ALIGN   16
+loc_008:  add     esp, 4
+	xor     eax, eax
+	pop     ebx
+	pop     esi
 	ret
 
-; Filling space: 0x0F
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x40, 0x00, 0x66, 0x66, 0x2E, 0x0F
-;       db 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00
+; Filling space: 0x8
+; Filler type: lea with same source and destination
+;       db 0x2E, 0x8D, 0x0B4, 0x26, 0x00, 0x00, 0x00, 0x00
+
+ALIGN   16
+loc_009:  mov     dword [esi], 1
+	jmp     loc_005
+
+; Filling space: 0x8
+; Filler type: lea with same source and destination
+;       db 0x2E, 0x8D, 0x0B4, 0x26, 0x00, 0x00, 0x00, 0x00
 
 ALIGN   16
 
 guide_policy_name:; Function begin
-	lea     rax, [rel str_LC6]
-	cmp     edi, 1
-	jz      loc_022
-	cmp     edi, 2
-	lea     rax, [rel str_LC7]
-	lea     rdx, [rel str_LC5]
-	cmovne  rax, rdx
-loc_022:  ret
+	mov     edx, dword [esp+0x4]
+	mov     eax, loc_028
+	cmp     edx, 1
+	jz      loc_010
+	cmp     edx, 2
+	mov     eax, loc_029
+	mov     edx, loc_027
+	cmovne  eax, edx
+loc_010:  ret
 
-; Filling space: 0x0E
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x00, 0x66, 0x66, 0x2E, 0x0F, 0x1F
-;       db 0x84, 0x00, 0x00, 0x00, 0x00, 0x00
+	nop
 
 ALIGN   16
-
 guide_set_policy:; Function begin
-	mov     dword [rel g_policy], edi
+	mov     eax, dword [esp+0x4]
+	mov     dword [g_policy], eax
 	ret
 
-; Filling space: 0x9
-; Filler type: Multi-byte NOP
-;       db 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00
-;       db 0x00
+; Filling space: 0x6
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x0B6, 0x00, 0x00, 0x00, 0x00
 
-ALIGN   16
+ALIGN   8
 
 guide_get_policy:; Function begin
-	mov     eax, dword [rel g_policy]
+	mov     eax, dword [g_policy]
 	ret
 
-; Filling space: 0x9
-; Filler type: Multi-byte NOP
-;       db 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00
-;       db 0x00
+; Filling space: 0x0A
+; Filler type: lea with same source and destination
+;       db 0x2E, 0x8D, 0x0B4, 0x26, 0x00, 0x00, 0x00, 0x00
+;       db 0x66, 0x90
 
 ALIGN   16
 
 guide_request_explicit:; Function begin
-	mov     dword [rel g_explicit], 1
+	mov     dword [g_explicit], 1
 	ret
 
 ; Filling space: 0x5
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
+; Filler type: lea with same source and destination
+;       db 0x2E, 0x8D, 0x74, 0x26, 0x00
 
 ALIGN   8
 
 guide_should_show:; Function begin
-	mov     eax, dword [rel g_explicit]
+	mov     eax, dword [g_explicit]
 	test    eax, eax
-	jnz     loc_024
-	mov     edx, dword [rel g_policy]
+	jnz     loc_011
+	mov     edx, dword [g_policy]
 	cmp     edx, 1
-	jz      loc_024
+	jz      loc_011
 	cmp     edx, 2
-	jz      loc_023
-	jmp     guide_should_show.part.0
-
-; Filling space: 0x1
-; Filler type: NOP
-;       db 0x90
-
-ALIGN   8
-loc_023:  ret
+	jz      loc_012
+	push    ebx
+	sub     esp, 2232
+	lea     ebx, [esp+0x400]
+	mov     eax, esp
+	mov     edx, ebx
+	call    state_paths.constprop.0
+	test    eax, eax
+	jnz     loc_013
+	add     esp, 2232
+	mov     eax, 1
+	pop     ebx
+	ret
 
 ; Filling space: 0x7
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x0B4, 0x26, 0x00, 0x00, 0x00, 0x00
 
 ALIGN   8
-loc_024:  mov     eax, 1
+loc_011:  mov     eax, 1
+loc_012:  ret
+
+; Filling space: 0x2
+; Filler type: NOP with prefixes
+;       db 0x66, 0x90
+
+ALIGN   8
+loc_013:  sub     esp, 8
+	push    0
+	push    ebx
+	call    access
+	add     esp, 16
+	test    eax, eax
+	setne   al
+	add     esp, 2232
+	movzx   eax, al
+	pop     ebx
 	ret
 
 ; Filling space: 0x2
@@ -425,109 +297,192 @@ loc_024:  mov     eax, 1
 ALIGN   8
 
 guide_print:; Function begin
-	sub     rsp, 8
-	lea     rdi, [rel str_LC8]
-	xor     eax, eax
+	sub     esp, 24
+	push    loc_031
 	call    printf
-	lea     rdi, [rel str_LC9]
+	mov     dword [esp], loc_032
 	call    puts
-	lea     rdi, [rel str_LC10]
+	mov     dword [esp], loc_033
 	call    puts
-	lea     rdi, [rel str_LC11]
+	mov     dword [esp], loc_030
 	call    puts
-	lea     rdi, [rel str_LC12]
+	mov     dword [esp], loc_034
 	call    puts
-	lea     rdi, [rel str_LC13]
+	mov     dword [esp], loc_035
 	call    puts
-	lea     rdi, [rel str_LC14]
+	mov     dword [esp], loc_036
 	call    puts
-	lea     rdi, [rel str_LC15]
+	mov     dword [esp], loc_037
 	call    puts
-	lea     rdi, [rel str_LC16]
+	mov     dword [esp], loc_038
 	call    puts
-	lea     rdi, [rel str_LC17]
+	mov     dword [esp], loc_039
 	call    puts
-	lea     rdi, [rel str_LC18]
+	mov     dword [esp], loc_040
 	call    puts
-	lea     rdi, [rel str_LC19]
+	mov     dword [esp], loc_041
 	call    puts
-	mov     eax, dword [rel g_policy]
-	lea     rsi, [rel str_LC6]
-	cmp     eax, 1
-	jz      loc_025
-	cmp     eax, 2
-	lea     rsi, [rel str_LC7]
-	lea     rax, [rel str_LC5]
-	cmovne  rsi, rax
-loc_025:  lea     rdi, [rel str_LC20]
-	xor     eax, eax
+	mov     edx, dword [g_policy]
+	add     esp, 16
+	mov     eax, loc_028
+	cmp     edx, 1
+	jz      loc_014
+	cmp     edx, 2
+	mov     eax, loc_029
+	mov     edx, loc_027
+	cmovne  eax, edx
+loc_014:  sub     esp, 8
+	push    eax
+	push    loc_042
 	call    printf
-	lea     rdi, [rel str_LC21]
-	add     rsp, 8
-	jmp     puts
-
-; Filling space: 0x5
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
-
-ALIGN   8
-
-guide_mark_seen:; Function begin
-	mov     eax, dword [rel g_explicit]
-	or      eax, dword [rel g_policy]
-	jz      loc_026
-	mov     eax, 1
+	mov     dword [esp], loc_043
+	call    puts
+	add     esp, 28
 	ret
 
-; Filling space: 0x4
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x40, 0x00
+; Filling space: 0x0E
+; Filler type: lea with same source and destination
+;       db 0x2E, 0x8D, 0x0B4, 0x26, 0x00, 0x00, 0x00, 0x00
+;       db 0x8D, 0x0B6, 0x00, 0x00, 0x00, 0x00
+
+ALIGN   16
+
+guide_mark_seen:; Function begin
+	push    ebp
+	push    edi
+	push    esi
+	push    ebx
+	mov     ebx, 1
+	sub     esp, 3260
+	mov     eax, dword [g_explicit]
+	or      eax, dword [g_policy]
+	jz      loc_016
+loc_015:  add     esp, 3260
+	mov     eax, ebx
+	pop     ebx
+	pop     esi
+	pop     edi
+	pop     ebp
+	ret
+
+; Filling space: 0x7
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x0B4, 0x26, 0x00, 0x00, 0x00, 0x00
 
 ALIGN   8
-loc_026:  jmp     guide_mark_seen.part.0
+loc_016:  lea     edi, [esp+0x800]
+	mov     ebx, eax
+	mov     eax, esp
+	mov     esi, esp
+	mov     edx, edi
+	call    state_paths.constprop.0
+	test    eax, eax
+	jz      loc_015
+	push    esi
+	push    loc_022
+	push    1024
+	lea     ebp, [esp+0x40C]
+	push    ebp
+	call    xsnprintf
+	pop     eax
+	pop     edx
+	push    47
+	push    ebp
+	call    strrchr
+	mov     esp, esi
+	test    eax, eax
+	jz      loc_017
+	sub     esp, 8
+	mov     byte [eax], 0
+	push    448
+	push    ebp
+	call    mkdir
+	add     esp, 16
+	test    eax, eax
+	jz      loc_017
+	call    __errno_location
+	cmp     dword [eax], 17
+	jnz     loc_015
+loc_017:  sub     esp, 8
+	push    448
+	push    esi
+	call    mkdir
+	add     esp, 16
+	test    eax, eax
+	jz      loc_018
+	call    __errno_location
+	cmp     dword [eax], 17
+	jne     loc_015
+loc_018:  sub     esp, 4
+	push    384
+	push    131265
+	push    edi
+	call    open
+	add     esp, 16
+	mov     ebx, eax
+	test    eax, eax
+	jns     loc_019
+	call    __errno_location
+	xor     ebx, ebx
+	cmp     dword [eax], 17
+	sete    bl
+	jmp     loc_015
+
+; Filling space: 0x5
+; Filler type: lea with same source and destination
+;       db 0x2E, 0x8D, 0x74, 0x26, 0x00
+
+ALIGN   8
+loc_019:  sub     esp, 4
+	push    33
+	push    text.0
+	push    eax
+	call    write
+	mov     edi, eax
+	call    __errno_location
+	mov     ebp, dword [eax]
+	mov     dword [esp], ebx
+	mov     esi, eax
+	xor     ebx, ebx
+	call    close
+	add     esp, 16
+	cmp     edi, 33
+	mov     dword [esi], ebp
+	sete    bl
+	jmp     loc_015
 
 ; Filling space: 0x3
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x00
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x76, 0x00
 
 ALIGN   8
 
 guide_maybe_show:; Function begin
-	sub     rsp, 8
-	mov     eax, dword [rel g_explicit]
+	sub     esp, 12
+	call    guide_should_show
 	test    eax, eax
-	jnz     loc_028
-	mov     eax, dword [rel g_policy]
-	cmp     eax, 1
-	jz      loc_028
-	cmp     eax, 2
-	jz      loc_027
-	call    guide_should_show.part.0
-	test    eax, eax
-	jnz     loc_028
-loc_027:  mov     eax, 1
-	add     rsp, 8
+	jnz     loc_021
+loc_020:  mov     eax, 1
+	add     esp, 12
 	ret
 
-; Filling space: 0x7
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00
+; Filling space: 0x3
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x76, 0x00
 
 ALIGN   8
-loc_028:  call    guide_print
-	mov     eax, dword [rel g_explicit]
-	or      eax, dword [rel g_policy]
-	jnz     loc_027
-	call    guide_mark_seen.part.0
+loc_021:  call    guide_print
+	call    guide_mark_seen
 	test    eax, eax
-	jnz     loc_027
-	mov     rcx, qword [rel stderr]
-	mov     edx, 74
-	mov     esi, 1
-	lea     rdi, [rel str_LC22]
+	jnz     loc_020
+	push    dword [stderr]
+	push    74
+	push    1
+	push    loc_044
 	call    fwrite
+	add     esp, 16
 	mov     eax, 1
-	add     rsp, 8
+	add     esp, 12
 	ret
 
 SECTION .bss    align=4 noexec
@@ -539,52 +494,52 @@ g_policy: resd  1                                       ; 0004
 
 SECTION .rodata.str1.1 align=1 noexec
 
-str_LC0:
+loc_022:
 	db 0x25, 0x73, 0x00
 
-str_LC1:
+loc_023:
 	db 0x58, 0x44, 0x47, 0x5F, 0x53, 0x54, 0x41, 0x54
 	db 0x45, 0x5F, 0x48, 0x4F, 0x4D, 0x45, 0x00
 
-str_LC2:
+loc_024:
 	db 0x25, 0x73, 0x2F, 0x61, 0x72, 0x63, 0x68, 0x74
 	db 0x6F, 0x6F, 0x00
 
-str_LC3:
+loc_025:
 	db 0x25, 0x73, 0x2F, 0x2E, 0x6C, 0x6F, 0x63, 0x61
 	db 0x6C, 0x2F, 0x73, 0x74, 0x61, 0x74, 0x65, 0x2F
 	db 0x61, 0x72, 0x63, 0x68, 0x74, 0x6F, 0x6F, 0x00
 
-str_LC4:
+loc_026:
 	db 0x25, 0x73, 0x2F, 0x63, 0x6F, 0x6D, 0x6D, 0x61
 	db 0x6E, 0x64, 0x2D, 0x67, 0x75, 0x69, 0x64, 0x65
 	db 0x2D, 0x73, 0x65, 0x65, 0x6E, 0x00
 
-str_LC5:
+loc_027:
 	db 0x66, 0x69, 0x72, 0x73, 0x74, 0x2D, 0x72, 0x75
 	db 0x6E, 0x00
 
-str_LC6:
+loc_028:
 	db 0x61, 0x6C, 0x77, 0x61, 0x79, 0x73, 0x00
 
-str_LC7:
+loc_029:
 	db 0x6E, 0x65, 0x76, 0x65, 0x72, 0x00
 
-str_LC11:
+loc_030:
 	db 0x43, 0x6F, 0x6D, 0x6D, 0x6F, 0x6E, 0x20, 0x63
 	db 0x6F, 0x6D, 0x6D, 0x61, 0x6E, 0x64, 0x73, 0x3A
 	db 0x0A, 0x00
 
-SECTION .rodata.str1.8 align=8 noexec
+SECTION .rodata.str1.4 align=4 noexec
 
-str_LC8:
+loc_031:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x36, 0x6D, 0x0A
 	db 0x57, 0x65, 0x6C, 0x63, 0x6F, 0x6D, 0x65, 0x20
 	db 0x74, 0x6F, 0x20, 0x41, 0x72, 0x63, 0x68, 0x74
 	db 0x6F, 0x6F, 0x2E, 0x0A, 0x0A, 0x1B, 0x5B, 0x30
-	db 0x6D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x6D, 0x00, 0x00, 0x00
 
-str_LC9:
+loc_032:
 	db 0x41, 0x72, 0x63, 0x68, 0x74, 0x6F, 0x6F, 0x20
 	db 0x75, 0x73, 0x65, 0x73, 0x20, 0x69, 0x74, 0x73
 	db 0x20, 0x6F, 0x77, 0x6E, 0x20, 0x63, 0x6F, 0x6D
@@ -593,9 +548,9 @@ str_LC9:
 	db 0x49, 0x74, 0x20, 0x64, 0x6F, 0x65, 0x73, 0x20
 	db 0x6E, 0x6F, 0x74, 0x20, 0x63, 0x6F, 0x70, 0x79
 	db 0x20, 0x70, 0x61, 0x63, 0x6D, 0x61, 0x6E, 0x27
-	db 0x73, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x73, 0x00, 0x00, 0x00
 
-str_LC10:
+loc_033:
 	db 0x6F, 0x70, 0x74, 0x69, 0x6F, 0x6E, 0x20, 0x6D
 	db 0x65, 0x61, 0x6E, 0x69, 0x6E, 0x67, 0x73, 0x20
 	db 0x61, 0x6E, 0x64, 0x20, 0x6E, 0x65, 0x76, 0x65
@@ -603,9 +558,9 @@ str_LC10:
 	db 0x73, 0x20, 0x61, 0x6E, 0x20, 0x65, 0x78, 0x74
 	db 0x65, 0x72, 0x6E, 0x61, 0x6C, 0x20, 0x41, 0x55
 	db 0x52, 0x20, 0x68, 0x65, 0x6C, 0x70, 0x65, 0x72
-	db 0x2E, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x2E, 0x0A, 0x00, 0x00
 
-str_LC12:
+loc_034:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x53, 0x20, 0x71, 0x75, 0x65, 0x72
 	db 0x79, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -613,9 +568,9 @@ str_LC12:
 	db 0x68, 0x20, 0x72, 0x65, 0x70, 0x6F, 0x73, 0x69
 	db 0x74, 0x6F, 0x72, 0x69, 0x65, 0x73, 0x20, 0x61
 	db 0x6E, 0x64, 0x20, 0x74, 0x68, 0x65, 0x20, 0x41
-	db 0x55, 0x52, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x55, 0x52, 0x00, 0x00
 
-str_LC13:
+loc_035:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x49, 0x20, 0x70, 0x61, 0x63, 0x6B
 	db 0x61, 0x67, 0x65, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -623,7 +578,7 @@ str_LC13:
 	db 0x6C, 0x6C, 0x20, 0x61, 0x20, 0x70, 0x61, 0x63
 	db 0x6B, 0x61, 0x67, 0x65, 0x00, 0x00, 0x00, 0x00
 
-str_LC14:
+loc_036:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x55, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -633,7 +588,7 @@ str_LC14:
 	db 0x64, 0x20, 0x41, 0x55, 0x52, 0x20, 0x70, 0x61
 	db 0x63, 0x6B, 0x61, 0x67, 0x65, 0x73, 0x00, 0x00
 
-str_LC15:
+loc_037:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x51, 0x20, 0x70, 0x61, 0x63, 0x6B
 	db 0x61, 0x67, 0x65, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -642,7 +597,7 @@ str_LC15:
 	db 0x61, 0x6C, 0x6C, 0x65, 0x64, 0x20, 0x70, 0x61
 	db 0x63, 0x6B, 0x61, 0x67, 0x65, 0x00, 0x00, 0x00
 
-str_LC16:
+loc_038:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x41, 0x20, 0x70, 0x61, 0x63, 0x6B
 	db 0x61, 0x67, 0x65, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -652,24 +607,24 @@ str_LC16:
 	db 0x65, 0x20, 0x69, 0x6E, 0x66, 0x6F, 0x72, 0x6D
 	db 0x61, 0x74, 0x69, 0x6F, 0x6E, 0x00, 0x00, 0x00
 
-str_LC17:
+loc_039:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x43, 0x20, 0x70, 0x61, 0x63, 0x6B
 	db 0x61, 0x67, 0x65, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x52, 0x65, 0x6D, 0x6F, 0x76
 	db 0x65, 0x20, 0x61, 0x20, 0x70, 0x61, 0x63, 0x6B
-	db 0x61, 0x67, 0x65, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x61, 0x67, 0x65, 0x00
 
-str_LC18:
+loc_040:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x47, 0x20, 0x70, 0x61, 0x63, 0x6B
 	db 0x61, 0x67, 0x65, 0x20, 0x20, 0x20, 0x20, 0x20
 	db 0x20, 0x20, 0x20, 0x44, 0x6F, 0x77, 0x6E, 0x6C
 	db 0x6F, 0x61, 0x64, 0x20, 0x69, 0x74, 0x73, 0x20
 	db 0x50, 0x4B, 0x47, 0x42, 0x55, 0x49, 0x4C, 0x44
-	db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x00, 0x00, 0x00, 0x00
 
-str_LC19:
+loc_041:
 	db 0x20, 0x20, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65
 	db 0x20, 0x2D, 0x2D, 0x68, 0x65, 0x6C, 0x70, 0x20
 	db 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
@@ -677,25 +632,25 @@ str_LC19:
 	db 0x65, 0x76, 0x65, 0x72, 0x79, 0x20, 0x63, 0x6F
 	db 0x6D, 0x6D, 0x61, 0x6E, 0x64, 0x0A, 0x00, 0x00
 
-str_LC20:
+loc_042:
 	db 0x54, 0x68, 0x69, 0x73, 0x20, 0x67, 0x75, 0x69
 	db 0x64, 0x65, 0x20, 0x66, 0x6F, 0x6C, 0x6C, 0x6F
 	db 0x77, 0x73, 0x20, 0x74, 0x68, 0x65, 0x20, 0x27
 	db 0x25, 0x73, 0x27, 0x20, 0x64, 0x69, 0x73, 0x70
 	db 0x6C, 0x61, 0x79, 0x20, 0x70, 0x6F, 0x6C, 0x69
 	db 0x63, 0x79, 0x2E, 0x20, 0x52, 0x75, 0x6E, 0x0A
-	db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x00, 0x00, 0x00, 0x00
 
-str_LC21:
+loc_043:
 	db 0x27, 0x65, 0x6D, 0x65, 0x72, 0x67, 0x65, 0x20
 	db 0x2D, 0x2D, 0x63, 0x6F, 0x6D, 0x6D, 0x61, 0x6E
 	db 0x64, 0x2D, 0x67, 0x75, 0x69, 0x64, 0x65, 0x27
 	db 0x20, 0x74, 0x6F, 0x20, 0x64, 0x69, 0x73, 0x70
 	db 0x6C, 0x61, 0x79, 0x20, 0x69, 0x74, 0x20, 0x65
 	db 0x78, 0x70, 0x6C, 0x69, 0x63, 0x69, 0x74, 0x6C
-	db 0x79, 0x2E, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x79, 0x2E, 0x0A, 0x00
 
-str_LC22:
+loc_044:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x33, 0x6D, 0x5B
 	db 0x21, 0x5D, 0x20, 0x43, 0x6F, 0x75, 0x6C, 0x64
 	db 0x20, 0x6E, 0x6F, 0x74, 0x20, 0x72, 0x65, 0x63

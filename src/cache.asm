@@ -1,14 +1,11 @@
 ; ---------------------------------------------------------
 ;  archtoo v3.0.0 - Gentoo-style compile engine for Arch
-;  cache.asm - x86-64, SysV ABI
-;  assemble: nasm -f elf64 cache.asm -o cache.o
+;  cache.asm - i686, cdecl (32-bit SysV)
+;  assemble: nasm -f elf32 cache.asm -o cache.o
 ; ---------------------------------------------------------
-
-default rel
 
 global cmd_clean_v2: function
 
-extern __stack_chk_fail
 extern fprintf
 extern stderr
 extern xsnprintf
@@ -20,81 +17,74 @@ extern printf
 SECTION .text   align=16 exec
 
 cmd_clean_v2:; Function begin
-	push    rbx
-	lea     rdi, [rel str_LC2]
-	lea     rbx, [rel str_LC1]
-	sub     rsp, 528
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	mov     rax, qword [fs:abs 0x28]
-	mov     qword [rsp+0x208], rax
-	xor     eax, eax
+	push    ebx
+	mov     ebx, loc_003
+	sub     esp, 532
+	push    loc_005
 	call    printf
-	lea     rdi, [rel str_LC3]
+	mov     dword [esp], loc_006
 	call    run_cmd
-	lea     rdi, [rel str_LC4]
-	xor     eax, eax
+	mov     dword [esp], loc_007
 	call    printf
 	call    use_noconfirm
+	add     esp, 16
 	test    eax, eax
-	lea     rax, [rel str_LC0]
-	cmovne  rbx, rax
+	mov     eax, loc_002
+	cmovne  ebx, eax
 	call    priv_prefix
-	lea     rdx, [rel str_LC5]
-	mov     esi, 512
-	mov     rdi, rsp
-	mov     rcx, rax
-	mov     r8, rbx
-	xor     eax, eax
+	sub     esp, 12
+	push    ebx
+	push    eax
+	push    loc_004
+	push    512
+	lea     ebx, [esp+0x1C]
+	push    ebx
 	call    xsnprintf
-	mov     rdi, rsp
+	add     esp, 20
+	push    ebx
 	call    run_cmd
+	mov     esp, ebx
 	mov     edx, 1
 	test    eax, eax
-	jnz     loc_002
-loc_001:  mov     rax, qword [rsp+0x208]
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	sub     rax, qword [fs:abs 0x28]
-	jnz     loc_003
-	add     rsp, 528
+	jnz     loc_001
+	add     esp, 520
 	mov     eax, edx
-	pop     rbx
+	pop     ebx
 	ret
 
-; Filling space: 0x6
-; Filler type: Multi-byte NOP
-;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
+; Filling space: 0x4
+; Filler type: lea with same source and destination
+;       db 0x8D, 0x74, 0x26, 0x00
 
 ALIGN   8
-loc_002:  mov     rdi, qword [rel stderr]
-	mov     edx, eax
-	lea     rsi, [rel str_LC6]
-	xor     eax, eax
+loc_001:  sub     esp, 4
+	push    eax
+	push    loc_008
+	push    dword [stderr]
 	call    fprintf
+	mov     esp, ebx
 	xor     edx, edx
-	jmp     loc_001
-
-loc_003:
-; Note: Function does not end with ret or jmp
-	call    __stack_chk_fail
+	add     esp, 520
+	mov     eax, edx
+	pop     ebx
+	ret
 
 SECTION .rodata.str1.1 align=1 noexec
 
-str_LC0:
+loc_002:
 	db 0x20, 0x2D, 0x2D, 0x6E, 0x6F, 0x63, 0x6F, 0x6E
 	db 0x66, 0x69, 0x72, 0x6D, 0x00
 
-str_LC1:
+loc_003:
 	db 0x00
 
-str_LC5:
+loc_004:
 	db 0x25, 0x73, 0x70, 0x61, 0x63, 0x6D, 0x61, 0x6E
 	db 0x20, 0x2D, 0x53, 0x63, 0x25, 0x73, 0x00
 
-SECTION .rodata.str1.8 align=8 noexec
+SECTION .rodata.str1.4 align=4 noexec
 
-str_LC2:
+loc_005:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x34, 0x6D, 0x3E
 	db 0x3E, 0x3E, 0x20, 0x52, 0x65, 0x6D, 0x6F, 0x76
 	db 0x69, 0x6E, 0x67, 0x20, 0x6C, 0x65, 0x66, 0x74
@@ -104,7 +94,7 @@ str_LC2:
 	db 0x67, 0x6D, 0x65, 0x6E, 0x74, 0x73, 0x2E, 0x2E
 	db 0x2E, 0x0A, 0x1B, 0x5B, 0x30, 0x6D, 0x00, 0x00
 
-str_LC3:
+loc_006:
 	db 0x66, 0x69, 0x6E, 0x64, 0x20, 0x2F, 0x76, 0x61
 	db 0x72, 0x2F, 0x63, 0x61, 0x63, 0x68, 0x65, 0x2F
 	db 0x70, 0x61, 0x63, 0x6D, 0x61, 0x6E, 0x2F, 0x70
@@ -120,9 +110,9 @@ str_LC3:
 	db 0x7B, 0x7D, 0x20, 0x2B, 0x20, 0x32, 0x3E, 0x2F
 	db 0x64, 0x65, 0x76, 0x2F, 0x6E, 0x75, 0x6C, 0x6C
 	db 0x20, 0x7C, 0x7C, 0x20, 0x74, 0x72, 0x75, 0x65
-	db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	db 0x00, 0x00, 0x00, 0x00
 
-str_LC4:
+loc_007:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x34, 0x6D, 0x3E
 	db 0x3E, 0x3E, 0x20, 0x43, 0x6C, 0x65, 0x61, 0x6E
 	db 0x69, 0x6E, 0x67, 0x20, 0x75, 0x6E, 0x69, 0x6E
@@ -131,7 +121,7 @@ str_LC4:
 	db 0x63, 0x61, 0x63, 0x68, 0x65, 0x2E, 0x2E, 0x2E
 	db 0x0A, 0x1B, 0x5B, 0x30, 0x6D, 0x00, 0x00, 0x00
 
-str_LC6:
+loc_008:
 	db 0x1B, 0x5B, 0x31, 0x3B, 0x33, 0x31, 0x6D, 0x5B
 	db 0x2D, 0x5D, 0x20, 0x70, 0x61, 0x63, 0x6D, 0x61
 	db 0x6E, 0x20, 0x63, 0x61, 0x63, 0x68, 0x65, 0x20

@@ -1,10 +1,8 @@
 ; ---------------------------------------------------------
 ;  archtoo v3.0.0 - Gentoo-style compile engine for Arch
-;  upgrade.asm - x86-64, SysV ABI
-;  assemble: nasm -f elf64 upgrade.asm -o upgrade.o
+;  upgrade.asm - i686, cdecl (32-bit SysV)
+;  assemble: nasm -f elf32 upgrade.asm -o upgrade.o
 ; ---------------------------------------------------------
-
-default rel
 
 global cmd_upgrade_v2: function
 
