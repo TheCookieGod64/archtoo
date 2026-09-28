@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased (dev) — unified multi-target build
+
+### Added
+- One Makefile builds everything from a single c_src/: `make` (x86_64, as before),
+  `make x86_64|x86|arm|arm-32` per target and `make all` for the full set, each landing
+  in bin/<target>/emerge; `make check` / `make check-all` smoke-test with qemu when the
+  host cannot run the target natively.
+- Toolchain auto-detection per target (host gcc, *-linux-gnu-* cross packages, ARM GNU
+  tarball prefixes); missing toolchains fail with actionable hints.
+- Only the x86_64 assembly stays tracked in src/*.asm (`make regen`); the other targets
+  generate their asm from c_src/ inside build/<target>/ on the fly — single source, no churn.
+
+
 ## v3.0.0 - NASM Edition, generic (portable) build
 
 - **Complete hand-written x86-64 NASM port**: 28 C modules -> 29 `.asm` files in `src/`
