@@ -8,6 +8,7 @@ default rel
 
 global cmd_clean_v2: function
 
+extern __stack_chk_fail
 extern fprintf
 extern stderr
 extern xsnprintf
@@ -19,12 +20,15 @@ extern printf
 SECTION .text   align=16 exec
 
 cmd_clean_v2:; Function begin
-	push    rbp
-	lea     rdi, [rel str_LC2]
-	xor     eax, eax
 	push    rbx
+	lea     rdi, [rel str_LC2]
 	lea     rbx, [rel str_LC1]
-	sub     rsp, 520
+	sub     rsp, 528
+; Note: Address is not rip-relative
+; Note: Absolute memory address without relocation
+	mov     rax, qword [fs:abs 0x28]
+	mov     qword [rsp+0x208], rax
+	xor     eax, eax
 	call    printf
 	lea     rdi, [rel str_LC3]
 	call    run_cmd
@@ -45,29 +49,35 @@ cmd_clean_v2:; Function begin
 	call    xsnprintf
 	mov     rdi, rsp
 	call    run_cmd
-	mov     edx, eax
-	mov     eax, 1
-	test    edx, edx
-	jnz     loc_001
-	add     rsp, 520
+	mov     edx, 1
+	test    eax, eax
+	jnz     loc_002
+loc_001:  mov     rax, qword [rsp+0x208]
+; Note: Address is not rip-relative
+; Note: Absolute memory address without relocation
+	sub     rax, qword [fs:abs 0x28]
+	jnz     loc_003
+	add     rsp, 528
+	mov     eax, edx
 	pop     rbx
-	pop     rbp
 	ret
 
-; Filling space: 0x8
+; Filling space: 0x6
 ; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00
+;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
 
-ALIGN   16
-loc_001:  mov     rdi, qword [rel stderr]
+ALIGN   8
+loc_002:  mov     rdi, qword [rel stderr]
+	mov     edx, eax
 	lea     rsi, [rel str_LC6]
 	xor     eax, eax
 	call    fprintf
-	add     rsp, 520
-	xor     eax, eax
-	pop     rbx
-	pop     rbp
-	ret
+	xor     edx, edx
+	jmp     loc_001
+
+loc_003:
+; Note: Function does not end with ret or jmp
+	call    __stack_chk_fail
 
 SECTION .rodata.str1.1 align=1 noexec
 

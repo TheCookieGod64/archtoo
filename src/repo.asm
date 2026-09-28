@@ -8,6 +8,7 @@ default rel
 
 global cmd_repo_install_v2: function
 
+extern __stack_chk_fail
 extern run_cmd
 extern xsnprintf
 extern priv_prefix
@@ -21,73 +22,82 @@ extern valid_pkgname
 SECTION .text   align=16 exec
 
 cmd_repo_install_v2:; Function begin
-	push    r13
-	push    r12
-	push    rbp
 	push    rbx
+	sub     rsp, 992
+; Note: Address is not rip-relative
+; Note: Absolute memory address without relocation
+	mov     rbx, qword [fs:abs 0x28]
+	mov     qword [rsp+0x3D8], rbx
 	mov     rbx, rdi
-	sub     rsp, 968
 	call    valid_pkgname
 	test    eax, eax
-	jnz     loc_003
+	jnz     loc_002
 	test    rbx, rbx
-	lea     rax, [rel str_LC0]
+	lea     rdx, [rel str_LC0]
+	mov     dword [rsp+0x8], eax
 	mov     rdi, qword [rel stderr]
+	cmovne  rdx, rbx
 	lea     rsi, [rel str_LC2]
-	cmove   rbx, rax
 	xor     eax, eax
-	mov     rdx, rbx
 	call    fprintf
-loc_001:  xor     eax, eax
-loc_002:  add     rsp, 968
+	mov     ecx, dword [rsp+0x8]
+loc_001:  mov     rax, qword [rsp+0x3D8]
+; Note: Address is not rip-relative
+; Note: Absolute memory address without relocation
+	sub     rax, qword [fs:abs 0x28]
+	jne     loc_003
+	add     rsp, 992
+	mov     eax, ecx
 	pop     rbx
-	pop     rbp
-	pop     r12
-	pop     r13
 	ret
 
-; Filling space: 0x1
-; Filler type: NOP
-;       db 0x90
+; Filling space: 0x6
+; Filler type: Multi-byte NOP
+;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
 
 ALIGN   8
-loc_003:  mov     edx, 320
-	mov     rsi, rsp
+loc_002:  mov     edx, 320
+	lea     rsi, [rsp+0x10]
 	mov     rdi, rbx
 	call    shell_quote
+	mov     ecx, eax
 	test    eax, eax
 	jz      loc_001
 	mov     rsi, rbx
 	lea     rdi, [rel str_LC3]
 	xor     eax, eax
 	call    printf
-	lea     r12, [rel str_LC0]
-	lea     r13, [rsp+0x140]
 	call    use_noconfirm
+	lea     r8, [rel str_LC0]
 	test    eax, eax
 	lea     rax, [rel str_LC1]
-	cmovne  r12, rax
+	cmovne  r8, rax
+	mov     qword [rsp+0x8], r8
 	call    priv_prefix
-	mov     r9, rsp
-	mov     esi, 640
-	mov     rdi, r13
-	mov     rcx, rax
+	mov     r8, qword [rsp+0x8]
+	lea     r9, [rsp+0x10]
 	lea     rdx, [rel str_LC4]
-	mov     r8, r12
+	mov     rcx, rax
+	mov     esi, 640
+	lea     rdi, [rsp+0x150]
 	xor     eax, eax
 	call    xsnprintf
-	mov     rdi, r13
+	lea     rdi, [rsp+0x150]
 	call    run_cmd
-	mov     edx, eax
-	mov     eax, 1
-	test    edx, edx
-	je      loc_002
+	mov     ecx, 1
+	test    eax, eax
+	je      loc_001
 	mov     rdi, qword [rel stderr]
 	mov     rdx, rbx
 	lea     rsi, [rel str_LC5]
 	xor     eax, eax
 	call    fprintf
+	xor     ecx, ecx
 	jmp     loc_001
+
+loc_003:
+; Note: Function does not end with ret or jmp
+	call    __stack_chk_fail
 
 SECTION .rodata.str1.1 align=1 noexec
 
