@@ -8,15 +8,8 @@ default rel
 
 global archtoo_cli_main: function
 
-extern get_resume
-extern cmd_dependency_plan_v2
-extern cmd_provider_v2
-extern cmd_unmerge
-extern cmd_local_build_v2
-extern cmd_clean_v2
-extern cmd_world_update
-extern cmd_deselect
 extern set_use_binary
+extern get_resume
 extern set_portage_imitation
 extern set_gentoo_chroot
 extern set_gentoo_chroot_path
@@ -25,29 +18,35 @@ extern set_raw_flags
 extern valid_raw_flags
 extern strlen
 extern print_known_opt_levels
-extern cmd_gentoo_imitation_build
-extern valid_pkgname
 extern set_opt_level
-extern cmd_get_pkgbuild_v2
-extern cmd_build
+extern cmd_unmerge
+extern cmd_local_build_v2
+extern cmd_clean_v2
+extern cmd_world_update
+extern cmd_deselect
 extern valid_opt_level
+extern valid_pkgname
+extern cmd_get_pkgbuild_v2
+extern cmd_gentoo_imitation_build
+extern cmd_provider_v2
+extern cmd_dependency_plan_v2
 extern cmd_devel_v2
+extern cmd_build
 extern init_system
 extern acquire_sudo
 extern cmd_review_v2
 extern print_known_targets
+extern cmd_stats_v2
 extern cmd_news_v2
 extern cmd_completion_v2
-extern cmd_stats_v2
 extern cmd_orphans_v2
-extern __stack_chk_fail
 extern set_target_arch
 extern cmd_search_v2
 extern get_jobs
 extern set_jobs
-extern set_use_pipe
 extern cmd_query_v2
 extern cmd_available_info_v2
+extern set_use_pipe
 extern set_aur_sync
 extern set_sync
 extern valid_target_arch
@@ -68,7 +67,7 @@ extern get_makepkg_raw
 extern guide_policy_parse
 extern fwrite
 extern stderr
-extern __isoc23_strtol
+extern strtol
 extern strncmp
 extern strcmp
 extern get_target_arch
@@ -208,41 +207,38 @@ print_usage:
 	jmp     puts
 
 archtoo_cli_main:; Function begin
-	sub     rsp, 2152
-	mov     qword [rsp+0x858], r14
-	mov     r14d, edi
-	mov     qword [rsp+0x848], r12
-	mov     qword [rsp+0x850], r13
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	mov     r13, qword [fs:abs 0x28]
-	mov     qword [rsp+0x828], r13
-	mov     r13, rsi
+	push    r15
+	push    r14
+	push    r13
+	push    r12
+	push    rbp
+	mov     ebp, edi
+	push    rbx
+	mov     rbx, rsi
+	sub     rsp, 2088
 	call    geteuid
 	test    eax, eax
 	jnz     loc_001
 	lea     rdi, [rel str_LC65]
 	call    getenv
 	test    rax, rax
-	je      loc_042
+	je      loc_041
 loc_001:  call    load_user_config
-	cmp     r14d, 1
-	jle     loc_033
-	mov     qword [rsp+0x838], rbx
-	mov     rbx, qword [r13+0x8]
-	mov     qword [rsp+0x840], rbp
-	movzx   ebp, byte [rbx]
-	cmp     ebp, 45
+	cmp     ebp, 1
+	jle     loc_032
+	mov     r12, qword [rbx+0x8]
+	movzx   r13d, byte [r12]
+	cmp     r13d, 45
 	jne     loc_005
-	cmp     byte [rbx+0x1], 118
+	cmp     byte [r12+0x1], 118
 	jne     loc_005
-	cmp     byte [rbx+0x2], 0
+	cmp     byte [r12+0x2], 0
 	jne     loc_005
 loc_002:  call    get_use_binary
 	lea     rbx, [rel str_LC61]
 	lea     r13, [rel str_LC62]
 	test    eax, eax
-	lea     rbp, [rel str_LC64]
+	lea     r12, [rel str_LC64]
 	cmovne  r13, rbx
 	call    get_gentoo_chroot
 	test    eax, eax
@@ -251,13 +247,13 @@ loc_002:  call    get_use_binary
 	call    get_use_pipe
 	test    eax, eax
 	lea     rax, [rel str_LC63]
-	cmovne  rbp, rax
+	cmovne  r12, rax
 	call    get_opt_level
-	mov     r12, rax
+	mov     rbp, rax
 	call    get_target_arch
 	push    r13
-	mov     r9, rbp
-	mov     r8, r12
+	mov     r9, r12
+	mov     r8, rbp
 	push    rbx
 	mov     rcx, rax
 	xor     eax, eax
@@ -271,89 +267,84 @@ loc_002:  call    get_use_binary
 	call    puts
 	pop     r8
 	pop     r9
-loc_003:  mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	xor     r12d, r12d
-loc_004:  mov     rax, qword [rsp+0x828]
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	sub     rax, qword [fs:abs 0x28]
-	jne     loc_086
-	mov     eax, r12d
-	mov     r13, qword [rsp+0x850]
-	mov     r12, qword [rsp+0x848]
-	mov     r14, qword [rsp+0x858]
-	add     rsp, 2152
+loc_003:  xor     eax, eax
+loc_004:  add     rsp, 2088
+	pop     rbx
+	pop     rbp
+	pop     r12
+	pop     r13
+	pop     r14
+	pop     r15
 	ret
 
-; Filling space: 0x7
+; Filling space: 0x0A
 ; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00
+;       db 0x66, 0x2E, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00
+;       db 0x00, 0x00
 
-ALIGN   8
+ALIGN   16
 loc_005:  lea     rsi, [rel str_LC69]
-	mov     rdi, rbx
+	mov     rdi, r12
 	call    strcmp
 	test    eax, eax
 	je      loc_002
-	cmp     ebp, 45
+	cmp     r13d, 45
 	jnz     loc_006
-	cmp     byte [rbx+0x1], 104
+	cmp     byte [r12+0x1], 104
 	je      loc_012
 loc_006:  lea     rsi, [rel str_LC73]
-	mov     rdi, rbx
+	mov     rdi, r12
+	mov     r15d, 1
 	call    strcmp
+	xor     r8d, r8d
 	test    eax, eax
 	je      loc_013
-	mov     qword [rsp+0x860], r15
-	mov     ebp, 1
-	xor     r12d, r12d
-loc_007:  movsxd  rax, ebp
+	mov     dword [rsp], r8d
+	mov     r12d, ebp
+loc_007:  movsxd  rbp, r15d
 	lea     rsi, [rel str_LC75]
-	shl     rax, 3
-	lea     r15, [r13+rax]
-	mov     qword [rsp], rax
-	mov     rbx, qword [r15]
-	mov     rdi, rbx
+	shl     rbp, 3
+	lea     r13, [rbx+rbp]
+	mov     r14, qword [r13]
+	mov     rdi, r14
+	call    strcmp
+	test    eax, eax
+	je      loc_030
+	lea     rsi, [rel str_LC76]
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
 	je      loc_031
-	lea     rsi, [rel str_LC76]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_032
 	mov     edx, 16
 	lea     rsi, [rel str_LC77]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strncmp
 	test    eax, eax
 	je      loc_011
-	movzx   eax, byte [rbx]
+	movzx   eax, byte [r14]
 	mov     dword [rsp+0x0C], eax
 	cmp     eax, 45
 	jnz     loc_008
-	cmp     byte [rbx+0x1], 105
+	cmp     byte [r14+0x1], 105
 	je      loc_017
 loc_008:  lea     rsi, [rel str_LC79]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
 	je      loc_018
 	lea     rsi, [rel str_LC80]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
 	jne     loc_024
-	add     ebp, 1
-	cmp     ebp, r14d
-	jge     loc_076
-	mov     rax, qword [rsp]
+	add     r15d, 1
+	cmp     r15d, r12d
+	jge     loc_071
+	mov     rdi, qword [rbx+rbp+0x8]
 	lea     rsi, [rsp+0x18]
 	mov     edx, 10
 	mov     qword [rsp+0x18], 0
-	mov     rdi, qword [r13+rax+0x8]
-	call    __isoc23_strtol
+	call    strtol
 	mov     rdi, rax
 	mov     rax, qword [rsp+0x18]
 	test    rax, rax
@@ -361,37 +352,36 @@ loc_008:  lea     rsi, [rel str_LC79]
 	cmp     byte [rax], 0
 	jnz     loc_009
 	cmp     rdi, 86400
-	jbe     loc_046
+	jbe     loc_045
 loc_009:  mov     rcx, qword [rel stderr]
 	mov     edx, 51
 	mov     esi, 1
 	lea     rdi, [rel str_LC82]
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	nop
-loc_010:  mov     r12d, 1
+; Filling space: 0x0B
+; Filler type: Multi-byte NOP
+;       db 0x66, 0x66, 0x2E, 0x0F, 0x1F, 0x84, 0x00, 0x00
+;       db 0x00, 0x00, 0x00
+
+ALIGN   16
+loc_010:  mov     eax, 1
 	jmp     loc_004
 
-; Filling space: 0x5
+; Filling space: 0x6
 ; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
+;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
 
 ALIGN   8
 loc_011:  lea     rsi, [rsp+0x18]
-	lea     rdi, [rbx+0x10]
+	lea     rdi, [r14+0x10]
 	call    guide_policy_parse
 	test    eax, eax
-	jne     loc_029
+	jne     loc_028
 	mov     rcx, qword [rel stderr]
 	mov     edx, 77
 	mov     esi, 1
 	lea     rdi, [rel str_LC78]
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
 	jmp     loc_010
 
 ; Filling space: 0x3
@@ -399,7 +389,7 @@ loc_011:  lea     rsi, [rsp+0x18]
 ;       db 0x0F, 0x1F, 0x00
 
 ALIGN   8
-loc_012:  cmp     byte [rbx+0x2], 0
+loc_012:  cmp     byte [r12+0x2], 0
 	jne     loc_006
 loc_013:  call    print_usage
 	call    get_target_arch
@@ -407,176 +397,186 @@ loc_013:  call    print_usage
 	mov     rdi, rax
 	call    strcmp
 	test    eax, eax
-	je      loc_030
+	je      loc_029
 loc_014:  call    get_makepkg_raw
 	lea     r12, [rel str_LC60]
 	cmp     byte [rax], 0
-	jne     loc_039
-loc_015:  call    get_raw_flags
-	lea     rbp, [rel str_LC60]
-	cmp     byte [rax], 0
 	jne     loc_038
+loc_015:  call    get_raw_flags
+	lea     r13, [rel str_LC60]
+	cmp     byte [rax], 0
+	jne     loc_037
 loc_016:  call    get_use_pipe
-	lea     rbx, [rel str_LC64]
+	lea     rbp, [rel str_LC64]
 	test    eax, eax
 	lea     rax, [rel str_LC63]
-	cmovne  rbx, rax
+	cmovne  rbp, rax
 	call    get_opt_level
-	mov     r13, rax
+	mov     rbx, rax
 	call    get_target_arch
 	mov     r9, r12
-	mov     r8, rbp
-	mov     rcx, rbx
+	mov     r8, r13
+	mov     rcx, rbp
 	mov     rsi, rax
-	mov     rdx, r13
+	mov     rdx, rbx
 	lea     rdi, [rel str_LC74]
 	xor     eax, eax
 	call    printf
 	jmp     loc_003
 
-; Filling space: 0x3
+; Filling space: 0x9
 ; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x00
+;       db 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00
+;       db 0x00
 
-ALIGN   8
-loc_017:  cmp     byte [rbx+0x2], 0
+ALIGN   16
+loc_017:  cmp     byte [r14+0x2], 0
 	jne     loc_008
 loc_018:  mov     edi, 1
 	call    set_interactive
-loc_019:  add     ebp, 1
-	cmp     r14d, ebp
+loc_019:  add     r15d, 1
+	cmp     r12d, r15d
 	jle     loc_020
-	cmp     r12d, 255
+	cmp     dword [rsp], 255
 	jne     loc_007
-loc_020:  mov     eax, r12d
+loc_020:  movsxd  rax, dword [rsp]
+	mov     ebp, r12d
 	mov     qword [rsp+rax*8+0x20], 0
 	call    guide_maybe_show
-	cmp     r12d, 1
-	je      loc_053
-	test    r12d, r12d
-	je      loc_070
-	mov     rbp, qword [rsp+0x20]
-	movzx   eax, byte [rbp]
+	mov     r8d, dword [rsp]
+	cmp     r8d, 1
+	je      loc_051
+	test    r8d, r8d
+	je      loc_066
+	mov     r13, qword [rsp+0x20]
+	movzx   eax, byte [r13]
 	cmp     eax, 45
-	je      loc_058
+	je      loc_057
 loc_021:  lea     rsi, [rel str_LC162]
-	mov     rdi, rbp
+	mov     rdi, r13
+	mov     dword [rsp], r8d
 	call    strcmp
+	mov     r8d, dword [rsp]
 	test    eax, eax
-	je      loc_088
+	je      loc_082
 	lea     rsi, [rel str_LC163]
-	mov     rdi, rbp
+	mov     rdi, r13
+	mov     dword [rsp], r8d
 	call    strcmp
+	mov     r8d, dword [rsp]
 	test    eax, eax
-	je      loc_089
+	je      loc_085
 	lea     rsi, [rel str_LC164]
-	mov     rdi, rbp
+	mov     rdi, r13
+	mov     dword [rsp], r8d
 	call    strcmp
+	mov     r8d, dword [rsp]
 	test    eax, eax
-	je      loc_093
+	je      loc_084
 	lea     rsi, [rel str_LC165]
-	mov     rdi, rbp
+	mov     rdi, r13
+	mov     dword [rsp], r8d
 	call    strcmp
+	mov     r8d, dword [rsp]
+	test    eax, eax
+	je      loc_083
+	lea     rsi, [rel str_LC166]
+	mov     rdi, r13
+	mov     dword [rsp], r8d
+	call    strcmp
+	mov     r8d, dword [rsp]
 	test    eax, eax
 	je      loc_092
-	lea     rsi, [rel str_LC166]
-	mov     rdi, rbp
-	call    strcmp
-	test    eax, eax
-	je      loc_099
 	lea     rsi, [rel str_LC167]
-	mov     rdi, rbp
+	mov     rdi, r13
+	mov     dword [rsp], r8d
 	call    strcmp
-	cmp     r12d, 2
-	sete    bl
+	mov     r8d, dword [rsp]
+	cmp     r8d, 2
+	sete    r12b
 	test    eax, eax
 	jnz     loc_022
-	test    bl, bl
-	jne     loc_153
+	test    r12b, r12b
+	jne     loc_097
 loc_022:  lea     rsi, [rel str_LC168]
-	mov     rdi, rbp
+	mov     rdi, r13
+	mov     dword [rsp], r8d
 	call    strcmp
+	mov     r8d, dword [rsp]
 	test    eax, eax
 	jnz     loc_023
-	test    bl, bl
-	jne     loc_156
+	test    r12b, r12b
+	jne     loc_095
 loc_023:  lea     rsi, [rel str_LC169]
-	mov     rdi, rbp
+	mov     rdi, r13
+	mov     dword [rsp], r8d
 	call    strcmp
+	mov     r8d, dword [rsp]
 	test    eax, eax
-	jne     loc_096
-	cmp     r12d, 2
-	je      loc_095
+	jne     loc_089
+	cmp     r8d, 2
+	je      loc_088
 	mov     rcx, qword [rel stderr]
 	mov     edx, 46
 	mov     esi, 1
 	lea     rdi, [rel str_LC170]
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
 	jmp     loc_010
 
-; Filling space: 0x6
-; Filler type: Multi-byte NOP
-;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
-
-ALIGN   8
 loc_024:  cmp     dword [rsp+0x0C], 45
 	jnz     loc_025
-	cmp     byte [rbx+0x1], 114
-	je      loc_040
+	cmp     byte [r14+0x1], 114
+	je      loc_039
 loc_025:  lea     rsi, [rel str_LC83]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_041
+	je      loc_040
 	lea     rsi, [rel str_LC84]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_047
+	je      loc_046
 	lea     rsi, [rel str_LC85]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_043
+	je      loc_042
 	lea     rsi, [rel str_LC86]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_052
+	je      loc_050
 	lea     rsi, [rel str_LC87]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_055
+	je      loc_053
 	lea     rsi, [rel str_LC88]
-	mov     rdi, rbx
+	mov     rdi, r14
+	call    strcmp
+	test    eax, eax
+	je      loc_056
+	lea     rsi, [rel str_LC89]
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
 	je      loc_064
-	lea     rsi, [rel str_LC89]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_067
 	cmp     dword [rsp+0x0C], 45
-	jne     loc_048
-	cmp     byte [rbx+0x1], 106
-	jne     loc_048
-	cmp     byte [rbx+0x2], 0
-	jne     loc_048
-loc_026:  add     ebp, 1
-	cmp     ebp, r14d
-	jge     loc_087
-	mov     rax, qword [rsp]
+	jne     loc_047
+	cmp     byte [r14+0x1], 106
+	jne     loc_047
+	cmp     byte [r14+0x2], 0
+	jne     loc_047
+loc_026:  add     r15d, 1
+	cmp     r15d, r12d
+	jge     loc_081
+	lea     rbp, [rbx+rbp+0x8]
 	lea     rsi, [rsp+0x18]
 	mov     edx, 10
 	mov     qword [rsp+0x18], 0
-	lea     rbx, [r13+rax+0x8]
-	mov     rdi, qword [rbx]
-	call    __isoc23_strtol
+	mov     rdi, qword [rbp]
+	call    strtol
 	mov     rdi, rax
 	mov     rax, qword [rsp+0x18]
 	test    rax, rax
@@ -585,36 +585,33 @@ loc_026:  add     ebp, 1
 	jnz     loc_027
 	lea     rax, [rdi-0x1]
 	cmp     rax, 1023
-	jbe     loc_066
-loc_027:  mov     rdx, qword [rbx]
+	jbe     loc_063
+loc_027:  mov     rdx, qword [rbp]
+	mov     rdi, qword [rel stderr]
 	lea     rsi, [rel str_LC92]
-loc_028:  mov     rdi, qword [rel stderr]
 	xor     eax, eax
 	call    fprintf
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
 	jmp     loc_010
 
-; Filling space: 0x8
+; Filling space: 0x6
 ; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00
+;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
 
-ALIGN   16
-loc_029:  mov     edi, dword [rsp+0x18]
+ALIGN   8
+loc_028:  mov     edi, dword [rsp+0x18]
 	call    guide_set_policy
 	jmp     loc_019
 
-; Filling space: 0x2
-; Filler type: NOP with prefixes
-;       db 0x66, 0x90
+; Filling space: 0x0A
+; Filler type: Multi-byte NOP
+;       db 0x66, 0x2E, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00
+;       db 0x00, 0x00
 
-ALIGN   8
-loc_030:  call    get_opt_level
+ALIGN   16
+loc_029:  call    get_opt_level
 	cmp     byte [rax], 51
 	jne     loc_014
-	movzx   r12d, byte [rax+0x1]
-	test    r12d, r12d
+	cmp     byte [rax+0x1], 0
 	jne     loc_014
 	call    get_raw_flags
 	cmp     byte [rax], 0
@@ -622,16 +619,14 @@ loc_030:  call    get_opt_level
 	call    get_makepkg_raw
 	cmp     byte [rax], 0
 	jne     loc_014
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	jmp     loc_004
+	jmp     loc_003
 
-; Filling space: 0x3
+; Filling space: 0x7
 ; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x00
+;       db 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00
 
 ALIGN   8
-loc_031:  mov     edi, 1
+loc_030:  mov     edi, 1
 	call    set_noconfirm
 	jmp     loc_019
 
@@ -640,7 +635,7 @@ loc_031:  mov     edi, 1
 ;       db 0x90
 
 ALIGN   8
-loc_032:  call    guide_request_explicit
+loc_031:  call    guide_request_explicit
 	jmp     loc_019
 
 ; Filling space: 0x6
@@ -648,54 +643,51 @@ loc_032:  call    guide_request_explicit
 ;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
 
 ALIGN   8
-loc_033:  call    get_target_arch
+loc_032:  call    get_target_arch
 	lea     rsi, [rel str_LC67]
 	mov     rdi, rax
 	call    strcmp
 	test    eax, eax
-	jnz     loc_034
+	jnz     loc_033
 	call    get_opt_level
 	cmp     byte [rax], 51
-	jnz     loc_034
+	jnz     loc_033
 	cmp     byte [rax+0x1], 0
-	jnz     loc_034
+	jnz     loc_033
 	call    get_use_pipe
 	test    eax, eax
-	jz      loc_034
+	jz      loc_033
 	call    get_gentoo_chroot
 	test    eax, eax
-	jnz     loc_034
+	jnz     loc_033
 	call    get_raw_flags
 	cmp     byte [rax], 0
-	jnz     loc_034
+	jnz     loc_033
 	call    get_makepkg_raw
 	cmp     byte [rax], 0
-	je      loc_037
+	je      loc_036
 ; Filling space: 0x0E
 ; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x00, 0x66, 0x66, 0x2E, 0x0F, 0x1F
-;       db 0x84, 0x00, 0x00, 0x00, 0x00, 0x00
+;       db 0x66, 0x66, 0x2E, 0x0F, 0x1F, 0x84, 0x00, 0x00
+;       db 0x00, 0x00, 0x00, 0x0F, 0x1F, 0x00
 
 ALIGN   16
-loc_034:  mov     qword [rsp+0x838], rbx
+loc_033:  call    get_makepkg_raw
 	lea     r13, [rel str_LC60]
-	mov     qword [rsp+0x840], rbp
-	mov     qword [rsp+0x860], r15
-	call    get_makepkg_raw
 	cmp     byte [rax], 0
 	jne     loc_044
-loc_035:  call    get_raw_flags
-	lea     r14, [rel str_LC60]
+loc_034:  call    get_raw_flags
+	lea     rbp, [rel str_LC60]
 	cmp     byte [rax], 0
-	jne     loc_045
-loc_036:  call    get_gentoo_chroot_path
+	jne     loc_043
+loc_035:  call    get_gentoo_chroot_path
 	lea     rbx, [rel str_LC61]
-	lea     r15, [rel str_LC62]
-	mov     r12, rax
-	lea     rbp, [rel str_LC64]
+	lea     r14, [rel str_LC62]
+	mov     r15, rax
+	lea     r12, [rel str_LC64]
 	call    get_use_binary
 	test    eax, eax
-	cmovne  r15, rbx
+	cmovne  r14, rbx
 	call    get_gentoo_chroot
 	test    eax, eax
 	lea     rax, [rel str_LC62]
@@ -703,36 +695,33 @@ loc_036:  call    get_gentoo_chroot_path
 	call    get_use_pipe
 	test    eax, eax
 	lea     rax, [rel str_LC63]
-	cmovne  rbp, rax
+	cmovne  r12, rax
 	call    get_opt_level
 	mov     qword [rsp], rax
 	call    get_target_arch
 	sub     rsp, 8
-	mov     r9, r15
+	mov     r9, r14
 	mov     r8, rbx
 	push    r13
-	mov     rcx, rbp
 	mov     rsi, rax
+	mov     rcx, r12
 	lea     rdi, [rel str_LC68]
-	push    r14
+	push    rbp
 	xor     eax, eax
-	push    r12
+	push    r15
 	mov     rdx, qword [rsp+0x20]
 	call    printf
 	add     rsp, 32
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-loc_037:  call    print_usage
+loc_036:  call    print_usage
 	jmp     loc_010
 
-; Filling space: 0x5
+; Filling space: 0x6
 ; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
+;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
 
 ALIGN   8
-loc_038:  call    get_raw_flags
-	mov     rbp, rax
+loc_037:  call    get_raw_flags
+	mov     r13, rax
 	jmp     loc_016
 
 ; Filling space: 0x3
@@ -740,7 +729,7 @@ loc_038:  call    get_raw_flags
 ;       db 0x0F, 0x1F, 0x00
 
 ALIGN   8
-loc_039:  call    get_makepkg_raw
+loc_038:  call    get_makepkg_raw
 	mov     r12, rax
 	jmp     loc_015
 
@@ -749,25 +738,25 @@ loc_039:  call    get_makepkg_raw
 ;       db 0x0F, 0x1F, 0x00
 
 ALIGN   8
-loc_040:  cmp     byte [rbx+0x2], 0
+loc_039:  cmp     byte [r14+0x2], 0
 	jne     loc_025
-loc_041:  mov     edi, 1
+loc_040:  mov     edi, 1
 	call    set_resume
 	jmp     loc_019
 
-; Filling space: 0x7
+; Filling space: 0x6
 ; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00
+;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
 
 ALIGN   8
-loc_042:  mov     rcx, qword [rel stderr]
+loc_041:  mov     rcx, qword [rel stderr]
 	mov     edx, 208
 	mov     esi, 1
 	lea     rdi, [rel str_LC66]
 	call    fwrite
 	jmp     loc_010
 
-loc_043:  xor     edi, edi
+loc_042:  xor     edi, edi
 	call    set_inhibit
 	jmp     loc_019
 
@@ -776,8 +765,8 @@ loc_043:  xor     edi, edi
 ;       db 0x66, 0x90
 
 ALIGN   8
-loc_044:  call    get_makepkg_raw
-	mov     r13, rax
+loc_043:  call    get_raw_flags
+	mov     rbp, rax
 	jmp     loc_035
 
 ; Filling space: 0x3
@@ -785,16 +774,16 @@ loc_044:  call    get_makepkg_raw
 ;       db 0x0F, 0x1F, 0x00
 
 ALIGN   8
-loc_045:  call    get_raw_flags
-	mov     r14, rax
-	jmp     loc_036
+loc_044:  call    get_makepkg_raw
+	mov     r13, rax
+	jmp     loc_034
 
 ; Filling space: 0x3
 ; Filler type: Multi-byte NOP
 ;       db 0x0F, 0x1F, 0x00
 
 ALIGN   8
-loc_046:  call    set_prompt_timeout
+loc_045:  call    set_prompt_timeout
 	jmp     loc_019
 
 ; Filling space: 0x6
@@ -802,7 +791,7 @@ loc_046:  call    set_prompt_timeout
 ;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
 
 ALIGN   8
-loc_047:  xor     edi, edi
+loc_046:  xor     edi, edi
 	call    set_import_keys
 	jmp     loc_019
 
@@ -811,90 +800,87 @@ loc_047:  xor     edi, edi
 ;       db 0x0F, 0x1F, 0x40, 0x00
 
 ALIGN   8
-loc_048:  lea     rsi, [rel str_LC90]
-	mov     rdi, rbx
+loc_047:  lea     rsi, [rel str_LC90]
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
 	je      loc_026
-	cmp     byte [rbx], 45
-	jnz     loc_049
-	cmp     byte [rbx+0x1], 106
-	jnz     loc_049
+	cmp     byte [r14], 45
+	jnz     loc_048
+	cmp     byte [r14+0x1], 106
+	jnz     loc_048
 	call    __ctype_b_loc
-	movzx   edx, byte [rbx+0x2]
+	movzx   edx, byte [r14+0x2]
 	mov     rax, qword [rax]
 	test    byte [rax+rdx*2+0x1], 0x08
-	jne     loc_084
-loc_049:  mov     edx, 7
+	jne     loc_079
+loc_048:  mov     edx, 7
 	lea     rsi, [rel str_LC93]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strncmp
 	test    eax, eax
-	je      loc_079
+	je      loc_074
 	lea     rsi, [rel str_LC95]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_077
+	je      loc_072
 	lea     rsi, [rel str_LC96]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_077
+	je      loc_072
 	lea     rsi, [rel str_LC97]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_077
+	je      loc_072
 	mov     edx, 9
 	lea     rsi, [rel str_LC102]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strncmp
 	test    eax, eax
-	jne     loc_098
-	cmp     byte [rbx+0x9], 0
-	je      loc_155
-	add     rbx, 9
-loc_050:  lea     rsi, [rel str_LC99]
-	mov     rdi, rbx
+	jne     loc_093
+	cmp     byte [r14+0x9], 0
+	lea     rbp, [r14+0x9]
+	je      loc_098
+loc_049:  lea     rsi, [rel str_LC99]
+	mov     rdi, rbp
 	call    strcmp
 	test    eax, eax
-	je      loc_094
+	je      loc_087
 	lea     rsi, [rel str_LC100]
-	mov     rdi, rbx
+	mov     rdi, rbp
 	call    strcmp
 	test    eax, eax
-	je      loc_094
-	mov     rdi, rbx
+	je      loc_087
+	mov     rdi, rbp
 	call    valid_target_arch
 	test    eax, eax
-	jne     loc_081
-	mov     rdx, rbx
+	jne     loc_076
+	mov     rdi, qword [rel stderr]
+	mov     rdx, rbp
 	lea     rsi, [rel str_LC101]
-loc_051:  mov     rdi, qword [rel stderr]
 	call    fprintf
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
 	jmp     loc_010
 
-loc_052:  xor     edi, edi
+loc_050:  xor     edi, edi
 	call    set_sync
 	jmp     loc_019
 
-loc_053:  mov     rbp, qword [rsp+0x20]
-	movzx   ebx, byte [rbp]
-	cmp     ebx, 45
-	jne     loc_056
-	cmp     byte [rbp+0x1], 118
-	jne     loc_056
-	cmp     byte [rbp+0x2], 0
-	jne     loc_056
-loc_054:  call    get_use_binary
+loc_051:  mov     r13, qword [rsp+0x20]
+	movzx   r12d, byte [r13]
+	cmp     r12d, 45
+	jne     loc_054
+	cmp     byte [r13+0x1], 118
+	jne     loc_054
+	cmp     byte [r13+0x2], 0
+	jne     loc_054
+loc_052:  call    get_use_binary
 	lea     rbx, [rel str_LC61]
 	lea     r13, [rel str_LC62]
 	test    eax, eax
-	lea     rbp, [rel str_LC64]
+	lea     r12, [rel str_LC64]
 	cmovne  r13, rbx
 	call    get_gentoo_chroot
 	test    eax, eax
@@ -903,13 +889,13 @@ loc_054:  call    get_use_binary
 	call    get_use_pipe
 	test    eax, eax
 	lea     rax, [rel str_LC63]
-	cmovne  rbp, rax
+	cmovne  r12, rax
 	call    get_opt_level
-	mov     r12, rax
+	mov     rbp, rax
 	call    get_target_arch
 	push    r13
-	mov     r9, rbp
-	mov     r8, r12
+	mov     r9, r12
+	mov     r8, rbp
 	push    rbx
 	mov     rcx, rax
 	xor     eax, eax
@@ -921,103 +907,99 @@ loc_054:  call    get_use_binary
 	call    puts
 	pop     rcx
 	pop     rsi
-	mov     r15, qword [rsp+0x860]
 	jmp     loc_003
 
-loc_055:  xor     edi, edi
+loc_053:  xor     edi, edi
 	call    set_aur_sync
 	jmp     loc_019
 
-loc_056:  lea     rsi, [rel str_LC69]
-	mov     rdi, rbp
+loc_054:  lea     rsi, [rel str_LC69]
+	mov     rdi, r13
+	mov     dword [rsp], r8d
 	call    strcmp
+	mov     r8d, dword [rsp]
 	test    eax, eax
-	je      loc_054
-	cmp     ebx, 45
-	jne     loc_072
-	cmp     byte [rbp+0x1], 104
-	jne     loc_072
-	cmp     byte [rbp+0x2], 0
-	jne     loc_072
-loc_057:  call    print_usage
-	mov     r15, qword [rsp+0x860]
+	je      loc_052
+	cmp     r12d, 45
+	jne     loc_068
+	cmp     byte [r13+0x1], 104
+	jne     loc_068
+	cmp     byte [r13+0x2], 0
+	jne     loc_068
+loc_055:  call    print_usage
 	jmp     loc_003
 
-loc_058:  cmp     byte [rbp+0x1], 83
-	je      loc_074
-loc_059:  cmp     eax, 45
+loc_056:  mov     edi, 1
+	call    set_use_pipe
+	jmp     loc_019
+
+loc_057:  cmp     byte [r13+0x1], 83
+	je      loc_070
+loc_058:  cmp     eax, 45
 	jne     loc_021
-	cmp     byte [rbp+0x1], 81
-	jne     loc_078
-	movzx   r15d, byte [rbp+0x2]
-	test    r15d, r15d
-	jne     loc_078
-	mov     ebx, 1
-loc_060:  lea     r13, [rsp+0x20]
-	jmp     loc_063
+	cmp     byte [r13+0x1], 81
+	jne     loc_073
+	movzx   r14d, byte [r13+0x2]
+	test    r14d, r14d
+	jne     loc_073
+	mov     r12d, 1
+loc_059:  lea     rbx, [rsp+0x20]
+	mov     ebp, r8d
+	jmp     loc_062
 
 ; Filling space: 0x4
 ; Filler type: Multi-byte NOP
 ;       db 0x0F, 0x1F, 0x40, 0x00
 
 ALIGN   8
-loc_061:  call    cmd_available_info_v2
-loc_062:  cmp     eax, 1
-	adc     r15d, 0
-	add     rbx, 1
-	cmp     r12d, ebx
-	jle     loc_068
-loc_063:  mov     rdi, qword [r13+rbx*8]
-	cmp     byte [rbp+0x1], 81
-	jnz     loc_061
+loc_060:  call    cmd_available_info_v2
+loc_061:  cmp     eax, 1
+	adc     r14d, 0
+	add     r12, 1
+	cmp     ebp, r12d
+	jle     loc_065
+loc_062:  cmp     byte [r13+0x1], 81
+	mov     rdi, qword [rbx+r12*8]
+	jnz     loc_060
 	call    cmd_query_v2
-	jmp     loc_062
+	jmp     loc_061
 
-loc_064:  mov     edi, 1
+loc_063:  call    set_jobs
+	jmp     loc_019
+
+loc_064:  xor     edi, edi
 	call    set_use_pipe
 	jmp     loc_019
 
-loc_065:  mov     rdi, rax
-loc_066:  call    set_jobs
-	jmp     loc_019
-
-loc_067:  xor     edi, edi
-	call    set_use_pipe
-	jmp     loc_019
-
-loc_068:  test    r15d, r15d
-loc_069:  setne   r12b
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	movzx   r12d, r12b
+loc_065:  xor     eax, eax
+	test    r14d, r14d
+	setne   al
 	jmp     loc_004
 
-loc_070:  call    get_target_arch
+loc_066:  call    get_target_arch
 	lea     rsi, [rel str_LC67]
 	mov     rdi, rax
 	call    strcmp
 	test    eax, eax
-	jnz     loc_071
+	jnz     loc_067
 	call    get_opt_level
 	cmp     byte [rax], 51
-	jnz     loc_071
+	jnz     loc_067
 	cmp     byte [rax+0x1], 0
-	jnz     loc_071
+	jnz     loc_067
 	call    get_use_pipe
 	test    eax, eax
-	jne     loc_090
-loc_071:  call    get_gentoo_chroot_path
+	jne     loc_086
+loc_067:  call    get_gentoo_chroot_path
 	lea     rbx, [rel str_LC61]
-	lea     rbp, [rel str_LC64]
-	mov     r14, rax
+	lea     r14, [rel str_LC62]
+	mov     r15, rax
+	lea     r12, [rel str_LC64]
 	call    get_jobs
 	mov     r13, rax
 	call    get_use_binary
-	lea     r9, [rel str_LC62]
 	test    eax, eax
-	cmovne  r9, rbx
-	mov     qword [rsp], r9
+	cmovne  r14, rbx
 	call    get_gentoo_chroot
 	test    eax, eax
 	lea     rax, [rel str_LC62]
@@ -1025,1031 +1007,1080 @@ loc_071:  call    get_gentoo_chroot_path
 	call    get_use_pipe
 	test    eax, eax
 	lea     rax, [rel str_LC63]
-	cmovne  rbp, rax
+	cmovne  r12, rax
 	call    get_opt_level
-	mov     r15, rax
+	mov     rbp, rax
 	call    get_target_arch
-	push    r14
-	mov     rdx, r15
-	mov     r8, rbx
+	push    r15
+	mov     rdx, rbp
+	mov     r9, r14
 	push    r13
-	mov     r9, qword [rsp+0x10]
-	mov     rcx, rbp
 	mov     rsi, rax
+	mov     r8, rbx
+	mov     rcx, r12
 	lea     rdi, [rel str_LC158]
 	xor     eax, eax
 	call    printf
 	pop     rax
 	pop     rdx
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_004
+	jmp     loc_003
 
-loc_072:  lea     rsi, [rel str_LC73]
-	mov     rdi, rbp
+loc_068:  lea     rsi, [rel str_LC73]
+	mov     rdi, r13
+	mov     dword [rsp], r8d
 	call    strcmp
+	mov     r8d, dword [rsp]
 	test    eax, eax
-	je      loc_057
-	cmp     ebx, 45
-	jne     loc_082
-	cmp     byte [rbp+0x1], 83
-	jne     loc_082
-	cmp     byte [rbp+0x2], 0
-	jne     loc_082
-loc_073:  mov     rcx, qword [rel stderr]
+	je      loc_055
+	cmp     r12d, 45
+	jne     loc_077
+	cmp     byte [r13+0x1], 83
+	jne     loc_077
+	cmp     byte [r13+0x2], 0
+	jne     loc_077
+loc_069:  mov     rcx, qword [rel stderr]
 	mov     edx, 50
 	mov     esi, 1
 	lea     rdi, [rel str_LC159]
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
 	jmp     loc_010
 
-loc_074:  cmp     byte [rbp+0x2], 0
-	jne     loc_059
-	cmp     r12d, 2
-	jnz     loc_073
+loc_070:  cmp     byte [r13+0x2], 0
+	jne     loc_058
+	cmp     r8d, 2
+	jnz     loc_069
 	mov     rdi, qword [rsp+0x28]
 	call    cmd_search_v2
-loc_075:  xor     r12d, r12d
 	test    eax, eax
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	sete    r12b
+	sete    al
+	movzx   eax, al
 	jmp     loc_004
 
-loc_076:  mov     rcx, qword [rel stderr]
+loc_071:  mov     rcx, qword [rel stderr]
 	mov     edx, 47
 	mov     esi, 1
 	lea     rdi, [rel str_LC81]
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
 	jmp     loc_010
 
-loc_077:  add     ebp, 1
-	cmp     ebp, r14d
-	jge     loc_154
-	mov     rax, qword [rsp]
-	mov     rbx, qword [r13+rax+0x8]
-	jmp     loc_050
+loc_072:  add     r15d, 1
+	cmp     r15d, r12d
+	jge     loc_096
+	mov     rbp, qword [rbx+rbp+0x8]
+	jmp     loc_049
 
-loc_078:  cmp     eax, 45
+loc_073:  cmp     eax, 45
 	jne     loc_021
-	cmp     byte [rbp+0x1], 65
+	cmp     byte [r13+0x1], 65
 	jne     loc_021
-	movzx   r15d, byte [rbp+0x2]
-	mov     ebx, 1
-	test    r15d, r15d
-	je      loc_060
+	movzx   r14d, byte [r13+0x2]
+	mov     r12d, 1
+	test    r14d, r14d
+	je      loc_059
 	jmp     loc_021
 
-; Filling space: 0x8
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00
+; Filling space: 0x1
+; Filler type: NOP
+;       db 0x90
 
-ALIGN   16
-loc_079:  mov     edx, 10
+ALIGN   8
+loc_074:  lea     rdi, [r14+0x7]
 	lea     rsi, [rsp+0x18]
-	lea     rdi, [rbx+0x7]
+	mov     edx, 10
 	mov     qword [rsp+0x18], 0
-	call    __isoc23_strtol
-	mov     rdx, qword [rsp+0x18]
-	test    rdx, rdx
-	jz      loc_080
-	cmp     byte [rdx], 0
-	jnz     loc_080
-	lea     rdx, [rax-0x1]
-	cmp     rdx, 1023
-	jbe     loc_065
-loc_080:  mov     rcx, qword [rel stderr]
+	call    strtol
+	mov     rdi, rax
+	mov     rax, qword [rsp+0x18]
+	test    rax, rax
+	jz      loc_075
+	cmp     byte [rax], 0
+	jnz     loc_075
+	lea     rax, [rdi-0x1]
+	cmp     rax, 1023
+	jbe     loc_063
+loc_075:  mov     rcx, qword [rel stderr]
 	mov     edx, 34
 	mov     esi, 1
 	lea     rdi, [rel str_LC94]
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
 	jmp     loc_010
 
-loc_081:  mov     rdi, rbx
+loc_076:  mov     rdi, rbp
 	call    set_target_arch
 	jmp     loc_019
 
-loc_082:  lea     rsi, [rel str_LC192]
-	mov     rdi, rbp
+loc_077:  lea     rsi, [rel str_LC192]
+	mov     rdi, r13
+	mov     dword [rsp], r8d
 	call    strcmp
 	test    eax, eax
-	jz      loc_083
+	jz      loc_078
 	lea     rsi, [rel str_LC160]
-	mov     rdi, rbp
+	mov     rdi, r13
 	call    strcmp
+	mov     r8d, dword [rsp]
 	test    eax, eax
 	jne     loc_021
-loc_083:  mov     rcx, qword [rel stderr]
+loc_078:  mov     rcx, qword [rel stderr]
 	mov     edx, 50
 	mov     esi, 1
 	lea     rdi, [rel str_LC161]
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_004
-
-loc_084:  xor     edi, edi
-	mov     edx, 10
-	lea     rsi, [rsp+0x18]
-	mov     qword [rsp+0x18], rdi
-	lea     rdi, [rbx+0x2]
-	call    __isoc23_strtol
-	mov     rdx, qword [rsp+0x18]
-	test    rdx, rdx
-	jz      loc_085
-	cmp     byte [rdx], 0
-	jnz     loc_085
-	lea     rdx, [rax-0x1]
-	cmp     rdx, 1023
-	jbe     loc_065
-loc_085:  mov     rdx, qword [r15]
-	lea     rsi, [rel str_LC92]
-	jmp     loc_028
-
-loc_086:  mov     qword [rsp+0x838], rbx
-	mov     qword [rsp+0x840], rbp
-	mov     qword [rsp+0x860], r15
-	call    __stack_chk_fail
-loc_087:  mov     rdx, rbx
-	lea     rsi, [rel str_LC91]
-	jmp     loc_028
-
-loc_088:  call    cmd_orphans_v2
-	jmp     loc_075
-
-loc_089:  call    cmd_stats_v2
-	jmp     loc_075
-
-loc_090:  call    get_gentoo_chroot
-	test    eax, eax
-	jne     loc_071
-loc_091:  mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_004
-
-loc_092:  call    cmd_completion_v2
-	jmp     loc_075
-
-loc_093:  call    cmd_news_v2
-	jmp     loc_075
-
-loc_094:  call    print_known_targets
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_003
-
-loc_095:  mov     rdi, qword [rsp+0x28]
-	call    cmd_review_v2
-	jmp     loc_075
-
-loc_096:  mov     rsi, r13
-	mov     edi, r14d
-	call    acquire_sudo
-	test    eax, eax
-	jz      loc_097
-	lea     rsi, [rel str_LC171]
-	mov     rdi, rbp
-	call    strcmp
-	mov     ebx, eax
-	test    eax, eax
-	jne     loc_106
-	cmp     r12d, 1
-	jz      loc_091
-	call    init_system
-	test    eax, eax
-	jne     loc_104
-loc_097:  mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
 	jmp     loc_010
 
-loc_098:  mov     edx, 8
+loc_079:  xor     edi, edi
+	lea     rsi, [rsp+0x18]
+	mov     edx, 10
+	mov     qword [rsp+0x18], rdi
+	lea     rdi, [r14+0x2]
+	call    strtol
+	mov     rdi, rax
+	mov     rax, qword [rsp+0x18]
+	test    rax, rax
+	jz      loc_080
+	cmp     byte [rax], 0
+	jnz     loc_080
+	lea     rax, [rdi-0x1]
+	cmp     rax, 1023
+	jbe     loc_063
+loc_080:  mov     rdx, qword [r13]
+	mov     rdi, qword [rel stderr]
+	lea     rsi, [rel str_LC92]
+	xor     eax, eax
+	call    fprintf
+	jmp     loc_010
+
+loc_081:  mov     rdi, qword [rel stderr]
+	mov     rdx, r14
+	lea     rsi, [rel str_LC91]
+	xor     eax, eax
+	call    fprintf
+	jmp     loc_010
+
+loc_082:  call    cmd_orphans_v2
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_083:  call    cmd_completion_v2
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_084:  call    cmd_news_v2
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_085:  call    cmd_stats_v2
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_086:  call    get_gentoo_chroot
+	test    eax, eax
+	jne     loc_067
+	jmp     loc_003
+
+loc_087:  call    print_known_targets
+	jmp     loc_003
+
+loc_088:  mov     rdi, qword [rsp+0x28]
+	call    cmd_review_v2
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_089:  mov     rsi, rbx
+	mov     edi, ebp
+	mov     dword [rsp], r8d
+	call    acquire_sudo
+	test    eax, eax
+	je      loc_010
+	lea     rsi, [rel str_LC171]
+	mov     rdi, r13
+	call    strcmp
+	mov     r8d, dword [rsp]
+	test    eax, eax
+	mov     ebp, eax
+	jne     loc_102
+	sub     r8d, 1
+	je      loc_010
+	call    init_system
+	test    eax, eax
+	je      loc_010
+	call    get_use_binary
+	mov     r8d, dword [rsp]
+	test    eax, eax
+	je      loc_100
+	mov     r12d, 1
+	lea     rbx, [rsp+0x20]
+	mov     r13d, r8d
+loc_090:  mov     rdi, qword [rbx+r12*8]
+	call    cmd_build
+	cmp     eax, 1
+	adc     ebp, 0
+	add     r12, 1
+	cmp     r13d, r12d
+	jg      loc_090
+loc_091:  xor     eax, eax
+	test    ebp, ebp
+	setne   al
+	jmp     loc_004
+
+loc_092:  call    cmd_devel_v2
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_093:  mov     edx, 8
 	lea     rsi, [rel str_LC104]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strncmp
 	test    eax, eax
-	jnz     loc_100
-	cmp     byte [rbx+0x8], 0
-	je      loc_101
-	add     rbx, 8
+	jnz     loc_094
+	cmp     byte [r14+0x8], 0
+	lea     rbp, [r14+0x8]
+	je      loc_099
 	lea     rsi, [rel str_LC99]
-	mov     rdi, rbx
+	mov     rdi, rbp
 	call    strcmp
 	test    eax, eax
-	je      loc_094
+	je      loc_087
 	lea     rsi, [rel str_LC100]
-	mov     rdi, rbx
+	mov     rdi, rbp
 	call    strcmp
 	test    eax, eax
-	je      loc_094
-	mov     rdi, rbx
+	je      loc_087
+	mov     rdi, rbp
 	call    valid_target_arch
 	test    eax, eax
-	jne     loc_081
-	mov     rdx, rbx
+	jne     loc_076
+	mov     rdi, qword [rel stderr]
+	mov     rdx, rbp
 	lea     rsi, [rel str_LC106]
-	jmp     loc_051
+	call    fprintf
+	jmp     loc_010
 
-loc_099:  call    cmd_devel_v2
-	jmp     loc_075
-
-loc_100:  mov     edx, 6
+loc_094:  mov     edx, 6
 	lea     rsi, [rel str_LC107]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strncmp
 	test    eax, eax
-	jne     loc_103
-	cmp     byte [rbx+0x6], 0
-	jz      loc_102
-	add     rbx, 6
-	mov     rdi, rbx
+	jne     loc_113
+	cmp     byte [r14+0x6], 0
+	lea     rbp, [r14+0x6]
+	je      loc_112
+	mov     rdi, rbp
 	call    valid_target_arch
 	test    eax, eax
-	jne     loc_081
-	mov     rdx, rbx
+	jne     loc_076
+	mov     rdi, qword [rel stderr]
+	mov     rdx, rbp
 	lea     rsi, [rel str_LC109]
-	jmp     loc_051
+	call    fprintf
+	jmp     loc_010
 
-loc_101:  mov     rcx, qword [rel stderr]
+loc_095:  mov     rdi, qword [rsp+0x28]
+	call    cmd_dependency_plan_v2
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_096:  mov     rdi, qword [rel stderr]
+	mov     rdx, r14
+	lea     rsi, [rel str_LC98]
+	xor     eax, eax
+	call    fprintf
+	jmp     loc_010
+
+loc_097:  mov     rdi, qword [rsp+0x28]
+	call    cmd_provider_v2
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_098:  mov     rcx, qword [rel stderr]
+	mov     edx, 40
+	mov     esi, 1
+	lea     rdi, [rel str_LC103]
+	call    fwrite
+	jmp     loc_010
+
+loc_099:  mov     rcx, qword [rel stderr]
 	mov     edx, 39
 	mov     esi, 1
 	lea     rdi, [rel str_LC105]
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
 	jmp     loc_010
 
-loc_102:  mov     rcx, qword [rel stderr]
+loc_100:  mov     dword [rsp], r8d
+	call    get_gentoo_chroot
+	mov     r8d, dword [rsp]
+	test    eax, eax
+	mov     ebp, eax
+	jz      loc_104
+	xor     ebp, ebp
+	mov     r12d, 1
+	lea     rbx, [rsp+0x20]
+	mov     r13d, r8d
+loc_101:  mov     rdi, qword [rbx+r12*8]
+	call    cmd_gentoo_imitation_build
+	cmp     eax, 1
+	adc     ebp, 0
+	add     r12, 1
+	cmp     r13d, r12d
+	jg      loc_101
+	jmp     loc_091
+
+loc_102:  lea     rsi, [rel str_LC172]
+	mov     rdi, r13
+	mov     dword [rsp], r8d
+	call    strcmp
+	mov     r8d, dword [rsp]
+	test    eax, eax
+	mov     ebp, eax
+	jnz     loc_106
+	cmp     r8d, 1
+	je      loc_010
+	mov     r12d, 1
+	lea     rbx, [rsp+0x20]
+	mov     r13d, r8d
+loc_103:  mov     rdi, qword [rbx+r12*8]
+	call    cmd_get_pkgbuild_v2
+	cmp     eax, 1
+	adc     ebp, 0
+	add     r12, 1
+	cmp     r13d, r12d
+	jg      loc_103
+	jmp     loc_091
+
+loc_104:  mov     r12d, 1
+	lea     rbx, [rsp+0x20]
+	mov     r13d, r8d
+loc_105:  mov     rdi, qword [rbx+r12*8]
+	call    cmd_build
+	cmp     eax, 1
+	adc     ebp, 0
+	add     r12, 1
+	cmp     r13d, r12d
+	jg      loc_105
+	jmp     loc_091
+
+loc_106:  lea     rsi, [rel str_LC173]
+	mov     rdi, r13
+	mov     dword [rsp], r8d
+	call    strcmp
+	mov     r8d, dword [rsp]
+	test    eax, eax
+	je      loc_120
+	lea     rsi, [rel str_LC174]
+	mov     rdi, r13
+	mov     dword [rsp], r8d
+	call    strcmp
+	mov     r8d, dword [rsp]
+	test    eax, eax
+	je      loc_119
+	lea     rsi, [rel str_LC175]
+	mov     rdi, r13
+	mov     dword [rsp], r8d
+	call    strcmp
+	test    eax, eax
+	je      loc_117
+	lea     rsi, [rel str_LC176]
+	mov     rdi, r13
+	call    strcmp
+	mov     r8d, dword [rsp]
+	test    eax, eax
+	je      loc_117
+	lea     rsi, [rel str_LC177]
+	mov     rdi, r13
+	mov     dword [rsp], r8d
+	call    strcmp
+	mov     r8d, dword [rsp]
+	test    eax, eax
+	je      loc_114
+	lea     rsi, [rel str_LC178]
+	mov     rdi, r13
+	call    strcmp
+	mov     r8d, dword [rsp]
+	test    eax, eax
+	je      loc_114
+	lea     rsi, [rel str_LC180]
+	mov     rdi, r13
+	mov     dword [rsp], r8d
+	call    strcmp
+	mov     r8d, dword [rsp]
+	test    eax, eax
+	je      loc_128
+	lea     rsi, [rel str_LC181]
+	mov     rdi, r13
+	call    strcmp
+	mov     r8d, dword [rsp]
+	test    eax, eax
+	je      loc_128
+	xor     ebp, ebp
+	cmp     byte [r13], 45
+	lea     rbx, [rsp+0x20]
+	mov     r14d, r8d
+	je      loc_127
+loc_107:  mov     r12, qword [rbx+rbp*8]
+	mov     rdi, r12
+	call    valid_pkgname
+	test    eax, eax
+	je      loc_130
+	add     rbp, 1
+	cmp     r14d, ebp
+	jg      loc_107
+	mov     dword [rsp], r14d
+	call    init_system
+	test    eax, eax
+	je      loc_010
+	call    get_use_binary
+	mov     r8d, dword [rsp]
+	test    eax, eax
+	mov     r12d, eax
+	je      loc_122
+	xor     ebp, ebp
+	xor     r12d, r12d
+	lea     r14, [rel str_LC185]
+	mov     r15d, r8d
+	jmp     loc_110
+
+loc_108:  mov     rdi, r14
+	xor     eax, eax
+	lea     esi, [rbp+0x1]
+	mov     rcx, r13
+	mov     edx, r15d
+	call    printf
+	mov     rdi, r13
+	call    cmd_build
+	test    eax, eax
+	jz      loc_111
+loc_109:  add     rbp, 1
+	cmp     r15d, ebp
+	jle     loc_121
+loc_110:  mov     r13, qword [rbx+rbp*8]
+	cmp     r15d, 1
+	jnz     loc_108
+	mov     rdi, r13
+	call    cmd_build
+	test    eax, eax
+	jne     loc_121
+loc_111:  add     r12d, 1
+	jmp     loc_109
+
+loc_112:  mov     rcx, qword [rel stderr]
 	mov     edx, 37
 	mov     esi, 1
 	lea     rdi, [rel str_LC108]
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
 	jmp     loc_010
 
-loc_103:  lea     rsi, [rel str_LC110]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_124
-	lea     rsi, [rel str_LC111]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_124
-	lea     rsi, [rel str_LC112]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_124
-	lea     rsi, [rel str_LC113]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_124
-	mov     edx, 12
-	lea     rsi, [rel str_LC116]
-	mov     rdi, rbx
-	call    strncmp
-	test    eax, eax
-	jne     loc_119
-	cmp     byte [rbx+0x0C], 0
-	je      loc_118
-	add     rbx, 12
-	lea     rsi, [rel str_LC99]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_117
-	lea     rsi, [rel str_LC100]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_117
-	mov     rdi, rbx
-	call    valid_opt_level
-	test    eax, eax
-	jne     loc_108
-	mov     rdx, rbx
-	lea     rsi, [rel str_LC118]
-	jmp     loc_051
-
-loc_104:  call    get_use_binary
-	test    eax, eax
-	je      loc_115
-	mov     ebp, 1
-	lea     r13, [rsp+0x20]
-loc_105:  mov     rdi, qword [r13+rbp*8]
-	call    cmd_build
-	cmp     eax, 1
-	adc     ebx, 0
-	add     rbp, 1
-	cmp     r12d, ebp
-	jg      loc_105
-	test    ebx, ebx
-	jmp     loc_069
-
-loc_106:  lea     rsi, [rel str_LC172]
-	mov     rdi, rbp
-	call    strcmp
-	mov     ebx, eax
-	test    eax, eax
-	jnz     loc_109
-	cmp     r12d, 1
-	je      loc_091
-	mov     ebp, 1
-	lea     r13, [rsp+0x20]
-loc_107:  mov     rdi, qword [r13+rbp*8]
-	call    cmd_get_pkgbuild_v2
-	cmp     eax, 1
-	adc     ebx, 0
-	add     rbp, 1
-	cmp     r12d, ebp
-	jg      loc_107
-	test    ebx, ebx
-	jmp     loc_069
-
-loc_108:  mov     rdi, rbx
-	call    set_opt_level
-	jmp     loc_019
-
-loc_109:  lea     rsi, [rel str_LC173]
-	mov     rdi, rbp
+loc_113:  lea     rsi, [rel str_LC110]
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
 	je      loc_145
-	lea     rsi, [rel str_LC174]
-	mov     rdi, rbp
-	call    strcmp
-	test    eax, eax
-	je      loc_144
-	lea     rsi, [rel str_LC175]
-	mov     rdi, rbp
-	call    strcmp
-	test    eax, eax
-	je      loc_142
-	lea     rsi, [rel str_LC176]
-	mov     rdi, rbp
-	call    strcmp
-	test    eax, eax
-	je      loc_142
-	lea     rsi, [rel str_LC177]
-	mov     rdi, rbp
-	call    strcmp
-	test    eax, eax
-	je      loc_140
-	lea     rsi, [rel str_LC178]
-	mov     rdi, rbp
-	call    strcmp
-	test    eax, eax
-	je      loc_140
-	lea     rsi, [rel str_LC180]
-	mov     rdi, rbp
-	call    strcmp
-	test    eax, eax
-	je      loc_147
-	lea     rsi, [rel str_LC181]
-	mov     rdi, rbp
-	call    strcmp
-	test    eax, eax
-	je      loc_147
-	xor     ebx, ebx
-	lea     r13, [rsp+0x20]
-	cmp     byte [rbp], 45
-	je      loc_146
-loc_110:  mov     r14, qword [r13+rbx*8]
+	lea     rsi, [rel str_LC111]
 	mov     rdi, r14
-	call    valid_pkgname
+	call    strcmp
 	test    eax, eax
-	je      loc_149
-	add     rbx, 1
-	cmp     r12d, ebx
-	jg      loc_110
+	je      loc_145
+	lea     rsi, [rel str_LC112]
+	mov     rdi, r14
+	call    strcmp
+	test    eax, eax
+	je      loc_145
+	lea     rsi, [rel str_LC113]
+	mov     rdi, r14
+	call    strcmp
+	test    eax, eax
+	je      loc_145
+	mov     edx, 12
+	lea     rsi, [rel str_LC116]
+	mov     rdi, r14
+	call    strncmp
+	test    eax, eax
+	jne     loc_135
+	cmp     byte [r14+0x0C], 0
+	lea     rbp, [r14+0x0C]
+	je      loc_134
+	lea     rsi, [rel str_LC99]
+	mov     rdi, rbp
+	call    strcmp
+	test    eax, eax
+	je      loc_133
+	lea     rsi, [rel str_LC100]
+	mov     rdi, rbp
+	call    strcmp
+	test    eax, eax
+	je      loc_133
+	mov     rdi, rbp
+	call    valid_opt_level
+	test    eax, eax
+	jne     loc_131
+	mov     rdi, qword [rel stderr]
+	mov     rdx, rbp
+	lea     rsi, [rel str_LC118]
+	call    fprintf
+	jmp     loc_010
+
+loc_114:  cmp     r8d, 1
+	jz      loc_118
+	mov     dword [rsp], r8d
 	call    init_system
 	test    eax, eax
-	je      loc_097
-	call    get_use_binary
-	mov     r14d, eax
-	test    eax, eax
-	je      loc_159
-	xor     ebp, ebp
-	xor     ebx, ebx
-	jmp     loc_113
-
-loc_111:  lea     rdi, [rel str_LC185]
-	xor     eax, eax
-	lea     esi, [rbp+0x1]
-	mov     rcx, r14
-	mov     edx, r12d
-	call    printf
-	mov     rdi, r14
-	call    cmd_build
-	test    eax, eax
-	jz      loc_114
-loc_112:  add     rbp, 1
-	cmp     r12d, ebp
-	jle     loc_157
-loc_113:  mov     r14, qword [r13+rbp*8]
-	cmp     r12d, 1
-	jnz     loc_111
-	mov     rdi, r14
-	call    cmd_build
-	test    eax, eax
-	jne     loc_157
-loc_114:  add     ebx, 1
-	jmp     loc_112
-
-loc_115:  call    get_gentoo_chroot
-	mov     ebx, eax
-	test    eax, eax
-	je      loc_150
-	xor     ebx, ebx
+	je      loc_010
+	mov     r13d, dword [rsp]
 	mov     ebp, 1
-	lea     r13, [rsp+0x20]
-loc_116:  mov     rdi, qword [r13+rbp*8]
-	call    cmd_gentoo_imitation_build
+	xor     r12d, r12d
+	lea     rbx, [rsp+0x20]
+loc_115:  mov     rdi, qword [rbx+rbp*8]
+	call    cmd_deselect
 	cmp     eax, 1
-	adc     ebx, 0
+	adc     r12d, 0
 	add     rbp, 1
-	cmp     r12d, ebp
-	jg      loc_116
-	test    ebx, ebx
-	jmp     loc_069
+	cmp     r13d, ebp
+	jg      loc_115
+loc_116:  xor     eax, eax
+	test    r12d, r12d
+	setne   al
+	jmp     loc_004
 
-loc_117:  call    print_known_opt_levels
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_003
+loc_117:  call    init_system
+	test    eax, eax
+	je      loc_010
+	call    cmd_world_update
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
 
 loc_118:  mov     rcx, qword [rel stderr]
+	mov     edx, 53
+	mov     esi, 1
+	lea     rdi, [rel str_LC179]
+	call    fwrite
+	jmp     loc_010
+
+loc_119:  call    cmd_clean_v2
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_120:  cmp     r8d, 2
+	jne     loc_010
+	mov     rdi, qword [rsp+0x28]
+	call    cmd_local_build_v2
+	test    eax, eax
+	sete    al
+	movzx   eax, al
+	jmp     loc_004
+
+loc_121:  test    r12d, r12d
+	je      loc_003
+	mov     rdi, qword [rel stderr]
+	mov     edx, r12d
+	lea     rsi, [rel str_LC186]
+	xor     eax, eax
+	call    fprintf
+	jmp     loc_010
+
+loc_122:  mov     dword [rsp], r8d
+	call    get_gentoo_chroot
+	mov     r8d, dword [rsp]
+	test    eax, eax
+	mov     ebp, eax
+	je      loc_149
+	xor     ebp, ebp
+	lea     r14, [rel str_LC187]
+	mov     r15d, r8d
+	jmp     loc_125
+
+loc_123:  mov     rdi, r14
+	xor     eax, eax
+	lea     esi, [rbp+0x1]
+	mov     rcx, r13
+	mov     edx, r15d
+	call    printf
+	mov     rdi, r13
+	call    cmd_gentoo_imitation_build
+	test    eax, eax
+	jz      loc_126
+loc_124:  add     rbp, 1
+	cmp     r15d, ebp
+	jle     loc_148
+loc_125:  mov     r13, qword [rbx+rbp*8]
+	cmp     r15d, 1
+	jnz     loc_123
+	mov     rdi, r13
+	call    cmd_gentoo_imitation_build
+	test    eax, eax
+	jne     loc_148
+loc_126:  add     r12d, 1
+	jmp     loc_124
+
+loc_127:  mov     rdi, qword [rel stderr]
+	mov     rdx, r13
+	lea     rsi, [rel str_LC183]
+	xor     eax, eax
+	call    fprintf
+	call    print_usage
+	jmp     loc_010
+
+loc_128:  cmp     r8d, 1
+	jz      loc_132
+	mov     dword [rsp], r8d
+	call    init_system
+	test    eax, eax
+	je      loc_010
+	mov     r13d, dword [rsp]
+	mov     ebp, 1
+	xor     r12d, r12d
+	lea     rbx, [rsp+0x20]
+loc_129:  mov     rdi, qword [rbx+rbp*8]
+	call    cmd_unmerge
+	cmp     eax, 1
+	adc     r12d, 0
+	add     rbp, 1
+	cmp     r13d, ebp
+	jg      loc_129
+	jmp     loc_116
+
+loc_130:  mov     rdi, qword [rel stderr]
+	mov     rdx, r12
+	lea     rsi, [rel str_LC184]
+	call    fprintf
+	jmp     loc_010
+
+loc_131:  mov     rdi, rbp
+	call    set_opt_level
+	jmp     loc_019
+
+loc_132:  mov     rcx, qword [rel stderr]
+	mov     edx, 57
+	mov     esi, 1
+	lea     rdi, [rel str_LC182]
+	call    fwrite
+	jmp     loc_010
+
+loc_133:  call    print_known_opt_levels
+	jmp     loc_003
+
+loc_134:  mov     rcx, qword [rel stderr]
 	mov     edx, 43
 	mov     esi, 1
 	lea     rdi, [rel str_LC117]
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
 	jmp     loc_010
 
-loc_119:  mov     edx, 6
+loc_135:  mov     edx, 6
 	lea     rsi, [rel str_LC119]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strncmp
 	test    eax, eax
-	je      loc_123
+	je      loc_154
 	mov     edx, 15
 	lea     rsi, [rel str_LC121]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strncmp
 	test    eax, eax
-	je      loc_125
+	je      loc_144
 	lea     rsi, [rel str_LC123]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_108
+	je      loc_139
 	lea     rsi, [rel str_LC124]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_108
+	je      loc_139
 	lea     rsi, [rel str_LC125]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_108
+	je      loc_139
 	lea     rsi, [rel str_LC126]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_108
+	je      loc_139
 	lea     rsi, [rel str_LC127]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_108
+	je      loc_139
 	lea     rsi, [rel str_LC128]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_108
+	je      loc_139
 	lea     rsi, [rel str_LC129]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_108
+	je      loc_139
 	lea     rsi, [rel str_LC130]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_122
+	je      loc_138
 	mov     edx, 2
 	lea     rsi, [rel str_LC113]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strncmp
 	test    eax, eax
-	jnz     loc_120
-	mov     rdi, rbx
+	jnz     loc_137
+	mov     rdi, r14
 	call    strlen
 	cmp     rax, 7
-	ja      loc_120
-	cmp     byte [rbx+0x2], 61
-	lea     rdx, [rbx+0x2]
-	lea     rax, [rbx+0x3]
-	cmove   rdx, rax
-	mov     rdi, rdx
-	mov     rbx, rdx
+	ja      loc_137
+	cmp     byte [r14+0x2], 61
+	je      loc_146
+	add     r14, 2
+loc_136:  mov     rdi, r14
 	call    valid_opt_level
 	test    eax, eax
-	jne     loc_108
-	mov     rbx, qword [r15]
-loc_120:  lea     rsi, [rel str_LC132]
-	mov     rdi, rbx
+	jnz     loc_139
+	mov     r14, qword [r13]
+loc_137:  lea     rsi, [rel str_LC132]
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	jne     loc_127
-	add     ebp, 1
-	cmp     ebp, r14d
-	jge     loc_126
-	mov     rax, qword [rsp]
-	mov     rbx, qword [r13+rax+0x8]
-	mov     rdi, rbx
+	jne     loc_142
+	add     r15d, 1
+	cmp     r15d, r12d
+	jge     loc_141
+	mov     rbp, qword [rbx+rbp+0x8]
+	mov     rdi, rbp
 	call    valid_raw_flags
 	test    eax, eax
-	je      loc_130
-loc_121:  mov     rdi, rbx
+	jz      loc_140
+	mov     rdi, rbp
 	call    set_raw_flags
 	jmp     loc_019
 
-loc_122:  lea     rdi, [rel str_LC131]
+loc_138:  lea     rdi, [rel str_LC131]
 	call    set_opt_level
 	jmp     loc_019
 
-loc_123:  add     rbx, 6
-	mov     rdi, rbx
-	call    valid_opt_level
-	test    eax, eax
-	jne     loc_108
-	mov     rdx, rbx
-	lea     rsi, [rel str_LC120]
-	jmp     loc_051
+loc_139:  mov     rdi, r14
+	call    set_opt_level
+	jmp     loc_019
 
-loc_124:  add     ebp, 1
-	cmp     ebp, r14d
-	jge     loc_131
-	mov     rax, qword [rsp]
-	lea     rsi, [rel str_LC99]
-	mov     rbx, qword [r13+rax+0x8]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_117
-	lea     rsi, [rel str_LC100]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_117
-	mov     rdi, rbx
-	call    valid_opt_level
-	test    eax, eax
-	jne     loc_108
-	mov     rdx, rbx
-	lea     rsi, [rel str_LC115]
-	jmp     loc_051
-
-loc_125:  add     rbx, 15
-	mov     rdi, rbx
-	call    valid_opt_level
-	test    eax, eax
-	jne     loc_108
-	mov     rdx, rbx
-	lea     rsi, [rel str_LC122]
-	jmp     loc_051
-
-loc_126:  mov     rcx, qword [rel stderr]
-	mov     edx, 43
-	mov     esi, 1
-	lea     rdi, [rel str_LC133]
-	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_010
-
-loc_127:  mov     edx, 6
-	lea     rsi, [rel str_LC135]
-	mov     rdi, rbx
-	call    strncmp
-	test    eax, eax
-	je      loc_129
-	lea     rsi, [rel str_LC136]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_137
-	lea     rsi, [rel str_LC137]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_137
-	lea     rsi, [rel str_LC138]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_137
-	lea     rsi, [rel str_LC139]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_137
-	lea     rsi, [rel str_LC140]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_136
-	lea     rsi, [rel str_LC141]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	je      loc_136
-	mov     edx, 14
-	lea     rsi, [rel str_LC142]
-	mov     rdi, rbx
-	call    strncmp
-	test    eax, eax
-	je      loc_132
-	lea     rsi, [rel str_LC144]
-	mov     rdi, rbx
-	call    strcmp
-	test    eax, eax
-	jne     loc_135
-	add     ebp, 1
-	cmp     r14d, ebp
-	jle     loc_134
-	mov     rax, qword [rsp]
-	mov     rbx, qword [r13+rax+0x8]
-	mov     rdi, rbx
-	call    valid_gentoo_chroot_path
-	test    eax, eax
-	jnz     loc_133
-loc_128:  mov     rdx, rbx
-	lea     rsi, [rel str_LC143]
-	jmp     loc_051
-
-loc_129:  add     rbx, 6
-	mov     rdi, rbx
-	call    valid_raw_flags
-	test    eax, eax
-	jne     loc_121
-loc_130:  mov     rcx, qword [rel stderr]
+loc_140:  mov     rcx, qword [rel stderr]
 	mov     edx, 112
 	mov     esi, 1
 	lea     rdi, [rel str_LC134]
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
 	jmp     loc_010
 
-loc_131:  mov     rdx, rbx
-	lea     rsi, [rel str_LC114]
-	jmp     loc_028
+loc_141:  mov     rcx, qword [rel stderr]
+	mov     edx, 43
+	mov     esi, 1
+	lea     rdi, [rel str_LC133]
+	call    fwrite
+	jmp     loc_010
 
-loc_132:  add     rbx, 14
-	mov     rdi, rbx
+loc_142:  mov     edx, 6
+	lea     rsi, [rel str_LC135]
+	mov     rdi, r14
+	call    strncmp
+	test    eax, eax
+	je      loc_162
+	lea     rsi, [rel str_LC136]
+	mov     rdi, r14
+	call    strcmp
+	test    eax, eax
+	je      loc_161
+	lea     rsi, [rel str_LC137]
+	mov     rdi, r14
+	call    strcmp
+	test    eax, eax
+	je      loc_161
+	lea     rsi, [rel str_LC138]
+	mov     rdi, r14
+	call    strcmp
+	test    eax, eax
+	je      loc_161
+	lea     rsi, [rel str_LC139]
+	mov     rdi, r14
+	call    strcmp
+	test    eax, eax
+	je      loc_161
+	lea     rsi, [rel str_LC140]
+	mov     rdi, r14
+	call    strcmp
+	test    eax, eax
+	je      loc_159
+	lea     rsi, [rel str_LC141]
+	mov     rdi, r14
+	call    strcmp
+	test    eax, eax
+	je      loc_159
+	mov     edx, 14
+	lea     rsi, [rel str_LC142]
+	mov     rdi, r14
+	call    strncmp
+	test    eax, eax
+	je      loc_157
+	lea     rsi, [rel str_LC144]
+	mov     rdi, r14
+	call    strcmp
+	test    eax, eax
+	jne     loc_156
+	add     r15d, 1
+	cmp     r12d, r15d
+	jle     loc_155
+	mov     rbp, qword [rbx+rbp+0x8]
+	mov     rdi, rbp
 	call    valid_gentoo_chroot_path
 	test    eax, eax
-	jz      loc_128
-loc_133:  mov     rdi, rbx
-	call    set_gentoo_chroot_path
-	jmp     loc_019
+	jne     loc_158
+loc_143:  mov     rdi, qword [rel stderr]
+	mov     rdx, rbp
+	lea     rsi, [rel str_LC143]
+	call    fprintf
+	jmp     loc_010
 
-loc_134:  mov     rcx, qword [rel stderr]
+loc_144:  lea     rbp, [r14+0x0F]
+	mov     rdi, rbp
+	call    valid_opt_level
+	test    eax, eax
+	jne     loc_131
+	mov     rdi, qword [rel stderr]
+	mov     rdx, rbp
+	lea     rsi, [rel str_LC122]
+	call    fprintf
+	jmp     loc_010
+
+loc_145:  add     r15d, 1
+	cmp     r15d, r12d
+	jge     loc_147
+	mov     rbp, qword [rbx+rbp+0x8]
+	lea     rsi, [rel str_LC99]
+	mov     rdi, rbp
+	call    strcmp
+	test    eax, eax
+	je      loc_133
+	lea     rsi, [rel str_LC100]
+	mov     rdi, rbp
+	call    strcmp
+	test    eax, eax
+	je      loc_133
+	mov     rdi, rbp
+	call    valid_opt_level
+	test    eax, eax
+	jne     loc_131
+	mov     rdi, qword [rel stderr]
+	mov     rdx, rbp
+	lea     rsi, [rel str_LC115]
+	call    fprintf
+	jmp     loc_010
+
+loc_146:  add     r14, 3
+	jmp     loc_136
+
+loc_147:  mov     rdi, qword [rel stderr]
+	mov     rdx, r14
+	lea     rsi, [rel str_LC114]
+	xor     eax, eax
+	call    fprintf
+	jmp     loc_010
+
+loc_148:  test    r12d, r12d
+	je      loc_003
+	mov     rdi, qword [rel stderr]
+	mov     edx, r12d
+	lea     rsi, [rel str_LC188]
+	xor     eax, eax
+	call    fprintf
+	jmp     loc_010
+
+loc_149:  mov     qword [rsp], r13
+	xor     r12d, r12d
+	lea     r14, [rel str_LC189]
+	mov     r13d, r8d
+	jmp     loc_152
+
+loc_150:  mov     rdi, r14
+	xor     eax, eax
+	lea     esi, [r12+0x1]
+	mov     rcx, r15
+	mov     edx, r13d
+	call    printf
+	mov     rdi, r15
+	call    cmd_build
+	test    eax, eax
+	jz      loc_153
+loc_151:  add     r12, 1
+	cmp     r13d, r12d
+	jle     loc_160
+loc_152:  mov     r15, qword [rbx+r12*8]
+	cmp     r13d, 1
+	jnz     loc_150
+	mov     rdi, r15
+	call    cmd_build
+	test    eax, eax
+	jne     loc_160
+loc_153:  add     ebp, 1
+	jmp     loc_151
+
+loc_154:  lea     rbp, [r14+0x6]
+	mov     rdi, rbp
+	call    valid_opt_level
+	test    eax, eax
+	jne     loc_131
+	mov     rdi, qword [rel stderr]
+	mov     rdx, rbp
+	lea     rsi, [rel str_LC120]
+	call    fprintf
+	jmp     loc_010
+
+loc_155:  mov     rcx, qword [rel stderr]
 	mov     edx, 42
 	mov     esi, 1
 	lea     rdi, [rel str_LC145]
 	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
 	jmp     loc_010
 
-loc_135:  lea     rsi, [rel str_LC146]
-	mov     rdi, rbx
+loc_156:  lea     rsi, [rel str_LC146]
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_139
+	je      loc_164
 	lea     rsi, [rel str_LC147]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_139
+	je      loc_164
 	lea     rsi, [rel str_LC148]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_139
+	je      loc_164
 	lea     rsi, [rel str_LC149]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_139
+	je      loc_164
 	lea     rsi, [rel str_LC150]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_139
+	je      loc_164
 	lea     rsi, [rel str_LC151]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_139
+	je      loc_164
 	lea     rsi, [rel str_LC152]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_139
+	je      loc_164
 	lea     rsi, [rel str_LC153]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	je      loc_139
+	je      loc_164
 	lea     rsi, [rel str_LC154]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	jz      loc_138
+	je      loc_163
 	lea     rsi, [rel str_LC155]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	jz      loc_138
+	je      loc_163
 	lea     rsi, [rel str_LC156]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	jz      loc_138
+	je      loc_163
 	lea     rsi, [rel str_LC157]
-	mov     rdi, rbx
+	mov     rdi, r14
 	call    strcmp
 	test    eax, eax
-	jz      loc_138
-	mov     eax, r12d
-	add     r12d, 1
-	mov     qword [rsp+rax*8+0x20], rbx
+	je      loc_163
+	movsxd  rax, dword [rsp]
+	mov     qword [rsp+rax*8+0x20], r14
+	lea     eax, [rax+0x1]
+	mov     dword [rsp], eax
 	jmp     loc_019
 
-loc_136:  xor     edi, edi
+loc_157:  lea     rbp, [r14+0x0E]
+	mov     rdi, rbp
+	call    valid_gentoo_chroot_path
+	test    eax, eax
+	je      loc_143
+loc_158:  mov     rdi, rbp
+	call    set_gentoo_chroot_path
+	jmp     loc_019
+
+loc_159:  xor     edi, edi
 	call    set_gentoo_chroot
 	xor     edi, edi
 	call    set_portage_imitation
 	jmp     loc_019
 
-loc_137:  mov     edi, 1
-	call    set_gentoo_chroot
-	mov     edi, 1
-	call    set_portage_imitation
-	jmp     loc_019
-
-loc_138:  xor     edi, edi
-	call    set_use_binary
-	jmp     loc_019
-
-loc_139:  mov     edi, 1
-	call    set_use_binary
-	jmp     loc_019
-
-loc_140:  cmp     r12d, 1
-	jz      loc_143
-	call    init_system
-	test    eax, eax
-	je      loc_097
-	mov     ebx, 1
-	xor     ebp, ebp
-	lea     r13, [rsp+0x20]
-loc_141:  mov     rdi, qword [r13+rbx*8]
-	call    cmd_deselect
-	cmp     eax, 1
-	adc     ebp, 0
-	add     rbx, 1
-	cmp     r12d, ebx
-	jg      loc_141
+loc_160:  mov     r13, qword [rsp]
 	test    ebp, ebp
-	jmp     loc_069
-
-loc_142:  call    init_system
-	test    eax, eax
-	je      loc_097
-	call    cmd_world_update
-	jmp     loc_075
-
-loc_143:  mov     rcx, qword [rel stderr]
-	mov     edx, 53
-	mov     esi, 1
-	lea     rdi, [rel str_LC179]
-	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_004
-
-loc_144:  call    cmd_clean_v2
-	jmp     loc_075
-
-loc_145:  cmp     r12d, 2
-	jne     loc_097
-	mov     rdi, qword [rsp+0x28]
-	call    cmd_local_build_v2
-	jmp     loc_075
-
-loc_146:  mov     rdi, qword [rel stderr]
-	mov     rdx, rbp
-	lea     rsi, [rel str_LC183]
-	xor     eax, eax
-	call    fprintf
-	call    print_usage
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_010
-
-loc_147:  cmp     r12d, 1
-	jz      loc_152
-	call    init_system
-	test    eax, eax
-	je      loc_097
-	mov     ebx, 1
-	xor     ebp, ebp
-	lea     r13, [rsp+0x20]
-loc_148:  mov     rdi, qword [r13+rbx*8]
-	call    cmd_unmerge
-	cmp     eax, 1
-	adc     ebp, 0
-	add     rbx, 1
-	cmp     r12d, ebx
-	jg      loc_148
-	test    ebp, ebp
-	jmp     loc_069
-
-loc_149:  mov     rdx, r14
-	lea     rsi, [rel str_LC184]
-	jmp     loc_051
-
-loc_150:  mov     ebp, 1
-	lea     r13, [rsp+0x20]
-loc_151:  mov     rdi, qword [r13+rbp*8]
-	call    cmd_build
-	cmp     eax, 1
-	adc     ebx, 0
-	add     rbp, 1
-	cmp     r12d, ebp
-	jg      loc_151
-	test    ebx, ebx
-	jmp     loc_069
-
-loc_152:  mov     rcx, qword [rel stderr]
-	mov     edx, 57
-	mov     esi, 1
-	lea     rdi, [rel str_LC182]
-	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_004
-
-loc_153:  mov     rdi, qword [rsp+0x28]
-	call    cmd_provider_v2
-	jmp     loc_075
-
-loc_154:  mov     rdx, rbx
-	lea     rsi, [rel str_LC98]
-	jmp     loc_028
-
-loc_155:  mov     rcx, qword [rel stderr]
-	mov     edx, 40
-	mov     esi, 1
-	lea     rdi, [rel str_LC103]
-	call    fwrite
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_010
-
-loc_156:  mov     rdi, qword [rsp+0x28]
-	call    cmd_dependency_plan_v2
-	jmp     loc_075
-
-loc_157:  mov     r12d, ebx
-	test    ebx, ebx
-	je      loc_091
-	mov     edx, ebx
-	lea     rsi, [rel str_LC186]
-loc_158:  mov     rdi, qword [rel stderr]
-	xor     eax, eax
-	call    fprintf
-	mov     rbx, qword [rsp+0x838]
-	mov     rbp, qword [rsp+0x840]
-	mov     r15, qword [rsp+0x860]
-	jmp     loc_010
-
-loc_159:
-	call    get_gentoo_chroot
-	mov     ebx, eax
-	test    eax, eax
-	jz      loc_164
-	xor     ebx, ebx
-	jmp     loc_162
-
-loc_160:  lea     rdi, [rel str_LC187]
-	xor     eax, eax
-	lea     esi, [rbx+0x1]
-	mov     rcx, rbp
-	mov     edx, r12d
-	call    printf
-	mov     rdi, rbp
-	call    cmd_gentoo_imitation_build
-	test    eax, eax
-	jz      loc_163
-loc_161:  add     rbx, 1
-	cmp     r12d, ebx
-	jle     loc_169
-loc_162:  mov     rbp, qword [r13+rbx*8]
-	cmp     r12d, 1
-	jnz     loc_160
-	mov     rdi, rbp
-	call    cmd_gentoo_imitation_build
-	test    eax, eax
-	jnz     loc_169
-loc_163:  add     r14d, 1
-	jmp     loc_161
-
-loc_164:  xor     r14d, r14d
-	jmp     loc_167
-
-loc_165:  lea     rdi, [rel str_LC189]
-	xor     eax, eax
-	lea     esi, [r14+0x1]
-	mov     rcx, r15
-	mov     edx, r12d
-	call    printf
-	mov     rdi, r15
-	call    cmd_build
-	test    eax, eax
-	jz      loc_168
-loc_166:  add     r14, 1
-	cmp     r12d, r14d
-	jle     loc_170
-loc_167:  mov     r15, qword [r13+r14*8]
-	cmp     r12d, 1
-	jnz     loc_165
-	mov     rdi, r15
-	call    cmd_build
-	test    eax, eax
-	jnz     loc_170
-loc_168:  add     ebx, 1
-	jmp     loc_166
-
-loc_169:  mov     r12d, r14d
-	test    r14d, r14d
-	je      loc_091
-	mov     edx, r14d
-	lea     rsi, [rel str_LC188]
-	jmp     loc_158
-
-loc_170:
-	mov     r12d, ebx
-	test    ebx, ebx
-	je      loc_091
+	je      loc_003
 	mov     rdi, qword [rel stderr]
-	mov     edx, ebx
+	mov     edx, ebp
 	lea     rsi, [rel str_LC190]
 	xor     eax, eax
 	call    fprintf
 	call    get_resume
 	test    eax, eax
-	jne     loc_097
-	mov     rdx, rbp
+	jne     loc_010
+	mov     rdi, qword [rel stderr]
+	mov     rdx, r13
 	lea     rsi, [rel str_LC191]
-	jmp     loc_051
+	call    fprintf
+	jmp     loc_010
+
+loc_161:  mov     edi, 1
+	call    set_gentoo_chroot
+	mov     edi, 1
+	call    set_portage_imitation
+	jmp     loc_019
+
+loc_162:  add     r14, 6
+	mov     rdi, r14
+	call    valid_raw_flags
+	test    eax, eax
+	je      loc_140
+	mov     rdi, r14
+	call    set_raw_flags
+	jmp     loc_019
+
+loc_163:  xor     edi, edi
+	call    set_use_binary
+	jmp     loc_019
+
+loc_164:
+	mov     edi, 1
+	call    set_use_binary
+	jmp     loc_019
 
 SECTION .rodata.str1.1 align=1 noexec
 
 str_LC0:
-	db 0x33, 0x2E, 0x32, 0x2E, 0x30, 0x00
+	db 0x33, 0x2E, 0x32, 0x2E, 0x31, 0x00
 
 str_LC1:
 	db 0x41, 0x72, 0x63, 0x68, 0x74, 0x6F, 0x6F, 0x20

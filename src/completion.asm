@@ -8,7 +8,6 @@ default rel
 
 global cmd_completion_v2: function
 
-extern __stack_chk_fail
 extern fputs
 extern stdout
 extern free
@@ -20,28 +19,23 @@ SECTION .text   align=16 exec
 cmd_completion_v2:; Function begin
 	push    rbx
 	lea     rdi, [rel str_LC0]
-	lea     rbx, [rel flags.0]
+	lea     rbx, [rel loc_004]
 	sub     rsp, 16
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	mov     rax, qword [fs:abs 0x28]
-	mov     qword [rsp+0x8], rax
-	xor     eax, eax
-	mov     qword [rsp], 0
-; Filling space: 0x5
+	mov     qword [rsp+0x8], 0
+; Filling space: 0x4
 ; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
+;       db 0x0F, 0x1F, 0x40, 0x00
 
 ALIGN   8
 loc_001:  call    puts
-	mov     rdi, qword [rbx+0x8]
+	mov     rdi, qword [rbx]
 	add     rbx, 8
 	test    rdi, rdi
 	jnz     loc_001
 	lea     rdi, [rel str_LC1]
-	mov     rsi, rsp
+	lea     rsi, [rsp+0x8]
 	call    run_cmd_capture
-	mov     rdi, qword [rsp]
+	mov     rdi, qword [rsp+0x8]
 	test    eax, eax
 	jnz     loc_002
 	test    rdi, rdi
@@ -49,29 +43,24 @@ loc_001:  call    puts
 	cmp     byte [rdi], 0
 	jnz     loc_003
 loc_002:  call    free
-	mov     rax, qword [rsp+0x8]
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	sub     rax, qword [fs:abs 0x28]
-	jnz     loc_004
 	add     rsp, 16
 	mov     eax, 1
 	pop     rbx
 	ret
 
-; Filling space: 0x5
+; Filling space: 0x3
 ; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
+;       db 0x0F, 0x1F, 0x00
 
 ALIGN   8
 loc_003:  mov     rsi, qword [rel stdout]
 	call    fputs
-	mov     rdi, qword [rsp]
-	jmp     loc_002
-
-loc_004:
-; Note: Function does not end with ret or jmp
-	call    __stack_chk_fail
+	mov     rdi, qword [rsp+0x8]
+	call    free
+	add     rsp, 16
+	mov     eax, 1
+	pop     rbx
+	ret
 
 SECTION .rodata.str1.1 align=1 noexec
 
@@ -171,6 +160,8 @@ SECTION .data.rel.ro.local align=32 noexec
 
 flags.0:
 	dq str_LC0
+
+loc_004:
 	dq str_LC0+0x3
 	dq str_LC0+0x6
 	dq str_LC0+0x9

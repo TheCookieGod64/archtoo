@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
 #include <sys/stat.h>
 
@@ -45,7 +46,26 @@ static int aur_has_exact(const char *name) {
     return found;
 }
 
-int cmd_binary_install(const char *pkg) {
+/* Is this name already one of the known prebuilt-binary spellings?
+   "shelly-bin" is itself the binary variant; searching for "shelly-bin-bin"
+   and then declaring "no -bin variant found" was the v3.2.0 faceplant. */
+static int looks_binary_variant(const char *name) {
+    static const char *sfx[] = { "-bin", "-binary", "-prebuilt", "-release" };
+    size_t n = strlen(name);
+    for (size_t i = 0; i < sizeof(sfx) / sizeof(sfx[0]); i++) {
+        size_t l = strlen(sfx[i]);
+        if (n > l && strcasecmp(name + n - l, sfx[i]) == 0)
+            return 1;
+    }
+    return 0;
+}
+
+static void note_chosen(char *chosen, size_t chosen_sz, const char *name) {
+    if (chosen && chosen_sz)
+        xsnprintf(chosen, chosen_sz, "%s", name);
+}
+
+int cmd_binary_install(const char *pkg, char *chosen, size_t chosen_sz) {
     if (!valid_pkgname(pkg)) {
         fprintf(stderr, COLOR_RED "[-] Invalid package name: '%s'\n" COLOR_RESET, pkg);
         return 0;
@@ -119,7 +139,7 @@ int cmd_binary_install(const char *pkg) {
             run_cmd_quiet(rm_cmd);
             if (ask_yes_no("SHA256 check failed, try again?", 0)) {
                 printf(COLOR_YELLOW "[!] Retrying download...\n" COLOR_RESET);
-                return cmd_binary_install(pkg);
+                return cmd_binary_install(pkg, chosen, chosen_sz);
             }
             return 0;
         }
@@ -132,7 +152,7 @@ int cmd_binary_install(const char *pkg) {
             xsnprintf(rm_cmd, sizeof(rm_cmd), "rm -f '%s'", tmpfile);
             run_cmd_quiet(rm_cmd);
             if (ask_yes_no("Delete and try again?", 0))
-                return cmd_binary_install(pkg);
+                return cmd_binary_install(pkg, chosen, chosen_sz);
             return 0;
         }
 
@@ -146,7 +166,7 @@ int cmd_binary_install(const char *pkg) {
         if (irc != 0) {
             fprintf(stderr, COLOR_RED "[-] Binary install failed for %s (exit %d)\n" COLOR_RESET, pkg, irc);
             if (ask_yes_no("Binary install failed, try again?", 0))
-                return cmd_binary_install(pkg);
+                return cmd_binary_install(pkg, chosen, chosen_sz);
             return 0;
         }
         printf(COLOR_GREEN "[+] Binary package %s installed successfully\n" COLOR_RESET, pkg);
@@ -155,18 +175,34 @@ int cmd_binary_install(const char *pkg) {
         return 1;
     }
 
-    /* Not in repos at all: search AUR for prebuilt-binary variants, like yay looks up -bin packages. */
+    /* Not in repos at all: hunt for the prebuilt AUR variant the way yay does
+       - and then actually use it. v3.2.0 shipped a version of this block that
+       found "foo-bin", printed a helpful *tip*, and built the source package
+       anyway. A tip is not a feature, it is a shrug. */
     printf(COLOR_YELLOW "[!] %s not in official repos → searching AUR for a prebuilt binary (like yay)...\n" COLOR_RESET, pkg);
-    static const char *sfx[] = { "-bin", "-binary", "-prebuilt", "-release" };
-    char variant[300];
-    for (size_t i = 0; i < sizeof(sfx)/sizeof(sfx[0]); i++) {
-        xsnprintf(variant, sizeof(variant), "%s%s", pkg, sfx[i]);
-        if (aur_has_exact(variant)) {
-            printf(COLOR_GREEN "[+] Prebuilt AUR variant found: %s (upstream binary, makepkg only repackages it - no compiling)\n" COLOR_RESET, variant);
-            printf(COLOR_BLUE ">>> Tip: 'emerge --binary %s' targets it directly; continuing with %s's source build as requested\n" COLOR_RESET, variant, pkg);
-            return 0; /* caller (cmd_build) falls back to fetching its PKGBUILD */
+
+    if (looks_binary_variant(pkg)) {
+        /* The request already names the binary spelling ("shelly-bin"): the
+           source build only repackages the upstream binary - no compiling. */
+        if (aur_has_exact(pkg)) {
+            printf(COLOR_GREEN "[+] %s is itself the prebuilt AUR variant (makepkg only repackages the upstream binary) - going straight there\n" COLOR_RESET, pkg);
+            note_chosen(chosen, chosen_sz, pkg);
+            return 2;
+        }
+    } else {
+        static const char *sfx[] = { "-bin", "-binary", "-prebuilt", "-release" };
+        char variant[300];
+        for (size_t i = 0; i < sizeof(sfx) / sizeof(sfx[0]); i++) {
+            xsnprintf(variant, sizeof(variant), "%s%s", pkg, sfx[i]);
+            if (aur_has_exact(variant)) {
+                printf(COLOR_GREEN "[+] Prebuilt AUR variant found: %s (upstream binary, makepkg only repackages it - no compiling)\n" COLOR_RESET, variant);
+                printf(COLOR_BLUE ">>> --binary: installing %s instead of %s (that is the whole point of --binary)\n" COLOR_RESET, variant, pkg);
+                note_chosen(chosen, chosen_sz, variant);
+                return 2;
+            }
         }
     }
+
     if (aur_has_exact(pkg)) {
         printf(COLOR_YELLOW "[!] %s exists in AUR but only as a source build; no -bin variant found (yay would compile it)\n" COLOR_RESET, pkg);
     } else {

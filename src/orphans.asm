@@ -8,12 +8,11 @@ default rel
 
 global cmd_orphans_v2: function
 
-extern __stack_chk_fail
+extern putc
 extern fwrite
 extern stderr
-extern free
 extern puts
-extern putc
+extern free
 extern strlen
 extern fputs
 extern stdout
@@ -23,69 +22,79 @@ extern run_cmd_capture
 SECTION .text   align=16 exec
 
 cmd_orphans_v2:; Function begin
-	sub     rsp, 40
+	push    rbx
 	lea     rdi, [rel str_LC0]
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	mov     rax, qword [fs:abs 0x28]
-	mov     qword [rsp+0x18], rax
-	xor     eax, eax
-	lea     rsi, [rsp+0x10]
-	mov     qword [rsp+0x10], 0
+	sub     rsp, 16
+	mov     qword [rsp+0x8], 0
+	lea     rsi, [rsp+0x8]
 	call    run_cmd_capture
 	cmp     eax, 1
-	ja      loc_004
-	mov     rdx, qword [rsp+0x10]
+	ja      loc_003
+	mov     rdx, qword [rsp+0x8]
 	test    rdx, rdx
 	jz      loc_001
 	cmp     byte [rdx], 0
 	jz      loc_001
 	test    eax, eax
-	jne     loc_004
+	jnz     loc_003
 	lea     rdi, [rel str_LC3]
 	xor     eax, eax
 	call    printf
 	mov     rsi, qword [rel stdout]
-	mov     rdi, qword [rsp+0x10]
-	call    fputs
-	mov     rdi, qword [rsp+0x10]
-	mov     qword [rsp+0x8], rdi
-	call    strlen
 	mov     rdi, qword [rsp+0x8]
-	cmp     byte [rdi+rax-0x1], 10
-	jz      loc_002
-	mov     rsi, qword [rel stdout]
-	mov     edi, 10
-	call    putc
-	mov     rdi, qword [rsp+0x10]
+	call    fputs
+	mov     rbx, qword [rsp+0x8]
+	mov     rdi, rbx
+	call    strlen
+	cmp     byte [rbx+rax-0x1], 10
+	jnz     loc_004
+	mov     rdi, rbx
+	call    free
 	jmp     loc_002
 
+; Filling space: 0x4
+; Filler type: Multi-byte NOP
+;       db 0x0F, 0x1F, 0x40, 0x00
+
+ALIGN   8
 loc_001:  lea     rdi, [rel str_LC1]
 	call    puts
-	mov     rdi, qword [rsp+0x10]
-loc_002:  call    free
+	mov     rdi, qword [rsp+0x8]
+	call    free
+loc_002:  add     rsp, 16
 	mov     eax, 1
-loc_003:  mov     rdx, qword [rsp+0x18]
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	sub     rdx, qword [fs:abs 0x28]
-	jnz     loc_005
-	add     rsp, 40
+	pop     rbx
 	ret
 
-loc_004:  mov     rcx, qword [rel stderr]
+; Filling space: 0x7
+; Filler type: Multi-byte NOP
+;       db 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00
+
+ALIGN   8
+loc_003:  mov     rcx, qword [rel stderr]
 	mov     edx, 50
 	mov     esi, 1
 	lea     rdi, [rel str_LC2]
 	call    fwrite
-	mov     rdi, qword [rsp+0x10]
+	mov     rdi, qword [rsp+0x8]
 	call    free
+	add     rsp, 16
 	xor     eax, eax
-	jmp     loc_003
+	pop     rbx
+	ret
 
-loc_005:
-; Note: Function does not end with ret or jmp
-	call    __stack_chk_fail
+; Filling space: 0x1
+; Filler type: NOP
+;       db 0x90
+
+ALIGN   8
+loc_004:  mov     rsi, qword [rel stdout]
+	mov     edi, 10
+	call    putc
+	mov     rbx, qword [rsp+0x8]
+	mov     rdi, rbx
+	call    free
+	jmp     loc_002
 
 SECTION .rodata.str1.1 align=1 noexec
 

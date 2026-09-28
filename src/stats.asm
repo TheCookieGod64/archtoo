@@ -14,7 +14,6 @@ extern printf
 extern fclose
 extern fgets
 extern fopen
-extern __stack_chk_fail
 extern strlen
 extern free
 extern strchr
@@ -23,31 +22,26 @@ extern run_cmd_capture
 SECTION .text   align=16 exec
 
 count_cmd_lines:
-	sub     rsp, 56
-	mov     qword [rsp+0x28], r12
-	mov     rsi, rsp
-	mov     qword [rsp+0x20], rbp
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	mov     rax, qword [fs:abs 0x28]
-	mov     qword [rsp+0x8], rax
-	xor     eax, eax
-	mov     qword [rsp], 0
+	push    r13
+	push    r12
+	push    rbp
+	push    rbx
+	sub     rsp, 24
+	mov     qword [rsp+0x8], 0
+	lea     rsi, [rsp+0x8]
 	call    run_cmd_capture
-	mov     r12, qword [rsp]
+	mov     r12, qword [rsp+0x8]
 	cmp     eax, 1
-	ja      loc_013
-	test    r12, r12
-	je      loc_012
-	cmp     byte [r12], 0
-	je      loc_012
-	mov     qword [rsp+0x30], r13
+	ja      loc_011
 	xor     ebp, ebp
-	mov     qword [rsp+0x18], rbx
+	test    r12, r12
+	jz      loc_007
+	cmp     byte [r12], 0
+	jz      loc_007
 	mov     rbx, r12
-; Filling space: 0x2
-; Filler type: NOP with prefixes
-;       db 0x66, 0x90
+; Filling space: 0x4
+; Filler type: Multi-byte NOP
+;       db 0x0F, 0x1F, 0x40, 0x00
 
 ALIGN   8
 loc_001:  mov     esi, 10
@@ -55,51 +49,42 @@ loc_001:  mov     esi, 10
 	call    strchr
 	mov     r13, rax
 	test    rax, rax
-	jz      loc_011
+	jz      loc_010
 	sub     rax, rbx
 	jz      loc_006
-loc_002:  xor     edx, edx
-; Filling space: 0x4
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x40, 0x00
-
-ALIGN   8
-loc_003:  movzx   ecx, byte [rbx+rdx]
+loc_002:  mov     rdx, rbx
+	add     rax, rbx
+loc_003:  movzx   ecx, byte [rdx]
 	mov     esi, ecx
 	and     esi, 0x0FFFFFFFB
 	cmp     sil, 9
 	jz      loc_004
 	cmp     cl, 32
-	jnz     loc_010
+	jnz     loc_009
 loc_004:  add     rdx, 1
-	cmp     rdx, rax
-	jc      loc_003
+	cmp     rax, rdx
+	jnz     loc_003
 loc_005:  test    r13, r13
 	jz      loc_007
-loc_006:  lea     rbx, [r13+0x1]
-	cmp     byte [r13+0x1], 0
+loc_006:  cmp     byte [r13+0x1], 0
+	lea     rbx, [r13+0x1]
 	jnz     loc_001
-loc_007:  mov     rbx, qword [rsp+0x18]
-	mov     r13, qword [rsp+0x30]
-loc_008:  mov     rdi, r12
+loc_007:  mov     rdi, r12
 	call    free
-loc_009:  mov     rax, qword [rsp+0x8]
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	sub     rax, qword [fs:abs 0x28]
-	jnz     loc_014
+loc_008:  add     rsp, 24
 	mov     rax, rbp
-	mov     r12, qword [rsp+0x28]
-	mov     rbp, qword [rsp+0x20]
-	add     rsp, 56
+	pop     rbx
+	pop     rbp
+	pop     r12
+	pop     r13
 	ret
 
-; Filling space: 0x7
+; Filling space: 0x6
 ; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00
+;       db 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00
 
 ALIGN   8
-loc_010:  add     rbp, 1
+loc_009:  add     rbp, 1
 	jmp     loc_005
 
 ; Filling space: 0x2
@@ -107,134 +92,118 @@ loc_010:  add     rbp, 1
 ;       db 0x66, 0x90
 
 ALIGN   8
-loc_011:  mov     rdi, rbx
+loc_010:  mov     rdi, rbx
 	call    strlen
 	test    rax, rax
-	jne     loc_002
+	jnz     loc_002
 	jmp     loc_007
 
-loc_012:  xor     ebp, ebp
-	jmp     loc_008
-
-loc_013:  mov     rdi, r12
+loc_011:
+	mov     rdi, r12
 	mov     rbp, -1
 	call    free
-	jmp     loc_009
+	jmp     loc_008
 
-loc_014:
-	mov     qword [rsp+0x18], rbx
-	mov     qword [rsp+0x30], r13
-	call    __stack_chk_fail
+cmd_stats_v2:; Function begin
+	push    r15
+	lea     rdi, [rel str_LC0]
+	push    r14
+	push    r13
+	push    r12
+	push    rbp
+	push    rbx
+	sub     rsp, 280
+	call    count_cmd_lines
+	lea     rdi, [rel str_LC1]
+	mov     r15, rax
+	call    count_cmd_lines
+	lea     rdi, [rel str_LC2]
+	mov     r14, rax
+	call    count_cmd_lines
+	lea     rdi, [rel str_LC3]
+	mov     qword [rsp], rax
+	mov     rbx, rax
+	call    count_cmd_lines
+	cmp     r15, -1
+	sete    dl
+	cmp     r14, -1
+	sete    cl
+	or      dl, cl
+	jne     loc_019
+	cmp     rbx, -1
+	je      loc_019
+	xor     edx, edx
+	test    rax, rax
+	lea     rsi, [rel str_LC5]
+	cmovns  rdx, rax
+	lea     rdi, [rel str_LC6]
+	xor     ebx, ebx
+	mov     qword [rsp+0x8], rdx
+	call    fopen
+	mov     r12, rax
+	test    rax, rax
+	jz      loc_017
+	mov     r13, qword 0x0FFFFFFF7FFFFFBFE
+	lea     rbp, [rsp+0x10]
+; Filling space: 0x8
+; Filler type: Multi-byte NOP
+;       db 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00
+
+ALIGN   16
+loc_012:  mov     rdx, r12
+	mov     esi, 256
+	mov     rdi, rbp
+	call    fgets
+	test    rax, rax
+	jz      loc_016
+	movzx   ecx, byte [rsp+0x10]
+	cmp     cl, 32
+	jz      loc_013
+	cmp     cl, 9
+	jnz     loc_015
+loc_013:  mov     rax, rbp
 ; Filling space: 0x9
 ; Filler type: Multi-byte NOP
 ;       db 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00
 ;       db 0x00
 
 ALIGN   16
-
-cmd_stats_v2:
-	sub     rsp, 344
-	mov     qword [rsp+0x140], r13
-	mov     qword [rsp+0x148], r14
-	mov     qword [rsp+0x150], r15
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	mov     rdi, qword [fs:abs 0x28]
-	mov     qword [rsp+0x118], rdi
-	lea     rdi, [rel str_LC0]
-	call    count_cmd_lines
-	lea     rdi, [rel str_LC1]
-	mov     r14, rax
-	call    count_cmd_lines
-	lea     rdi, [rel str_LC2]
-	mov     r13, rax
-	call    count_cmd_lines
-	lea     rdi, [rel str_LC3]
-	mov     r15, rax
-	call    count_cmd_lines
-	cmp     r14, -1
-	mov     rdx, rax
-	sete    al
-	cmp     r13, -1
-	sete    cl
-	or      al, cl
-	jne     loc_022
-	cmp     r15, -1
-	je      loc_022
-	xor     eax, eax
-	test    rdx, rdx
-	lea     rsi, [rel str_LC5]
-	mov     qword [rsp+0x130], rbp
-	cmovns  rax, rdx
-	lea     rdi, [rel str_LC6]
-	mov     qword [rsp+0x128], rbx
-	mov     qword [rsp+0x8], rax
-	call    fopen
-	mov     rbp, rax
-	test    rax, rax
-	je      loc_024
-	mov     qword [rsp+0x138], r12
-	xor     ebx, ebx
-	mov     r12, qword 0x0FFFFFFF7FFFFFBFE
-; Filling space: 0x3
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x00
-
-ALIGN   8
-loc_015:  mov     rdx, rbp
-	mov     esi, 256
-	lea     rdi, [rsp+0x10]
-	call    fgets
-	test    rax, rax
-	jz      loc_019
-	movzx   ecx, byte [rsp+0x10]
-	cmp     cl, 9
-	jz      loc_016
-	cmp     cl, 32
-	jnz     loc_018
-loc_016:  lea     rax, [rsp+0x10]
-; Filling space: 0x5
-; Filler type: Multi-byte NOP
-;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
-
-ALIGN   8
-loc_017:  movzx   ecx, byte [rax+0x1]
+loc_014:  movzx   ecx, byte [rax+0x1]
 	add     rax, 1
 	cmp     cl, 32
-	jz      loc_017
+	jz      loc_014
 	cmp     cl, 9
-	jz      loc_017
-loc_018:  mov     rax, r12
+	jz      loc_014
+loc_015:  mov     rax, r13
 	mov     edx, 1
 	sar     rax, cl
 	and     eax, 0x01
 	cmp     cl, 36
 	cmovnc  rax, rdx
 	add     rbx, rax
-	jmp     loc_015
+	jmp     loc_012
 
 ; Filling space: 0x4
 ; Filler type: Multi-byte NOP
 ;       db 0x0F, 0x1F, 0x40, 0x00
 
 ALIGN   8
-loc_019:  mov     rdi, rbp
+loc_016:  mov     rdi, r12
 	call    fclose
-	mov     r12, qword [rsp+0x138]
-loc_020:  lea     rdx, [rel str_LC7]
+loc_017:  lea     rdx, [rel str_LC7]
 	lea     rsi, [rel str_LC8]
 	xor     eax, eax
 	lea     rdi, [rel str_LC9]
 	call    printf
-	mov     rsi, r14
+	mov     rsi, r15
 	lea     rdi, [rel str_LC10]
 	xor     eax, eax
 	call    printf
-	mov     rsi, r15
+	mov     rsi, qword [rsp]
 	lea     rdi, [rel str_LC11]
 	xor     eax, eax
 	call    printf
-	mov     rsi, r13
+	mov     rsi, r14
 	lea     rdi, [rel str_LC12]
 	xor     eax, eax
 	call    printf
@@ -246,18 +215,14 @@ loc_020:  lea     rdx, [rel str_LC7]
 	lea     rdi, [rel str_LC14]
 	xor     eax, eax
 	call    printf
-	mov     rbx, qword [rsp+0x128]
 	mov     eax, 1
-	mov     rbp, qword [rsp+0x130]
-loc_021:  mov     rdx, qword [rsp+0x118]
-; Note: Address is not rip-relative
-; Note: Absolute memory address without relocation
-	sub     rdx, qword [fs:abs 0x28]
-	jnz     loc_023
-	mov     r13, qword [rsp+0x140]
-	mov     r14, qword [rsp+0x148]
-	mov     r15, qword [rsp+0x150]
-	add     rsp, 344
+loc_018:  add     rsp, 280
+	pop     rbx
+	pop     rbp
+	pop     r12
+	pop     r13
+	pop     r14
+	pop     r15
 	ret
 
 ; Filling space: 0x5
@@ -265,20 +230,13 @@ loc_021:  mov     rdx, qword [rsp+0x118]
 ;       db 0x0F, 0x1F, 0x44, 0x00, 0x00
 
 ALIGN   8
-loc_022:  mov     rcx, qword [rel stderr]
+loc_019:  mov     rcx, qword [rel stderr]
 	mov     edx, 53
 	mov     esi, 1
 	lea     rdi, [rel str_LC4]
 	call    fwrite
 	xor     eax, eax
-	jmp     loc_021
-
-loc_023:  mov     qword [rsp+0x128], rbx
-	mov     qword [rsp+0x130], rbp
-	mov     qword [rsp+0x138], r12
-	call    __stack_chk_fail
-loc_024:  xor     ebx, ebx
-	jmp     loc_020
+	jmp     loc_018
 
 SECTION .rodata.str1.1 align=1 noexec
 
@@ -307,7 +265,7 @@ str_LC6:
 	db 0x65, 0x2F, 0x77, 0x6F, 0x72, 0x6C, 0x64, 0x00
 
 str_LC7:
-	db 0x33, 0x2E, 0x32, 0x2E, 0x30, 0x00
+	db 0x33, 0x2E, 0x32, 0x2E, 0x31, 0x00
 
 str_LC8:
 	db 0x41, 0x72, 0x63, 0x68, 0x74, 0x6F, 0x6F, 0x20

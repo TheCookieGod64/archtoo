@@ -1,5 +1,5 @@
 # Keep in sync with headers/archtoo.inc
-VERSION     = 3.1.0
+VERSION     = 3.2.1
 
 NASM        ?= nasm
 NASFLAGS    = -f elf64 -Iheaders/
